@@ -16,6 +16,7 @@ const PAGINAS = {
     'admin-vehiculos.html': 'pages/admin/admin-vehiculos.html',
     'admin.html': 'pages/admin/admin.html',
     'buscar.html': 'pages/vehiculos/buscar.html',
+    'como-funciona.html': 'pages/info/como-funciona.html',
     'contacto.html': 'pages/info/contacto.html',
     'conversacion.html': 'pages/operaciones/conversacion.html',
     'cuenta.html': 'pages/auth/cuenta.html',
