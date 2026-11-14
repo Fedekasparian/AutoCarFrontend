@@ -25,13 +25,11 @@
 
   <header class="marca-nav"><a class="marca" href="../../index.html" aria-label="AutoCar, inicio"><span class="marca__simbolo" aria-hidden="true"></span>AutoCar</a><nav aria-label="Navegación principal">
     <a class="nav-desktop" href="../../pages/info/home.html">Explorar autos</a>
-    <a href="../../pages/info/planes.html">Planes</a>
     <a class="nav-desktop" href="../../pages/talleres/talleres-adherirse.html">Soy mecánico</a>
     <a class="nav-ingreso" href="../../pages/auth/login.html">Ingresar</a>
     <a class="boton" href="../../pages/auth/registro.html">Crear cuenta</a>
     </nav><details class="menu-publico"><summary>Menú</summary><nav aria-label="Navegación móvil">
     <a class="nav-desktop" href="../../pages/info/home.html">Explorar autos</a>
-    <a href="../../pages/info/planes.html">Planes</a>
     <a class="nav-desktop" href="../../pages/talleres/talleres-adherirse.html">Soy mecánico</a>
     <a class="nav-ingreso" href="../../pages/auth/login.html">Ingresar</a>
     <a class="boton" href="../../pages/auth/registro.html">Crear cuenta</a>
@@ -88,8 +86,8 @@
       </div>
       <div class="campo">
         <label class="campo__etiqueta" for="precio_inspeccion">Precio de la inspección ($)</label>
-        <input class="campo__input" id="precio_inspeccion" name="precio_inspeccion" type="number" min="1000" max="10000000" step="1000" inputmode="numeric" placeholder="130000" required aria-describedby="precio_inspeccion-ayuda precio_inspeccion-error">
-        <span class="campo__ayuda" id="precio_inspeccion-ayuda">Lo que paga el comprador. AutoCar se queda con el 23 % y el resto es para el taller.</span>
+        <input class="campo__input" id="precio_inspeccion" name="precio_inspeccion" type="number" min="1000" max="10000000" step="1000" inputmode="numeric" required aria-describedby="precio_inspeccion-ayuda precio_inspeccion-error">
+        <span class="campo__ayuda" id="precio_inspeccion-ayuda">Lo que paga el comprador. AutoCar se queda con una comisión y el resto es para el taller.</span>
         <span class="campo__error" id="precio_inspeccion-error"></span>
       </div>
       <fieldset class="pila" id="datos-cuenta">
@@ -113,7 +111,7 @@
         </div>
       </fieldset>
       <div class="campo">
-        <label class="casilla"><input type="checkbox" id="condiciones" name="condiciones" required aria-describedby="condiciones-error"><span>Acepto las condiciones de adhesión: descuentos por plan y uso del checklist de AutoCar.</span></label>
+        <label class="casilla"><input type="checkbox" id="condiciones" name="condiciones" required aria-describedby="condiciones-error"><span>Acepto las condiciones de adhesión: la comisión de AutoCar sobre cada inspección y el uso del checklist de AutoCar.</span></label>
         <span class="campo__error" id="condiciones-error"></span>
       </div>
       <button class="boton" type="submit">Enviar solicitud</button>
@@ -121,7 +119,7 @@
     </form>
   </main><footer class="pie-marca"><div class="contenedor">
     <div class="pie-marca__fila">
-<a class="marca" href="../../index.html" aria-label="AutoCar, inicio"><span class="marca__simbolo" aria-hidden="true"></span>AutoCar</a><nav aria-label="Información"><a href="../../pages/info/planes.html">Planes</a><a href="../../pages/talleres/talleres-adherirse.html">Sumá tu taller</a><a href="../../pages/info/contacto.html">Contacto</a><a href="../../pages/info/legales.html">Legales y privacidad</a></nav>
+<a class="marca" href="../../index.html" aria-label="AutoCar, inicio"><span class="marca__simbolo" aria-hidden="true"></span>AutoCar</a><nav aria-label="Información"><a href="../../pages/talleres/talleres-adherirse.html">Sumá tu taller</a><a href="../../pages/info/contacto.html">Contacto</a><a href="../../pages/info/legales.html">Legales y privacidad</a></nav>
 </div>
     <div class="pie-marca__legal">
 <p>© AutoCar 2026</p>

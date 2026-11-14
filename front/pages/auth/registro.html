@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Crear cuenta - AutoCar</title>
-  <meta name="description" content="Creá tu cuenta de AutoCar para publicar, guardar favoritos y proponer canjes.">
+  <meta name="description" content="Creá tu cuenta de AutoCar para publicar, guardar favoritos y pedir un mecánico.">
   <link rel="stylesheet" href="../../styles/estilos.css">
   <link rel="stylesheet" href="../../styles/componentes.css">
   <link rel="stylesheet" href="../../styles/pantallas.css">
@@ -57,6 +57,10 @@
         <label class="campo__etiqueta" for="password_confirm">Repetí la contraseña</label>
         <input class="campo__input" id="password_confirm" name="password_confirm" type="password" autocomplete="new-password" maxlength="72" required aria-describedby="password_confirm-error">
         <span class="campo__error" id="password_confirm-error"></span>
+      </div>
+      <div class="campo">
+        <label class="casilla"><input type="checkbox" id="acepta_privacidad" name="acepta_privacidad" required aria-describedby="acepta_privacidad-error"><span>Leí y acepto la <a href="../info/legales.html#privacidad">política de privacidad</a>.</span></label>
+        <span class="campo__error" id="acepta_privacidad-error"></span>
       </div>
       <button class="boton boton--bloque" type="submit">Crear cuenta</button>
     </form>

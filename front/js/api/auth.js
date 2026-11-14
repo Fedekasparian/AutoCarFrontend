@@ -21,3 +21,9 @@ export const subirFoto = (formulario) => post('/api/me/foto', formulario);
 
 // → null (204)
 export const borrarFoto = () => del('/api/me/foto');
+
+// "¿Para qué buscás el auto?" (solo cuentas personales). → {preferencias (o null), usos, tipos}
+export const preferencias = () => get('/api/me/preferencias');
+
+// datos: {uso, tipo?, presupuesto?, localidad?, acepta_privacidad?} → {preferencias}
+export const guardarPreferencias = (datos) => put('/api/me/preferencias', datos);

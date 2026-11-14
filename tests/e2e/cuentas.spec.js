@@ -1,6 +1,6 @@
 // Registro, ingreso y salida desde el navegador. Crea una cuenta nueva en cada corrida: solo dev o local.
 import { test, expect } from '@playwright/test';
-import { pagina, soloFueraDeProduccion, emailNuevo, PASSWORD } from './entorno.js';
+import { pagina, soloFueraDeProduccion, emailNuevo, PASSWORD, contestarPreferencias } from './entorno.js';
 
 soloFueraDeProduccion();
 
@@ -13,7 +13,9 @@ test('registrarse inicia sesión y deja la cookie del propio sitio', async ({ pa
     await page.fill('#email', email);
     await page.fill('#password', PASSWORD);
     await page.fill('#password_confirm', PASSWORD);
+    await page.check('#acepta_privacidad');
     await page.click('#form-registro button[type="submit"]');
+    await contestarPreferencias(page);
 
     await expect(page).toHaveURL(/home\.html/);
     expect((await sesionGuardada(page)).usuario.email).toBe(email);
@@ -27,7 +29,7 @@ test('registrarse inicia sesión y deja la cookie del propio sitio', async ({ pa
 test('ingresar con una cuenta existente y salir', async ({ page }) => {
     const email = emailNuevo();
     const alta = await page.request.post('/api/registro', {
-        data: { nombre: 'Prueba E2E', email, password: PASSWORD, password_confirm: PASSWORD },
+        data: { nombre: 'Prueba E2E', email, password: PASSWORD, password_confirm: PASSWORD, acepta_privacidad: true },
     });
     expect(alta.status()).toBe(201);
 
@@ -35,6 +37,8 @@ test('ingresar con una cuenta existente y salir', async ({ page }) => {
     await page.fill('#email', email);
     await page.fill('#password', PASSWORD);
     await page.click('#form-login button[type="submit"]');
+    // Es la primera vez que entra: antes de seguir contesta la pregunta
+    await contestarPreferencias(page);
     await expect(page).toHaveURL(/home\.html/);
 
     await page.goto(pagina('pages/auth/cuenta.html'));

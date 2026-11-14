@@ -69,7 +69,6 @@ function mostrar(v) {
         const acciones = document.querySelector('.detalle__acciones');
         acciones.prepend(botonConsultar);
         acciones.after(avisoConsultar);
-        $('vehiculo-canje').hidden = false;
         mostrarFavorito();
         barraDeAccion(v);
     }

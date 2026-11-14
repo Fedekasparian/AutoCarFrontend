@@ -2,6 +2,7 @@
 import * as auth from '../api/auth.js';
 import * as favoritos from '../api/favoritos.js';
 import * as publicaciones from '../api/publicaciones.js';
+import * as formato from '../servicios/formato.js';
 import * as formularios from '../servicios/formularios.js';
 import * as vistas from '../servicios/vistas.js';
 import { achicar } from '../servicios/imagenes.js';
@@ -20,21 +21,31 @@ function mostrar(usuario) {
     document.getElementById('enlace-taller').hidden = usuario.rol !== 'mecanico';
     // El equipo y los talleres no compran ni venden: sin favoritos, publicaciones ni inspecciones pedidas
     const compra = usuario.rol === 'usuario';
-    ['favoritos.html', 'mis-publicaciones.html', 'mis-inspecciones.html'].forEach((pagina) => {
+    ['favoritos.html', 'mis-publicaciones.html', 'mis-inspecciones.html', 'preferencias.html?volver=cuenta.html'].forEach((pagina) => {
         const fila = document.querySelector(`.lista-filas a[href$="${pagina}"]`)?.closest('li');
         if (fila) fila.hidden = !compra;
     });
-    // Los planes no aplican para el admin: tiene siempre el mejor incluido
-    const plan = sesion.planIncluido();
-    if (plan) {
-        document.getElementById('plan-nombre').textContent = `Plan ${plan.nombre} · ${plan.nivel}`;
-        document.getElementById('plan-meta').textContent = 'Incluido por ser administrador';
-    }
+    // Lo que contestó en "¿Para qué buscás el auto?" (las opciones las manda el back)
+    if (compra) mostrarPreferencias();
     const nombre = document.getElementById('nombre');
     if (nombre && !nombre.matches(':focus')) nombre.value = usuario.nombre;
     // Foto de perfil (o la inicial) y "Quitar foto" solo si tiene una
     document.getElementById('usuario-avatar').replaceChildren(vistas.avatar(usuario, 'avatar--grande'));
     quitarFoto.hidden = !usuario.foto;
+}
+
+async function mostrarPreferencias() {
+    try {
+        const { preferencias, usos, tipos } = await auth.preferencias();
+        if (!preferencias) return;
+        const partes = [usos[preferencias.uso]];
+        if (preferencias.tipo) partes.push(tipos[preferencias.tipo]);
+        if (preferencias.presupuesto) partes.push(`hasta ${formato.precio(preferencias.presupuesto)}`);
+        if (preferencias.localidad) partes.push(preferencias.localidad);
+        document.getElementById('cuenta-preferencias').textContent = partes.join(' · ');
+    } catch {
+        // Sin respuesta queda el texto de siempre.
+    }
 }
 
 // Guarda lo que devolvió el back (nombre o foto nuevos) y lo muestra

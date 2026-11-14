@@ -70,6 +70,8 @@ function mostrar(m) {
         tarjeta(u.nuevos_30d, 'Nuevos (30 días)'),
         tarjeta(u.bajas, 'Dados de baja'));
     llenar('barras-roles', ...barras(Object.entries(u.por_rol).map(([rol, cantidad]) => [formato.rol(rol), cantidad])));
+    // Respuestas a "¿Para qué buscás el auto?" (el back manda el texto de cada opción)
+    llenar('barras-usos', ...barras(Object.entries(m.compradores_por_uso || {})));
 
     const p = m.publicaciones;
     const pesos = (v) => formato.precio(v);
@@ -95,7 +97,7 @@ function mostrar(m) {
         tarjeta(c.conversaciones_30d, 'Nuevas (30 días)'),
         tarjeta(c.mensajes_30d, 'Mensajes (30 días)'));
 
-    // Lo que dejan las inspecciones (23 % para AutoCar, un tercio de eso al fondo de garantía). Pago simulado.
+    // Lo que dejan las inspecciones (la comisión de AutoCar y la parte al fondo son parámetros). Pago simulado.
     const g = m.ganancias;
     const firmadas = g.inspecciones?.firmada || 0;
     llenar('tarjetas-ganancias',

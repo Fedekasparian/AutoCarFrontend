@@ -23,16 +23,6 @@ test.describe('@humo', () => {
         await expect(page).toHaveTitle(/AutoCar/i);
     });
 
-    // Un formulario de maqueta no manda nada (no hay ruta en el back): avisa y se queda en la página.
-    // (Contacto ya está conectado a la API: se prueba con "Cambiar de nivel" del plan, que sigue siendo maqueta.)
-    test('un formulario de maqueta avisa en lugar de dar 404', async ({ page }) => {
-        await page.goto(pagina('pages/info/plan.html'));
-        const formulario = page.locator('form[data-proximamente]');
-        await formulario.locator('[type="submit"]').click();
-        await expect(formulario.locator('.formulario__alerta')).toContainText('todavía no está disponible');
-        await expect(page).toHaveURL(/plan\.html$/);
-    });
-
     test('el listado de vehículos se muestra', async ({ page }) => {
         await page.goto(pagina('pages/vehiculos/buscar.html'));
         // Con o sin resultados, el total se completa cuando responde la API.

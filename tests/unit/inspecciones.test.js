@@ -23,13 +23,26 @@ test('el checklist tiene los 10 códigos del back, en el mismo orden', () => {
     ]);
 });
 
-test('desglose: con $ 130.000 son 100.000 para el mecánico y 30.000 para AutoCar (10.000 al fondo)', () => {
-    assert.deepEqual(insp.desglose(130000),
-        { precio: 130000, monto_mecanico: 100000, monto_autocar: 30000, monto_fondo: 10000 });
+const PARAMETROS = { comision_autocar: 23, parte_fondo: 33.3333 };
+
+test('desglose: con $ 100.000 son 77.000 para el mecánico y 23.000 para AutoCar (8.000 al fondo)', () => {
+    assert.deepEqual(insp.desglose(100000, PARAMETROS),
+        { precio: 100000, monto_mecanico: 77000, monto_autocar: 23000, monto_fondo: 8000 });
+});
+
+test('desglose: si el admin cambia la comisión, cambia el desglose', () => {
+    const d = insp.desglose(100000, { comision_autocar: 20, parte_fondo: 50 });
+    assert.equal(d.monto_mecanico, 80000);
+    assert.equal(d.monto_fondo, 10000);
+});
+
+test('textoReclamo usa los días y el tope de la inspección', () => {
+    assert.match(insp.textoReclamo(10, 2), /10 días/);
+    assert.match(insp.textoReclamo(10, 2), /2 veces/);
 });
 
 test('desglose: la parte de AutoCar se redondea a miles y los montos suman el precio', () => {
-    const d = insp.desglose(95000); // 23 % = 21.850 → 22.000
+    const d = insp.desglose(95000, PARAMETROS); // 23 % = 21.850 → 22.000
     assert.equal(d.monto_autocar, 22000);
     assert.equal(d.monto_fondo, 7000);
     assert.equal(d.monto_mecanico + d.monto_autocar, 95000);
@@ -141,8 +154,8 @@ test('el alcance cubre los 10 ítems del checklist y dice plazo y tope del recla
     assert.equal(cubre.length, insp.CHECKLIST.length);
     assert.match(cubre[0], /^Carrocería: /);
     assert.ok(insp.ALCANCE.noCubre.length >= 3);
-    assert.match(insp.ALCANCE.procede, /15 días/);
-    assert.match(insp.ALCANCE.procede, /3 veces el precio/);
+    assert.match(insp.textoReclamo(15, 3), /15 días/);
+    assert.match(insp.textoReclamo(15, 3), /3 veces el precio/);
 });
 
 test('reclamosProcedentes se muestra también para los nuevos', () => {

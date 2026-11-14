@@ -37,7 +37,6 @@ test('permisos: puede y vePanel según lo que manda el back', () => {
     sesion.guardar({ csrf: 'y', expira_en: 60, usuario: comun });
     assert.equal(sesion.esAdmin(), false);
     assert.equal(sesion.vePanel(), false);
-    assert.equal(sesion.planIncluido(), null);
 });
 
 test('actualizar renueva usuario y csrf, y mantiene el csrf si no viene', () => {
