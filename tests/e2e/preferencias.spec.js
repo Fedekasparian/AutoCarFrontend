@@ -41,7 +41,7 @@ test('una cuenta nueva no puede seguir hasta contestar, y después lo ve en Mi c
     await page.selectOption('#tipo', 'pickup');
     await page.click('#form-preferencias button[type="submit"]');
     // Vuelve a la página que quería ver
-    await expect(page).toHaveURL(/favoritos\.html/);
+    await expect(page).toHaveURL(/vehiculos\/favoritos\.html/); // no alcanza con ?volver=favoritos.html
 
     await page.goto(pagina('pages/auth/cuenta.html'));
     await expect(page.locator('#cuenta-preferencias')).toContainText('Para trabajar');
