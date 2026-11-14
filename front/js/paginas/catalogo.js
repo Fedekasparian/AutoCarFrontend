@@ -4,7 +4,9 @@
 import * as vehiculos from '../api/vehiculos.js';
 import * as corazones from '../servicios/corazones.js';
 import * as formato from '../servicios/formato.js';
+import * as sesion from '../servicios/sesion.js';
 import * as vistas from '../servicios/vistas.js';
+import { ruta } from '../servicios/rutas.js';
 
 const FILTROS = ['q', 'marca', 'combustible', 'precio_max', 'page'];
 
@@ -137,8 +139,18 @@ async function cargarListado() {
     }
 }
 
+// Explorar: si contestó su presupuesto en "¿Para qué buscás el auto?", un atajo a los autos que le alcanzan
+function atajoPresupuesto() {
+    const presupuesto = sesion.usuario()?.preferencias?.presupuesto;
+    const intro = document.querySelector('.catalogo-intro > div');
+    if (!presupuesto || !intro || filtros.precio_max) return;
+    intro.append(el('a', { class: 'enlace-flecha', href: ruta(`buscar.html?precio_max=${presupuesto}`) },
+        `Autos hasta ${formato.precio(presupuesto)} para vos`));
+}
+
 completarFormularios();
 aplicarAlElegir();
+atajoPresupuesto();
 abrirPanelEnEscritorio();
 chipsDeFiltros();
 cargarMarcas();

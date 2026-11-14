@@ -28,4 +28,13 @@ test.describe('@humo', () => {
         // Con o sin resultados, el total se completa cuando responde la API.
         await expect(page.locator('#resultados-total')).not.toBeEmpty();
     });
+
+    // Los números de "Cómo funciona" salen de los parámetros (GET /api/parametros), no están fijos en la página
+    test('cómo funciona muestra los números de los parámetros', async ({ page }) => {
+        const p = await (await page.request.get('/api/parametros')).json();
+        await page.goto(pagina('pages/info/como-funciona.html'));
+        const dias = page.locator('#comprar [data-parametro="dias_reclamo"]');
+        await expect(dias).toHaveText(String(p.dias_reclamo));
+        await expect(page.locator('#mecanicos [data-parametro="comision_autocar"]')).toHaveText(String(p.comision_autocar));
+    });
 });
