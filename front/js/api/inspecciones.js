@@ -8,7 +8,8 @@
 //  pago: retenido|liberado|reembolsado, conclusion, resumen, firmado_por, taller_firma, firmada_at, huella,
 //  created_at, comprador: {id, nombre}, mecanico: {id, nombre, taller, direccion, localidad},
 //  reclamo: null | {id, estado: abierto|procede|no_procede, item_codigo, descripcion, compensacion, respuesta, ...},
-//  reclamo_hasta, puede_reclamar, items: [{codigo, resultado, nota}]}   (items sólo en el detalle)
+//  reclamo_hasta, puede_reclamar, patente, patente_foto (ruta de la foto de la chapa o null),
+//  items: [{codigo, resultado, nota}]}   (items sólo en el detalle)
 import { get, post, put, patch } from './cliente.js';
 
 const id = (n) => encodeURIComponent(n);
@@ -63,6 +64,13 @@ export const guardarInforme = (n, informe) => put(`/api/mecanico/inspecciones/${
 
 // Firma lo guardado: exige los 10 ítems y la conclusión. Después, cualquier cambio da 409. → {inspeccion}
 export const firmar = (n) => post(`/api/mecanico/inspecciones/${id(n)}/firma`, {});
+
+// Foto de la chapa. formulario: FormData con el campo "foto". → {inspeccion}
+export const subirFotoPatente = (n, formulario) => post(`/api/mecanico/inspecciones/${id(n)}/patente-foto`, formulario);
+
+// Historial de un auto por su patente (con sesión). → {patente, items: [{firmada_at, titulo, anio, kilometraje,
+// conclusion, observaciones, firmado_por, taller, reclamo_procedente}]}
+export const historial = (patente) => get('/api/historial-patente', { patente });
 
 // ---------- "Adherí tu taller" ----------
 // La solicitud llega así: {usuario_id, responsable, email, rol, taller, cuit, direccion, localidad, telefono, horarios,

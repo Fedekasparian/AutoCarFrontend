@@ -22,6 +22,7 @@ const PAGINAS = {
     'cuenta.html': 'pages/auth/cuenta.html',
     'favoritos.html': 'pages/vehiculos/favoritos.html',
     'guia.html': 'pages/info/guia.html',
+    'historial.html': 'pages/talleres/historial.html',
     'home.html': 'pages/info/home.html',
     'legales.html': 'pages/info/legales.html',
     'login.html': 'pages/auth/login.html',

@@ -86,7 +86,17 @@ test('cuerpoInforme manda sólo los ítems con resultado y recorta los textos', 
         items: [{ codigo: 'motor', resultado: 'falla', nota: 'pierde aceite' }],
         conclusion: null,
         resumen: 'ok',
+        patente: '',
     });
+    assert.equal(insp.cuerpoInforme({ items, conclusion: '', patente: ' ab 123 cd ' }).patente, 'ab 123 cd');
+});
+
+test('patente: igual que Inspecciones\Patente, vieja o Mercosur, sin espacios ni guiones', () => {
+    assert.equal(insp.normalizarPatente(' ab 123 cd '), 'AB123CD');
+    assert.equal(insp.normalizarPatente('abc-123'), 'ABC123');
+    ['', 'A123BCD', 'ABCD123', 'patente', null].forEach((mala) => assert.equal(insp.normalizarPatente(mala), null));
+    assert.equal(insp.formatoPatente('AB123CD'), 'AB 123 CD');
+    assert.equal(insp.formatoPatente('ABC123'), 'ABC 123');
 });
 
 // ---------- Rutas de la API ----------

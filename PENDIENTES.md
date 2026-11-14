@@ -92,6 +92,22 @@ Lo que pidió el profe el 13/11 ("variables y controles"). Todas las decisiones 
 - [x] **"¿Para qué buscás el auto?"** (personal, familia, trabajo, aplicación; sin revendedor), obligatoria para las cuentas personales la primera vez que entran; tipo, presupuesto y zona opcionales. Se cambia desde Mi cuenta. En Métricas: "Para qué buscan el auto".
 - [x] **Política de privacidad**: se acepta al registrarse (obligatorio); las cuentas viejas la aceptan junto con la pregunta de arriba. Texto en Legales.
 - [x] **Maquetas afuera**: canje, planes, mapa y verificar vehículo.
+- [x] **Cómo funciona** (`como-funciona.html`, front #80): comprar, vender y ser mecánico, con los números de los parámetros. El detalle del auto muestra "Acepta canje" y Explorar ofrece "Autos hasta $X para vos" si el usuario dio su presupuesto.
+- [x] **Patente e historial** (back migración `022`): el mecánico carga la patente y una foto de la chapa en el checklist; sin las dos no se firma y la patente entra en la huella. `historial.html` busca las inspecciones firmadas de una patente (con sesión, sin datos del comprador ni del dueño). Las firmadas de antes tienen patentes inventadas (`AD000DM`…, la misma por aviso).
+
+### Falta para el 18/11
+
+- [ ] **Auto vendido**: turno que confirma el vendedor y se cae si el aviso pasa a pausado o vendido; si el mecánico ya fue, se firma igual y el comprador original recibe un crédito del 30 %; cupón solo con turno confirmado y aviso vendido dentro de las 48 h.
+- [ ] **Pagos al mecánico** (simulados): a los 10 días todo menos la franquicia (40 % de lo que cobra) y a los 15 la franquicia si no hubo reclamo. Franquicia, crédito y días como parámetros.
+- [ ] **Corregir el doc de ideas** con `ideas-14-11-2026/decisiones-14-11-2026.md`.
+- [ ] **Pase a main**: correr `021` y `022` en Neon main y mergear dev → main en los dos repos.
+
+### Del 21/11 al 30/11
+
+- [ ] Foto obligatoria al marcar una falla y auditoría al azar en el ranking.
+- [ ] Recomendar autos según "¿Para qué buscás el auto?" (las publicaciones no tienen tipo de auto).
+- [ ] Mercado Pago sandbox y suscripción del vendedor.
+- [ ] E2E automático en cada PR y secretos `E2E_ADMIN_*` / `E2E_CHAT_*` en GitHub.
 
 ## Suscripciones y pagos (no hay nada hecho)
 
