@@ -109,7 +109,8 @@ export function etiquetaEstado(i) {
 }
 
 // Qué revisa el mecánico y qué queda afuera (insp.ALCANCE), como <details> plegable.
-export function bloqueAlcance(abierto = false) {
+// plazo: {dias, tope} para reclamar (los de la inspección, o los parámetros de hoy si todavía no se pidió).
+export function bloqueAlcance(abierto, plazo) {
     const lista = (items) => el('ul', { class: 'pila' }, ...items.map((t) => el('li', {}, t)));
     return el('details', { class: 'alcance', open: abierto },
         el('summary', {}, 'Qué revisa el mecánico y qué queda afuera'),
@@ -117,5 +118,5 @@ export function bloqueAlcance(abierto = false) {
         lista(insp.ALCANCE.cubre()),
         el('h3', { class: 'alcance__titulo' }, 'No cubre'),
         lista(insp.ALCANCE.noCubre),
-        el('p', { class: 'campo__ayuda' }, insp.ALCANCE.procede));
+        el('p', { class: 'campo__ayuda' }, insp.textoReclamo(plazo.dias, plazo.tope)));
 }

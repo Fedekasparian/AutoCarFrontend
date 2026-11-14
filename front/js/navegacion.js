@@ -15,6 +15,16 @@
     } catch {
         // Sin almacenamiento: no hay sesión que mirar.
     }
+    // 0.a Una cuenta personal que todavía no contestó "¿Para qué buscás el auto?" (o no aceptó la política de
+    //     privacidad) no puede seguir: va a preferencias.html y después vuelve a donde estaba. Así todas quedan
+    //     clasificadas. Legales se puede leer igual (ahí está la política).
+    const pagina = window.location.pathname.split('/').pop();
+    if (usuario && (usuario.preferencias_pendientes || usuario.privacidad_pendiente)
+        && !['preferencias.html', 'legales.html', 'login.html'].includes(pagina)) {
+        const volver = encodeURIComponent(pagina + window.location.search);
+        window.location.replace(new URL(`../pages/auth/preferencias.html?volver=${volver}`, document.currentScript.src).href);
+        return;
+    }
     if (usuario) {
         const [ruta, etiqueta] = usuario.rol === 'admin'
             ? ['../pages/admin/admin-moderar.html', 'AutoCar, moderar publicaciones']

@@ -5,7 +5,7 @@
 //
 // Variables: E2E_ADMIN_EMAIL / E2E_ADMIN_PASSWORD (alguien con usuarios.editar; sin ellas se saltea la aprobación)
 import { test, expect } from '@playwright/test';
-import { pagina, soloFueraDeProduccion, emailNuevo, PASSWORD } from './entorno.js';
+import { pagina, soloFueraDeProduccion, emailNuevo, PASSWORD, contestarPreferencias } from './entorno.js';
 
 soloFueraDeProduccion();
 
@@ -87,7 +87,9 @@ test('logueado no se ve el formulario; después de salir, el email de esa cuenta
     await page.fill('#email', email);
     await page.fill('#password', PASSWORD);
     await page.fill('#password_confirm', PASSWORD);
+    await page.check('#acepta_privacidad');
     await page.click('#form-registro button[type="submit"]');
+    await contestarPreferencias(page);
     await expect(page).not.toHaveURL(/registro\.html/);
 
     // Con la sesión personal abierta: el formulario no aparece, solo el aviso y el botón para salir

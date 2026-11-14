@@ -3,7 +3,7 @@
 Lista viva de lo que falta. Cuando alguien toma un ítem, pone su nombre; cuando lo termina, lo tacha (`~~así~~`) o lo borra con el PR que lo resuelve.
 El plan completo del enfoque del mecánico está en [`modelo-de-negocio/PLAN.md`](modelo-de-negocio/PLAN.md).
 
-Última actualización: 11/11/2026.
+Última actualización: 14/11/2026.
 
 ## Pedido de la cátedra para la entrega final (mapa de capas del 10/11)
 
@@ -16,7 +16,7 @@ En orden, de adentro hacia afuera. Las ideas A y B se piden **las dos** (puntos 
 - [ ] **5. Una integración real andando** (una de tres): crawler de fallas con IA, corrida diaria del scraper sin la PC (hay workflow en GitHub Actions, pero las dos corridas fallaron), o Mercado Pago en sandbox. Con la clave fuera del código.
 - [ ] **6. Metabuscador adentro o afuera**: si queda, autos cargados en prod, botón del mecánico en cada resultado y aviso de cambio de precio.
 - [ ] **7. Fondo de garantía**: saldo que suma con cada inspección, del que salen las compensaciones, con el descuento al mecánico.
-- [ ] **8. Maquetas afuera y `PLAN.md` al día**: quedan canje, planes y verificar vehículo; el `PLAN.md` todavía dice que A y B son "fase 2".
+- [ ] **8. Maquetas afuera y `PLAN.md` al día**: ~~quedan canje, planes y verificar vehículo~~ sacadas el 14/11 (ver abajo); el `PLAN.md` todavía dice que A y B son "fase 2".
 
 ## Hecho el 10/11 (ya en `main` desde el 11/11)
 
@@ -77,21 +77,28 @@ Todo entró a `dev` por PR (front #40 a #66, back #17 a #34) y pasó a `main` el
 - [x] ~~**Portada**~~: muestra los últimos 4 publicados de verdad (#52).
 - [x] ~~**Contacto**~~: `POST /api/contacto` y "Reportes y contacto" en el panel (back #21, front #51).
 - [x] ~~**Reportar publicación / usuario**~~: `POST /api/reportes`, desde el detalle y desde el chat; los revisa el moderador (back #21, front #51).
-- [ ] **Canje** (`proponer-canje.html`, `propuestas.html`): maqueta.
+- [x] ~~**Canje** (`proponer-canje.html`, `propuestas.html`)~~: **sacado el 14/11**. Era maqueta: el back nunca tuvo propuestas de canje y todos los botones decían "no está disponible". Queda la marca "acepta canje" al publicar; el canje se arregla por el chat. Si el grupo lo quiere hacer de verdad, es una idea para después.
 - [x] ~~**Tasación con IA**~~: se sacó (no se va a hacer). En su lugar, el detalle muestra el comparador de precio (#50, #52).
 - [x] ~~**Chat**~~ conectado a la API: bandeja con no leídos, conversación con polling cada 5 s y "Consultar" en `vehiculo.html`. Prueba E2E en `tests/e2e/chat.spec.js` (necesita los secretos `E2E_CHAT_*`).
 - [ ] **Secretos de E2E en GitHub** (Settings → Secrets → Actions), con cuentas de **dev**: `E2E_ADMIN_EMAIL` y `E2E_ADMIN_PASSWORD`; `E2E_CHAT_VEHICULO_ID`, `E2E_CHAT_VENDEDOR_EMAIL` y `E2E_CHAT_VENDEDOR_PASSWORD` (una publicación disponible en Neon dev y la cuenta de su vendedor).
-- [ ] **Planes** (`planes.html`, `plan.html`): maqueta, depende de las suscripciones (abajo).
+- [x] ~~**Planes** (`planes.html`, `plan.html`)~~: **sacados el 14/11** (niveles Bronce a Platino que no se cobraban). También **Mapa** (`mapa.html`, precios inventados) y **Verificar vehículo** (`verificar-vehiculo.html`, flujo viejo).
 - [x] ~~**Formularios con `action` a rutas que no existen**~~: ahora llevan `data-proximamente` y `js/proximamente.js` avisa "todavía no está disponible" sin enviar nada. Al 11/11 quedan en `plan.html`, `proponer-canje.html`, `propuestas.html` y `verificar-vehiculo.html` (el resto ya está conectado). Al conectar una pantalla a la API, se le saca el atributo y el script. El chat se conecta aparte.
+
+## Hecho el 14/11 (en `dev`)
+
+Lo que pidió el profe el 13/11 ("variables y controles"). Todas las decisiones están en `ideas-14-11-2026/decisiones-14-11-2026.md` (rama `docs/ideas-14-11-2026`).
+
+- [x] **Parámetros editables por el admin** (back migración `021`, panel → Parámetros): comisión de AutoCar (23 %), parte al fondo (1/3), tope de compensación (3×), días de reclamo (15) y precio de la inspección (mín. $70.000, sugerido $100.000, máx. $150.000). Cada cambio queda anotado. Cada inspección guarda el tope y los días con los que se pidió. El front ya no repite el 23 % ni los 15 días: los lee de `GET /api/parametros`.
+- [x] **"¿Para qué buscás el auto?"** (personal, familia, trabajo, aplicación; sin revendedor), obligatoria para las cuentas personales la primera vez que entran; tipo, presupuesto y zona opcionales. Se cambia desde Mi cuenta. En Métricas: "Para qué buscan el auto".
+- [x] **Política de privacidad**: se acepta al registrarse (obligatorio); las cuentas viejas la aceptan junto con la pregunta de arriba. Texto en Legales.
+- [x] **Maquetas afuera**: canje, planes, mapa y verificar vehículo.
 
 ## Suscripciones y pagos (no hay nada hecho)
 
-Hoy no hay tabla de suscripciones ni cobros: los planes son de muestra y las inspecciones tienen el pago **simulado** (queda `retenido`).
+Decidido el 14/11: el comprador no tiene plan pago. **Publicar es gratis y sin límite**; la **suscripción del vendedor** da prioridad de sus publicaciones y precio sugerido con tiempo estimado de venta. Es lo último que se hace. El pago de la inspección entra a la cuenta de AutoCar y se le paga al mecánico a los 10 días (menos la franquicia, 40 %) y a los 15 (la franquicia, si no hubo reclamo).
 
-- [ ] **Plan Plus del comprador con Mercado Pago (sandbox)**: $ 5.000 por 30 días, sin renovación automática. Pago con tarjetas de prueba por la API REST (sin SDK) y webhook al back que activa el plan.
-- [ ] **Tabla `suscripcion`** en Neon (usuario, plan, desde, hasta, estado, id de pago de MP), como migración numerada nueva y en `schema.sql`.
-- [ ] **Beneficio real del Plus**: el plan gratis con 1 búsqueda guardada y el Plus sin límite (hoy el máximo es 20 para todos, `Busqueda::MAXIMO_POR_USUARIO`).
-- [ ] **Decidir si las inspecciones se cobran con Mercado Pago** o quedan simuladas para la entrega (repartir la plata al mecánico es más complejo).
+- [ ] **Suscripción del vendedor** (con o sin; el precio, como parámetro del admin).
+- [ ] **Mercado Pago sandbox** para la inspección (acreditación a 35 días).
 
 ## Datos y scraper
 

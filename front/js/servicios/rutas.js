@@ -7,6 +7,7 @@ const RAIZ = new URL('../../', import.meta.url);
 const PAGINAS = {
     'index.html': 'index.html',
     'admin-metricas.html': 'pages/admin/admin-metricas.html',
+    'admin-parametros.html': 'pages/admin/admin-parametros.html',
     'admin-moderar.html': 'pages/admin/admin-moderar.html',
     'admin-reclamos.html': 'pages/admin/admin-reclamos.html',
     'admin-soporte.html': 'pages/admin/admin-soporte.html',
@@ -23,7 +24,6 @@ const PAGINAS = {
     'home.html': 'pages/info/home.html',
     'legales.html': 'pages/info/legales.html',
     'login.html': 'pages/auth/login.html',
-    'mapa.html': 'pages/info/mapa.html',
     'mensajes.html': 'pages/operaciones/mensajes.html',
     'meta-busqueda-nueva.html': 'pages/operaciones/meta-busqueda-nueva.html',
     'meta-busqueda-resultados.html': 'pages/operaciones/meta-busqueda-resultados.html',
@@ -31,10 +31,7 @@ const PAGINAS = {
     'mis-inspecciones.html': 'pages/talleres/mis-inspecciones.html',
     'mis-publicaciones.html': 'pages/vehiculos/mis-publicaciones.html',
     'pedir-inspeccion.html': 'pages/talleres/pedir-inspeccion.html',
-    'plan.html': 'pages/info/plan.html',
-    'planes.html': 'pages/info/planes.html',
-    'proponer-canje.html': 'pages/operaciones/proponer-canje.html',
-    'propuestas.html': 'pages/operaciones/propuestas.html',
+    'preferencias.html': 'pages/auth/preferencias.html',
     'publicar.html': 'pages/vehiculos/publicar.html',
     'registro.html': 'pages/auth/registro.html',
     'reportar.html': 'pages/info/reportar.html',
@@ -44,7 +41,6 @@ const PAGINAS = {
     'talleres.html': 'pages/talleres/talleres.html',
     'vehiculo.html': 'pages/vehiculos/vehiculo.html',
     'verificacion.html': 'pages/talleres/verificacion.html',
-    'verificar-vehiculo.html': 'pages/talleres/verificar-vehiculo.html',
 };
 
 // 'archivo.html?x=1#y' → URL completa de esa página; devuelve null si el archivo no existe en PAGINAS.

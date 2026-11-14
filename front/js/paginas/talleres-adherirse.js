@@ -5,6 +5,7 @@
 // Si la rechazaron, se vuelve a mandar desde acá con el mismo email y la misma contraseña.
 import * as api from '../api/inspecciones.js';
 import * as auth from '../api/auth.js';
+import * as parametros from '../api/parametros.js';
 import * as formato from '../servicios/formato.js';
 import * as formularios from '../servicios/formularios.js';
 import * as sesion from '../servicios/sesion.js';
@@ -62,4 +63,21 @@ formularios.alEnviar(form, async (datos) => {
     estadoSolicitud.scrollIntoView();
 });
 
+// El rango del precio y la comisión son parámetros que cambia el admin
+async function mostrarRangoDelPrecio() {
+    try {
+        const p = await parametros.publicos();
+        const precio = form.elements.precio_inspeccion;
+        precio.min = p.precio_minimo;
+        precio.max = p.precio_maximo;
+        precio.placeholder = p.precio_sugerido;
+        document.getElementById('precio_inspeccion-ayuda').textContent = 'Lo paga el comprador. '
+            + `Entre ${formato.precio(p.precio_minimo)} y ${formato.precio(p.precio_maximo)}; te sugerimos ${formato.precio(p.precio_sugerido)}. `
+            + `AutoCar se queda con el ${p.comision_autocar} % y el resto es para el taller.`;
+    } catch {
+        // Sin los parámetros queda la ayuda general; el back igual controla el rango.
+    }
+}
+
 iniciar();
+mostrarRangoDelPrecio();

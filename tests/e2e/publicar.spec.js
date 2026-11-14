@@ -4,7 +4,7 @@
 //
 // Variables: E2E_ADMIN_EMAIL / E2E_ADMIN_PASSWORD (alguien con vehiculos.moderar; sin ellas se saltea la moderación)
 import { test, expect } from '@playwright/test';
-import { pagina, soloFueraDeProduccion, emailNuevo, PASSWORD } from './entorno.js';
+import { pagina, soloFueraDeProduccion, emailNuevo, PASSWORD, contestarPreferencias } from './entorno.js';
 
 soloFueraDeProduccion();
 
@@ -31,7 +31,9 @@ test('publicar de a poco: guardar el paso 1, salir, terminarla después y enviar
         await vendedor.fill('#email', email);
         await vendedor.fill('#password', PASSWORD);
         await vendedor.fill('#password_confirm', PASSWORD);
+        await vendedor.check('#acepta_privacidad');
         await vendedor.click('#form-registro button[type="submit"]');
+        await contestarPreferencias(vendedor);
         await expect(vendedor).toHaveURL(/home\.html/);
     });
 
@@ -109,7 +111,9 @@ test('el moderador no puede aprobar una publicación sin terminar', async ({ bro
     await vendedor.fill('#email', email);
     await vendedor.fill('#password', PASSWORD);
     await vendedor.fill('#password_confirm', PASSWORD);
+    await vendedor.check('#acepta_privacidad');
     await vendedor.click('#form-registro button[type="submit"]');
+    await contestarPreferencias(vendedor);
     await expect(vendedor).toHaveURL(/home\.html/);
     await vendedor.goto(pagina('pages/vehiculos/publicar.html'));
     await vendedor.selectOption('#marca', 'Fiat');

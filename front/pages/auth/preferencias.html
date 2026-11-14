@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Qué buscás - AutoCar</title>
+  <meta name="description" content="Contanos para qué buscás el auto y te mostramos lo que más te sirve.">
+  <link rel="stylesheet" href="../../styles/estilos.css">
+  <link rel="stylesheet" href="../../styles/componentes.css">
+  <link rel="stylesheet" href="../../styles/pantallas.css">
+  <link rel="stylesheet" href="../../styles/identidad.css">
+  <script src="../../js/tema.js"></script><script src="../../js/barra-admin.js" defer></script><script src="../../js/navegacion.js" defer></script>
+  <link rel="stylesheet" href="../../styles/print.css" media="print">
+  <script src="../../js/validacion.js" defer></script>
+  <script type="module" src="../../js/paginas/preferencias.js"></script>
+<link rel="stylesheet" href="../../styles/portada.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Sora:wght@600;700;800&amp;display=swap">
+<link rel="stylesheet" href="../../styles/base-visual.css">
+</head>
+<body class="auth-page">
+
+  <a class="saltar" href="#contenido">Saltar al contenido</a>
+
+  <header class="marca-nav marca-nav--acceso"><a class="marca" href="../../index.html" aria-label="AutoCar, inicio"><span class="marca__simbolo" aria-hidden="true"></span>AutoCar</a><a href="cuenta.html">Mi cuenta</a></header>
+
+  <div class="acceso-layout">
+<aside class="acceso-relato"><p class="acceso-relato__titulo">Una sola pregunta.</p>
+<p>Con tu respuesta te mostramos primero los autos que te sirven. La podés cambiar cuando quieras desde Mi cuenta.</p>
+<img src="../../assets/identidad/hero.jpg" width="1536" height="1024" alt="Auto en un camino rural, imagen ilustrativa"></aside><main id="contenido" class="pantalla acceso"><div>
+<h1>¿Para qué buscás el auto?</h1>
+<p class="suave">Es obligatoria. Lo demás es opcional.</p>
+</div>
+
+    <!-- Lo envía js/paginas/preferencias.js con PUT /api/me/preferencias. Si la cuenta todavía no aceptó la política
+         de privacidad, el JS agrega la casilla antes del botón. -->
+    <form class="formulario" id="form-preferencias" novalidate>
+      <p class="formulario__alerta" role="alert" tabindex="-1"></p>
+      <fieldset class="opciones" aria-describedby="uso-error">
+        <legend class="campo__etiqueta">Lo busco…</legend>
+        <label><input type="radio" id="uso" name="uso" value="personal" required><span>Para mí</span></label>
+        <label><input type="radio" name="uso" value="familia"><span>Para la familia</span></label>
+        <label><input type="radio" name="uso" value="trabajo"><span>Para trabajar</span></label>
+        <label><input type="radio" name="uso" value="aplicacion"><span>Para manejar con aplicaciones</span></label>
+        <span class="campo__error" id="uso-error"></span>
+      </fieldset>
+      <div class="campo">
+        <label class="campo__etiqueta" for="tipo">¿Qué tipo de auto? <span class="suave">(opcional)</span></label>
+        <select class="campo__input" id="tipo" name="tipo" aria-describedby="tipo-error">
+          <option value="">Me da igual</option>
+          <option value="chico">Chico</option>
+          <option value="sedan">Sedán</option>
+          <option value="suv">SUV</option>
+          <option value="pickup">Pickup</option>
+        </select>
+        <span class="campo__error" id="tipo-error"></span>
+      </div>
+      <div class="campo">
+        <label class="campo__etiqueta" for="presupuesto">¿Cuánto querés gastar, como máximo? <span class="suave">(opcional, en pesos)</span></label>
+        <input class="campo__input" id="presupuesto" name="presupuesto" type="number" min="1" max="2000000000" step="1" inputmode="numeric" aria-describedby="presupuesto-error">
+        <span class="campo__error" id="presupuesto-error"></span>
+      </div>
+      <div class="campo">
+        <label class="campo__etiqueta" for="localidad">¿Por qué zona? <span class="suave">(opcional)</span></label>
+        <input class="campo__input" id="localidad" name="localidad" type="text" maxlength="100" autocomplete="address-level2" placeholder="Luján" aria-describedby="localidad-error">
+        <span class="campo__error" id="localidad-error"></span>
+      </div>
+      <button class="boton boton--bloque" type="submit">Guardar</button>
+    </form>
+
+    <p class="acceso__pie">Lo que guardamos y para qué: <a href="../info/legales.html#privacidad">política de privacidad</a>.</p>
+  </main>
+</div>
+
+</body>
+</html>

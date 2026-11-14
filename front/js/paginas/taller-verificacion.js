@@ -173,7 +173,7 @@ const pedirFirma = confirmacion({
     volver: 'Volver',
     detalle: (conclusion) => [
         el('p', {}, `Vas a firmar con tu nombre, ${sesion.usuario()?.nombre || ''}, un informe "${conclusion}" sobre ${insp.tituloAuto(inspeccion)}.`),
-        el('p', { class: 'campo__ayuda' }, 'Después de firmar el informe queda cerrado y no se puede cambiar. Si se te pasó algo que se veía, el comprador puede reclamar durante 15 días.'),
+        el('p', { class: 'campo__ayuda' }, `Después de firmar el informe queda cerrado y no se puede cambiar. Si se te pasó algo que se veía, el comprador puede reclamar durante ${inspeccion.dias_reclamo} días.`),
     ],
     hacer: async () => {
         // Se guarda lo último que cargó y después se firma eso mismo. Si no se pudo guardar, el motivo

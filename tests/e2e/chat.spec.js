@@ -5,7 +5,7 @@
 //   E2E_CHAT_VEHICULO_ID / E2E_CHAT_VENDEDOR_EMAIL / E2E_CHAT_VENDEDOR_PASSWORD
 // Sin ellas se saltea.
 import { test, expect } from '@playwright/test';
-import { pagina, soloFueraDeProduccion, emailNuevo, PASSWORD } from './entorno.js';
+import { pagina, soloFueraDeProduccion, emailNuevo, PASSWORD, contestarPreferencias } from './entorno.js';
 
 soloFueraDeProduccion();
 
@@ -18,7 +18,9 @@ async function registrar(page, nombre) {
     await page.fill('#email', emailNuevo());
     await page.fill('#password', PASSWORD);
     await page.fill('#password_confirm', PASSWORD);
+    await page.check('#acepta_privacidad');
     await page.click('#form-registro button[type="submit"]');
+    await contestarPreferencias(page);
     await expect(page).toHaveURL(/home\.html/);
 }
 
