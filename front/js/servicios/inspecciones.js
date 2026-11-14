@@ -110,6 +110,21 @@ export function desglose(precio, p) {
     return { precio, monto_mecanico: precio - autocar, monto_autocar: autocar, monto_fondo: fondo };
 }
 
+// Patente: igual que Inspecciones\Patente. Sin espacios, guiones ni puntos y en mayúsculas; vieja (ABC123) o
+// Mercosur (AB123CD). normalizarPatente devuelve null si no tiene un formato argentino.
+export function normalizarPatente(texto) {
+    const limpia = String(texto || '').replace(/[\s.-]/g, '').toUpperCase();
+    return /^([A-Z]{3}\d{3}|[A-Z]{2}\d{3}[A-Z]{2})$/.test(limpia) ? limpia : null;
+}
+
+// Para mostrar: "AB 123 CD" o "ABC 123".
+export function formatoPatente(patente) {
+    if (!patente) return '';
+    return patente.length === 7
+        ? `${patente.slice(0, 2)} ${patente.slice(2, 5)} ${patente.slice(5)}`
+        : `${patente.slice(0, 3)} ${patente.slice(3)}`;
+}
+
 // Cuántos ítems del checklist ya tienen resultado.
 export const completos = (items) => items.filter((i) => RESULTADOS[i.resultado]).length;
 
@@ -138,13 +153,14 @@ export function validarInforme({ items, conclusion: concl, resumen = '' }, compl
 }
 
 // Lo que se manda al back: sólo los ítems con resultado (mientras no firma puede guardar a medias).
-export function cuerpoInforme({ items, conclusion: concl, resumen = '' }) {
+export function cuerpoInforme({ items, conclusion: concl, resumen = '', patente = '' }) {
     return {
         items: items
             .filter((i) => i.resultado)
             .map(({ codigo, resultado: res, nota = '' }) => ({ codigo, resultado: res, nota: nota.trim() })),
         conclusion: concl || null,
         resumen: resumen.trim(),
+        patente: patente.trim(),
     };
 }
 

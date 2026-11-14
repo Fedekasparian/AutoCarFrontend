@@ -61,7 +61,23 @@
         <p class="pasos__texto"><span>Checklist</span><span id="progreso-texto">0 de 10</span></p>
         <progress class="progreso" id="progreso" max="10" value="0"></progress>
       </div>
-      <p class="campo__ayuda">Marcá los 10 ítems, elegí la conclusión y al final tocá <strong>Firmar informe</strong>. Si no terminás, usá Guardar borrador y seguís después. Respondés por lo que se ve sin desarmar el auto; si un ítem no está OK, contá qué encontraste.</p>
+      <p class="campo__ayuda">Cargá la patente con la foto de la chapa, marcá los 10 ítems, elegí la conclusión y al final tocá <strong>Firmar informe</strong>. Si no terminás, usá Guardar borrador y seguís después. Respondés por lo que se ve sin desarmar el auto; si un ítem no está OK, contá qué encontraste.</p>
+      <fieldset class="pila" aria-describedby="patente-ayuda">
+        <legend class="campo__etiqueta"><strong>Patente</strong></legend>
+        <p class="campo__ayuda" id="patente-ayuda">Copiala de la chapa y sacale una foto. Sin las dos no se puede firmar: el informe queda guardado en la patente y se ve en su historial.</p>
+        <div class="campo">
+          <label class="campo__etiqueta" for="patente">Patente del auto</label>
+          <input class="campo__input" id="patente" name="patente" type="text" maxlength="9" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="AB 123 CD" aria-describedby="patente-error">
+          <span class="campo__error" id="patente-error"></span>
+        </div>
+        <div class="campo">
+          <label class="campo__etiqueta" for="patente_foto">Foto de la chapa</label>
+          <input class="campo__input" id="patente_foto" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" aria-describedby="patente_foto-estado patente_foto-error">
+          <span class="campo__ayuda" id="patente_foto-estado" role="status"></span>
+          <span class="campo__error" id="patente_foto-error"></span>
+        </div>
+      </fieldset>
+
       <div class="pila" id="items"></div>
 
       <fieldset class="pila">

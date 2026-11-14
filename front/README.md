@@ -64,6 +64,7 @@ La lista viva está en [`../PENDIENTES.md`](../PENDIENTES.md).
 | `talleres-adherirse.html` | `/talleres/adherirse` | Alta de un taller |
 | `taller.html` | `/taller` | Panel del mecánico |
 | `taller-verificacion.html` | `/taller/verificacion/:id` | Inspección con el checklist |
+| `historial.html` | `/historial` | Historial por patente: las inspecciones firmadas de un auto (`GET /api/historial-patente`, con sesión) |
 | `como-funciona.html` | `/como-funciona` | Cómo funciona para quien compra, vende o es mecánico; los números salen de `GET /api/parametros` |
 | `legales.html` | `/legales` | Términos y política de privacidad (se acepta al registrarse) |
 | `admin-parametros.html` | `/admin/parametros` | Parámetros del negocio (`GET/PUT /api/admin/parametros`, permiso `parametros.editar`): comisión, fondo, tope, días de reclamo y precio de la inspección, con historial de cambios |

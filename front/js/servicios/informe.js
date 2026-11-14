@@ -2,6 +2,8 @@
 // (verificacion.html) y el admin. Todo con el DOM, nada con innerHTML.
 import * as formato from './formato.js';
 import * as insp from './inspecciones.js';
+import { API_URL } from '../api/config.js';
+import { ruta } from './rutas.js';
 import { el } from './vistas.js';
 
 // Pares [dt, dd] → los hijos de un <dl class="datos">. Los pares null se saltean.
@@ -82,6 +84,9 @@ export function lineaDeTiempo(i) {
 // Quién firmó y cuándo. La huella (SHA-256) la guarda el back para controlar que el informe no cambió,
 // pero no se muestra en ninguna pantalla.
 export const datosFirma = (i) => filasDatos([
+    i.patente ? ['Patente', el('a', { href: ruta(`historial.html?patente=${i.patente}`) },
+        `${insp.formatoPatente(i.patente)} · ver el historial`)] : null,
+    i.patente_foto ? ['Chapa', el('a', { href: API_URL + i.patente_foto, target: '_blank', rel: 'noopener' }, 'Ver la foto')] : null,
     ['Firmado por', i.firmado_por],
     ['Taller', i.taller_firma],
     ['Fecha', formato.fechaHora(i.firmada_at)],
