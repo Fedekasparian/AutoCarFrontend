@@ -115,6 +115,9 @@ test('recorrido de la demo: pedir, aceptar, firmar, reclamar y resolver', async 
         await expect(mecanico.locator('#patente-error')).not.toBeEmpty();
         await expect(mecanico.locator('#patente_foto-error')).not.toBeEmpty();
         await mecanico.fill('#patente', patente.toLowerCase());
+        // Al cargar la patente se guarda el borrador y aparece si el auto ya se revisó (esta patente es nueva)
+        await mecanico.locator('#patente').blur();
+        await expect(mecanico.locator('#anteriores')).toContainText('primera inspección');
         await mecanico.setInputFiles('#patente_foto', { name: 'chapa.png', mimeType: 'image/png', buffer: CHAPA });
         await expect(mecanico.locator('#patente_foto-estado')).toContainText('cargada');
 
@@ -122,6 +125,7 @@ test('recorrido de la demo: pedir, aceptar, firmar, reclamar y resolver', async 
         await mecanico.click('#confirmar-firma');
         await expect(mecanico.locator('#firmado')).toBeVisible();
         await expect(mecanico.locator('#firmado-datos')).toContainText(MECANICO.taller);
+        await expect(mecanico.locator('#firmado-anteriores')).toContainText('primera inspección');
         await expect(mecanico.locator('#firmado-datos')).not.toContainText(/[0-9a-f]{64}/); // la huella no se muestra
         await expect(mecanico.locator('#informe')).toBeHidden(); // firmado ya no se edita
     });
@@ -134,11 +138,9 @@ test('recorrido de la demo: pedir, aceptar, firmar, reclamar y resolver', async 
         await expect(comprador.locator('#informe-firma')).not.toContainText(/[0-9a-f]{64}/);
         await expect(comprador.locator('#tramites')).toBeVisible();
 
-        // La patente lleva al historial del auto, con esta inspección
-        await comprador.click('#informe-firma a[href*="historial.html"]');
-        await expect(comprador.locator('#lista li')).toHaveCount(1);
-        await expect(comprador.locator('#lista')).toContainText(MECANICO.taller);
-        await comprador.goto(pagina(`pages/talleres/verificacion.html?id=${id}`));
+        // El informe trae el historial del auto (la patente es nueva: es la primera vez que se revisa)
+        await expect(comprador.locator('#anteriores')).toBeVisible();
+        await expect(comprador.locator('#anteriores')).toContainText('primera inspección');
 
         await expect(comprador.locator('#form-reclamo')).toBeVisible();
         await expect(comprador.locator('#reclamo-alcance details')).toBeAttached();

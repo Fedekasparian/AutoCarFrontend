@@ -60,11 +60,10 @@ La lista viva está en [`../PENDIENTES.md`](../PENDIENTES.md).
 | `conversacion.html` | `/mensajes/:id` | Conversación |
 | `preferencias.html` | `/cuenta/preferencias` | "¿Para qué buscás el auto?" (`PUT /api/me/preferencias`). Obligatoria para las cuentas personales: `js/navegacion.js` las trae acá hasta que contestan y aceptan la política de privacidad |
 | `talleres.html` | `/talleres` | Mecánicos de la red: ranking público (`GET /api/mecanicos`) y filtro por localidad. El mecánico se pide desde un auto |
-| `verificacion.html` | `/verificacion/:id` | Informe de verificación |
+| `verificacion.html` | `/verificacion/:id` | Informe de verificación, con el historial del auto (las inspecciones anteriores de la misma patente, `anteriores` en `GET /api/inspecciones/{id}`) |
 | `talleres-adherirse.html` | `/talleres/adherirse` | Alta de un taller |
 | `taller.html` | `/taller` | Panel del mecánico |
-| `taller-verificacion.html` | `/taller/verificacion/:id` | Inspección con el checklist |
-| `historial.html` | `/historial` | Historial por patente: las inspecciones firmadas de un auto (`GET /api/historial-patente`, con sesión) |
+| `taller-verificacion.html` | `/taller/verificacion/:id` | Inspección con el checklist. Al cargar la patente el mecánico ve si el auto ya se revisó antes |
 | `como-funciona.html` | `/como-funciona` | Cómo funciona para quien compra, vende o es mecánico; los números salen de `GET /api/parametros` |
 | `legales.html` | `/legales` | Términos y política de privacidad (se acepta al registrarse) |
 | `admin-parametros.html` | `/admin/parametros` | Parámetros del negocio (`GET/PUT /api/admin/parametros`, permiso `parametros.editar`): comisión, fondo, tope, días de reclamo y precio de la inspección, con historial de cambios |
