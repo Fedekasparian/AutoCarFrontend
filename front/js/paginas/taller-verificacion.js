@@ -8,6 +8,7 @@ import * as informe from '../servicios/informe.js';
 import * as insp from '../servicios/inspecciones.js';
 import * as sesion from '../servicios/sesion.js';
 import * as vistas from '../servicios/vistas.js';
+import { API_URL } from '../api/config.js';
 import { achicar } from '../servicios/imagenes.js';
 import { ruta } from '../servicios/rutas.js';
 import { boton, campo, confirmacion, formularioEnHoja } from '../servicios/acciones.js';
@@ -110,9 +111,24 @@ function leerInforme() {
 
 const entradaFoto = document.getElementById('patente_foto');
 const estadoFoto = document.getElementById('patente_foto-estado');
+const cajaFoto = document.getElementById('chapa');
+const previaFoto = document.getElementById('patente_foto-previa');
+
+// La caja muestra la foto guardada (o la que se está subiendo) y cambia el texto: sacar una o cambiarla
+function verFoto(src) {
+    previaFoto.hidden = !src;
+    if (src) previaFoto.src = src;
+    cajaFoto.classList.toggle('chapa--lista', Boolean(src));
+    document.getElementById('patente_foto-accion').textContent = src ? 'Cambiar la foto' : 'Sacale una foto a la chapa';
+}
 
 function mostrarEstadoFoto(i) {
-    estadoFoto.textContent = i.patente_foto ? 'Foto de la chapa cargada. Si sacás otra, reemplaza a esta.' : 'Todavía no cargaste la foto.';
+    cajaFoto.classList.remove('chapa--subiendo');
+    // ?v= para que no muestre la foto vieja guardada en el navegador después de reemplazarla
+    verFoto(i.patente_foto ? `${API_URL}${i.patente_foto}?v=${Date.now()}` : null);
+    estadoFoto.textContent = i.patente_foto
+        ? 'Foto de la chapa cargada. Si sacás otra, reemplaza a esta.'
+        : 'Desde el celular abre la cámara. Que se lea bien la patente.';
 }
 
 // La foto se sube apenas la elige (achicada en el navegador, como las demás fotos)
@@ -120,6 +136,8 @@ entradaFoto.addEventListener('change', async () => {
     if (!entradaFoto.files[0]) return;
     document.getElementById('patente_foto-error').textContent = '';
     estadoFoto.textContent = 'Subiendo la foto…';
+    cajaFoto.classList.add('chapa--subiendo');
+    verFoto(URL.createObjectURL(entradaFoto.files[0])); // se ve enseguida, antes de que termine de subir
     try {
         const datos = new FormData();
         datos.append('foto', await achicar(entradaFoto.files[0]));

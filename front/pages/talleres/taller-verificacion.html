@@ -73,9 +73,19 @@
           <span class="campo__error" id="patente-error"></span>
         </div>
         <div class="campo">
-          <label class="campo__etiqueta" for="patente_foto">Foto de la chapa</label>
-          <input class="campo__input" id="patente_foto" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" aria-describedby="patente_foto-estado patente_foto-error">
-          <span class="campo__ayuda" id="patente_foto-estado" role="status"></span>
+          <span class="campo__etiqueta" id="patente_foto-etiqueta">Foto de la chapa</span>
+          <!-- Toda la caja abre la cámara (en el celular) o elegir un archivo. La foto se sube apenas se elige. -->
+          <label class="chapa" for="patente_foto" id="chapa">
+            <span class="chapa__marco">
+              <svg class="chapa__icono" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>
+              <img class="chapa__foto" id="patente_foto-previa" alt="Foto de la chapa" hidden>
+            </span>
+            <span class="chapa__texto">
+              <strong class="chapa__accion" id="patente_foto-accion">Sacale una foto a la chapa</strong>
+              <span class="campo__ayuda" id="patente_foto-estado" role="status"></span>
+            </span>
+          </label>
+          <input class="solo-lector" id="patente_foto" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" aria-labelledby="patente_foto-etiqueta" aria-describedby="patente_foto-estado patente_foto-error">
           <span class="campo__error" id="patente_foto-error"></span>
         </div>
         <div class="pila" id="anteriores" aria-live="polite"></div>
