@@ -1,15 +1,18 @@
 // Sesión del usuario. El id de sesión (la sesión vive en el back, en $_SESSION) va en una cookie HttpOnly que pone el back:
-// JavaScript no la puede leer ni borrar (salir es POST /api/logout). Acá sólo se guardan, en sessionStorage,
+// JavaScript no la puede leer ni borrar (salir es POST /api/logout). Acá sólo se guardan, en localStorage,
 // los datos públicos del usuario (para mostrar nombre y rol) y el token CSRF que el back pide en cada cambio.
+// localStorage y no localStorage: localStorage es de cada pestaña, y al abrir un link en otra (ruedita del
+// mouse) pedía ingresar de nuevo aunque la cookie seguía valiendo. Vence junto con la cookie (expira_en) y se
+// borra al salir o cuando el back responde 401.
 import { ruta } from './rutas.js';
 const CLAVE = 'autocar.sesion';
 
 function leer() {
     try {
-        const guardada = JSON.parse(sessionStorage.getItem(CLAVE));
+        const guardada = JSON.parse(localStorage.getItem(CLAVE));
         if (!guardada?.usuario) return null;
         if (guardada.vence && Date.now() > guardada.vence) {
-            sessionStorage.removeItem(CLAVE);
+            localStorage.removeItem(CLAVE);
             return null;
         }
         return guardada;
@@ -22,7 +25,7 @@ function leer() {
 export function guardar({ csrf, expira_en: expiraEn, usuario }) {
     const vence = expiraEn ? Date.now() + expiraEn * 1000 : null;
     try {
-        sessionStorage.setItem(CLAVE, JSON.stringify({ csrf, vence, usuario }));
+        localStorage.setItem(CLAVE, JSON.stringify({ csrf, vence, usuario }));
     } catch {
         // Sin almacenamiento disponible (navegación privada estricta): la sesión no persiste.
     }
@@ -33,7 +36,7 @@ export function actualizar({ usuario, csrf }) {
     const actual = leer();
     if (!actual) return;
     try {
-        sessionStorage.setItem(CLAVE, JSON.stringify({ ...actual, usuario, csrf: csrf || actual.csrf }));
+        localStorage.setItem(CLAVE, JSON.stringify({ ...actual, usuario, csrf: csrf || actual.csrf }));
     } catch {
         // Sin almacenamiento disponible.
     }
@@ -42,7 +45,7 @@ export function actualizar({ usuario, csrf }) {
 // Sólo borra lo guardado en el navegador; la cookie la borra el back con POST /api/logout.
 export function cerrar() {
     try {
-        sessionStorage.removeItem(CLAVE);
+        localStorage.removeItem(CLAVE);
     } catch {
         // Nada que borrar.
     }
