@@ -1206,3 +1206,13 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 }
 /* Por qué este auto le conviene a su perfil ("para vos", ver js/servicios/perfil.js) */
 .resultado__para-vos{ display: block; margin-top: 4px; font-size: var(--tam-sm); color: var(--color-texto-suave); }
+/* "Ordenar por" del metabuscador: radios que se ven como pastillas (el radio queda accesible, solo oculto a la vista) */
+.orden{ border: 0; padding: 0; margin: 0; min-width: 0; }
+.orden__opciones{ display: flex; flex-wrap: wrap; gap: 8px; }
+.orden__opcion{ position: relative; cursor: pointer; }
+.orden__opcion input{ position: absolute; opacity: 0; width: 1px; height: 1px; }
+.orden__opcion span{ display: inline-flex; align-items: center; min-height: 36px; padding: 0 14px; border: 1px solid var(--color-borde); border-radius: 999px; background: var(--color-fondo); font-size: var(--tam-md); font-weight: 600; transition: background .15s, color .15s, border-color .15s; }
+.orden__opcion:hover span{ border-color: var(--marca-tinta); }
+.orden__opcion input:checked + span{ background: var(--marca-tinta); border-color: var(--marca-tinta); color: var(--marca-blanco); }
+.orden__opcion input:focus-visible + span{ outline: 2px solid var(--marca-acento); outline-offset: 2px; }
+.campos-fila > .orden{ grid-column: 1 / -1; }
