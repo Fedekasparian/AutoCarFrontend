@@ -20,10 +20,19 @@ const $ = (idElemento) => document.getElementById(idElemento);
 const ETIQUETAS = { barato: 'Buen precio', normal: 'En precio', caro: 'Caro' };
 const dolares = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 });
 
+// La lista no mezcla monedas: los autos publicados en dólares se muestran en pesos con la cotización del admin
+// (parámetro cotizacion_dolar, viene en el reporte) y abajo, chico, el precio original del aviso.
+let cotizacion = null;
+
 function precio(a) {
     if (a.precio === null) return 'Sin precio';
-    return a.moneda === 'USD' ? `US$ ${dolares.format(a.precio)}` : formato.precio(a.precio);
+    if (a.moneda !== 'USD') return formato.precio(a.precio);
+    return cotizacion ? formato.precio(Math.round(a.precio * cotizacion)) : `US$ ${dolares.format(a.precio)}`;
 }
+
+const precioOriginal = (a) => (a.moneda === 'USD' && a.precio !== null && cotizacion
+    ? el('span', { class: 'resultado__original' }, `Publicado en US$ ${dolares.format(a.precio)}`)
+    : null);
 
 // "Mandale un mecánico" con el link del aviso fijo; los de AutoCar se abren en su publicación
 function acciones(a) {
@@ -61,7 +70,7 @@ function fila(a, i) {
             el('span', { class: 'fila__titulo' }, `${a.marca} ${a.modelo} ${a.anio ?? ''}`.trim(),
                 a.version ? el('span', { class: 'suave' }, ` · ${a.version}`) : null),
             el('span', { class: 'fila__meta' }, datos),
-            el('span', { class: 'resultado__precio' }, el('strong', {}, precio(a)), ' ', etiquetaPrecio(a)),
+            el('span', { class: 'resultado__precio' }, el('strong', {}, precio(a)), ' ', etiquetaPrecio(a), precioOriginal(a)),
             a.para_vos ? el('span', { class: 'resultado__para-vos' }, a.para_vos.motivo) : null),
         el('span', { class: 'fila__acciones' }, ...acciones(a)));
     li.style.setProperty('--n', String(i));
@@ -111,6 +120,7 @@ function mostrarDestacados(d) {
         return el('li', { class: `destacado destacado--${clave}` },
             el('span', { class: 'destacado__titulo' }, titulo),
             el('strong', { class: 'destacado__precio' }, precio(a)),
+            precioOriginal(a),
             el('span', { class: 'destacado__auto' }, `${a.marca} ${a.modelo} ${a.anio ?? ''}`.trim(),
                 a.km !== null ? ` · ${formato.km(a.km)}` : ''),
             el('span', { class: 'destacado__explicacion' }, explicacion),
@@ -121,6 +131,7 @@ function mostrarDestacados(d) {
 
 function mostrar(r) {
     const b = r.busqueda;
+    cotizacion = r.cotizacion_dolar || null;
     $('titulo').textContent = criterios(b);
     document.title = `${b.marca} ${b.modelo} - AutoCar`;
 
