@@ -3,14 +3,16 @@
 // Escribe datos: corre contra dev o local, nunca contra producción.
 //
 // Variables: E2E_ADMIN_EMAIL / E2E_ADMIN_PASSWORD (alguien con vehiculos.moderar; sin ellas se saltea la moderación)
+import { readFileSync } from 'node:fs';
 import { test, expect } from '@playwright/test';
 import { pagina, soloFueraDeProduccion, emailNuevo, PASSWORD, contestarPreferencias } from './entorno.js';
 
 soloFueraDeProduccion();
 
 const ADMIN = { email: process.env.E2E_ADMIN_EMAIL, password: process.env.E2E_ADMIN_PASSWORD };
-// Un PNG de 1×1 píxel para subir como foto
-const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
+// Una foto real de un Ford Ka (licencia libre, créditos en fotos/CREDITOS.md). Antes era un PNG de 1×1 píxel
+// y en dev quedaban publicaciones con un recuadro rojo.
+const FOTO = readFileSync(new URL('./fotos/ford-ka.jpg', import.meta.url));
 
 async function ingresar(page, email, password) {
     await page.goto(pagina('pages/auth/login.html'));
@@ -67,7 +69,7 @@ test('publicar de a poco: guardar el paso 1, salir, terminarla después y enviar
         await vendedor.click('#paso-siguiente');
 
         await expect(vendedor.locator('#pasos-texto')).toContainText('Fotos');
-        await vendedor.setInputFiles('#fotos', [{ name: 'auto.png', mimeType: 'image/png', buffer: PNG }]);
+        await vendedor.setInputFiles('#fotos', [{ name: 'ford-ka.jpg', mimeType: 'image/jpeg', buffer: FOTO }]);
         await vendedor.click('#paso-siguiente');
         await expect(vendedor.locator('#fotos-actuales li')).toHaveCount(1);
 

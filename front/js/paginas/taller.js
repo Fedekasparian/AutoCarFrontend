@@ -5,6 +5,7 @@ import * as api from '../api/inspecciones.js';
 import * as parametros from '../api/parametros.js';
 import * as formato from '../servicios/formato.js';
 import * as formularios from '../servicios/formularios.js';
+import * as informe from '../servicios/informe.js';
 import * as insp from '../servicios/inspecciones.js';
 import * as sesion from '../servicios/sesion.js';
 import * as vistas from '../servicios/vistas.js';
@@ -148,9 +149,7 @@ function metaDe(i) {
     return partes.join(' · ');
 }
 
-function enlaceAviso(i) {
-    return el('a', { class: 'boton-link', href: i.url, target: '_blank', rel: 'noopener noreferrer' }, 'Ver el aviso');
-}
+const enlaceAviso = (i) => informe.enlaceAviso(i, 'Ver el aviso', 'boton-link');
 
 function filaPedida(i) {
     return el('li', {},

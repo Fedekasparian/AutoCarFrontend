@@ -1,6 +1,6 @@
 // Historial por patente: las inspecciones firmadas de un auto (GET /api/historial-patente, con sesión).
 // La patente viaja en la URL (?patente=AB123CD), así se puede volver atrás o mandar el link.
-// Se llega desde el informe de una inspección ("ver el historial"), desde Mi cuenta o escribiéndola acá.
+// Se llega desde el informe de una inspección ("ver el historial"), desde "Patentes" en la barra de arriba o escribiéndola acá.
 import * as api from '../api/inspecciones.js';
 import * as formato from '../servicios/formato.js';
 import * as insp from '../servicios/inspecciones.js';

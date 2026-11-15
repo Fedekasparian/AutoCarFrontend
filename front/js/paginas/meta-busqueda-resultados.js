@@ -1,5 +1,6 @@
 // Reporte de una búsqueda guardada (meta-busqueda-resultados.html?id=N) con GET /api/meta-busquedas/{id}:
 // precio de referencia, novedades y los autos de todas las fuentes, cada uno con "Mandale un mecánico".
+// Si eligió para qué busca el auto, el back los ordena "para vos" y cada uno trae el motivo (para_vos).
 import * as api from '../api/metabusqueda.js';
 import * as formato from '../servicios/formato.js';
 import * as insp from '../servicios/inspecciones.js';
@@ -8,6 +9,7 @@ import * as vistas from '../servicios/vistas.js';
 import { criterios } from '../servicios/metabusqueda.js';
 import { ruta } from '../servicios/rutas.js';
 import { boton, confirmacion } from '../servicios/acciones.js';
+import { PERFILES } from '../servicios/perfil.js';
 
 const { el } = vistas;
 const params = new URLSearchParams(window.location.search);
@@ -59,7 +61,8 @@ function fila(a, i) {
             el('span', { class: 'fila__titulo' }, `${a.marca} ${a.modelo} ${a.anio ?? ''}`.trim(),
                 a.version ? el('span', { class: 'suave' }, ` · ${a.version}`) : null),
             el('span', { class: 'fila__meta' }, datos),
-            el('span', { class: 'resultado__precio' }, el('strong', {}, precio(a)), ' ', etiquetaPrecio(a))),
+            el('span', { class: 'resultado__precio' }, el('strong', {}, precio(a)), ' ', etiquetaPrecio(a)),
+            a.para_vos ? el('span', { class: 'resultado__para-vos' }, a.para_vos.motivo) : null),
         el('span', { class: 'fila__acciones' }, ...acciones(a)));
     li.style.setProperty('--n', String(i));
     return li;
@@ -137,6 +140,7 @@ function mostrar(r) {
     mostrarDestacados(r.destacados);
     $('resumen').hidden = false;
 
+    mostrarPerfil(r.perfil);
     const res = r.resultados;
     $('resultados').replaceChildren(...res.items.map(fila));
     $('resultados').classList.add('lista-filas--entra');
@@ -148,6 +152,18 @@ function mostrar(r) {
     if (!$('borrar')) {
         $('paginacion').after(boton('Borrar esta búsqueda', () => pedirBorrar(), 'boton boton--secundario', 'borrar'));
     }
+}
+
+// "Ordenado para vos: Para la familia · Cambiar" y la opción "Para vos" en "Ordenar por"
+function mostrarPerfil(perfil) {
+    const elegido = PERFILES.find((p) => p.uso === perfil);
+    if (!elegido || $('perfil-orden')) return;
+    const orden = filtros.elements.orden;
+    orden.prepend(el('option', { value: 'para_vos' }, 'Para vos'));
+    orden.value = params.get('orden') || 'para_vos';
+    filtros.before(el('p', { class: 'campo__ayuda', id: 'perfil-orden' },
+        `Ordenado para vos: ${elegido.titulo}. `,
+        el('a', { href: ruta(`preferencias.html?volver=${encodeURIComponent(`meta-busqueda-resultados.html?id=${id}`)}`) }, 'Cambiar')));
 }
 
 function noEncontrada() {

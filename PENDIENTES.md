@@ -95,6 +95,13 @@ Lo que pidió el profe el 13/11 ("variables y controles"). Todas las decisiones 
 - [x] **Cómo funciona** (`como-funciona.html`, front #80): comprar, vender y ser mecánico, con los números de los parámetros. El detalle del auto muestra "Acepta canje" y Explorar ofrece "Autos hasta $X para vos" si el usuario dio su presupuesto.
 - [x] **Patente e historial** (back migración `022`): el mecánico carga la patente y una foto de la chapa en el checklist; sin las dos no se firma y la patente entra en la huella. `historial.html` busca las inspecciones firmadas de una patente (con sesión, sin datos del comprador ni del dueño). Las firmadas de antes tienen patentes inventadas (`AD000DM`…, la misma por aviso).
 
+**Cambios de la noche del 14/11 (front y back #51, en `dev`):**
+
+- [x] **Perfil con tarjetas**: "¿Para qué buscás el auto?" ahora es un cartel encima de la página (se ve el sitio atrás, borroso) con cuatro tarjetas: Para mí, Para la familia, Para trabajar y Para manejar con aplicaciones. No se cierra hasta elegir una. Se sacaron tipo de auto, presupuesto y zona, y el atajo "Autos hasta $X para vos" de Explorar. Desde Mi cuenta se cambia con las mismas tarjetas.
+- [x] **Metabuscador "para vos"**: con el perfil, cada auto tiene un puntaje (precio contra autos parecidos, km, días publicado y año, con distinto peso por perfil) y un motivo ("Te conviene: 18 % más barato que autos parecidos…"). Es el orden por defecto si el usuario tiene perfil.
+- [x] **"Patentes" en la barra de arriba** (antes estaba en Mi cuenta).
+- [x] **Fotos reales en las publicaciones de dev** (Wikimedia Commons, licencias libres). Los E2E suben una foto real de un Ford Ka en vez del recuadro rojo. Falta poner los créditos de las fotos (autor y licencia) en Legales.
+
 ### Falta para el 18/11
 
 - [ ] **Auto vendido**: turno que confirma el vendedor y se cae si el aviso pasa a pausado o vendido; si el mecánico ya fue, se firma igual y el comprador original recibe un crédito del 30 %; cupón solo con turno confirmado y aviso vendido dentro de las 48 h.
