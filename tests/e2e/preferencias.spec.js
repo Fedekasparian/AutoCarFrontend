@@ -23,29 +23,34 @@ test('sin aceptar la política de privacidad no se crea la cuenta', async ({ pag
     await expect(page).toHaveURL(/registro\.html/);
 });
 
-test('una cuenta nueva no puede seguir hasta contestar, y después lo ve en Mi cuenta', async ({ page }) => {
+test('una cuenta nueva no puede seguir hasta elegir un perfil, y después lo ve en Mi cuenta', async ({ page }) => {
     await llenarRegistro(page);
     await page.check('#acepta_privacidad');
     await page.click('#form-registro button[type="submit"]');
-    await expect(page).toHaveURL(/preferencias\.html/);
+    const cartel = page.locator('dialog.perfil-dialogo');
+    await expect(cartel).toBeVisible();
 
-    // Aunque vaya a otra página, vuelve a la pregunta
+    // Esc no lo cierra, y aunque vaya a otra página vuelve a aparecer
+    await page.keyboard.press('Escape');
+    await expect(cartel).toBeVisible();
     await page.goto(pagina('pages/vehiculos/favoritos.html'));
-    await expect(page).toHaveURL(/preferencias\.html/);
+    await expect(cartel).toBeVisible();
+    await expect(cartel.locator('.perfil')).toHaveCount(4);
 
-    // Sin elegir para qué lo busca no se guarda
-    await page.click('#form-preferencias button[type="submit"]');
-    await expect(page.locator('#uso-error')).not.toBeEmpty();
-
-    await page.check('input[name="uso"][value="trabajo"]');
-    await page.selectOption('#tipo', 'pickup');
-    await page.click('#form-preferencias button[type="submit"]');
-    // Vuelve a la página que quería ver
-    await expect(page).toHaveURL(/vehiculos\/favoritos\.html/); // no alcanza con ?volver=favoritos.html
+    await cartel.getByRole('button', { name: /Para trabajar/ }).click();
+    await expect(cartel).toHaveCount(0);
+    // Sigue en la página que quería ver
+    await expect(page).toHaveURL(/vehiculos\/favoritos\.html/);
 
     await page.goto(pagina('pages/auth/cuenta.html'));
     await expect(page.locator('#cuenta-preferencias')).toContainText('Para trabajar');
-    await expect(page.locator('#cuenta-preferencias')).toContainText('Pickup');
+
+    // Desde Mi cuenta se cambia con las mismas tarjetas
+    await page.goto(pagina('pages/auth/preferencias.html?volver=cuenta.html'));
+    await expect(page.locator('#perfiles .perfil[aria-pressed="true"]')).toContainText('Para trabajar');
+    await page.locator('#perfiles').getByRole('button', { name: /Para la familia/ }).click();
+    await expect(page).toHaveURL(/cuenta\.html/);
+    await expect(page.locator('#cuenta-preferencias')).toContainText('Para la familia');
 });
 
 test('el admin cambia un parámetro y queda anotado', async ({ page }) => {

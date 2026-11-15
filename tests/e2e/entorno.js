@@ -15,10 +15,10 @@ export const emailNuevo = () => `e2e+${Date.now()}${Math.floor(Math.random() * 1
 export const PASSWORD = 'Prueba1234';
 
 // Desde el 14/11 una cuenta personal nueva tiene que contestar "¿Para qué buscás el auto?" antes de seguir:
-// el sitio la lleva a preferencias.html. Contesta "Para la familia" y espera volver a donde iba.
+// encima de la página aparece el cartel con los cuatro perfiles y no se va hasta elegir uno. Elige "Para la familia".
 export async function contestarPreferencias(page) {
-    await expect(page).toHaveURL(/preferencias\.html/);
-    await page.check('input[name="uso"][value="familia"]');
-    await page.click('#form-preferencias button[type="submit"]');
-    await expect(page).not.toHaveURL(/preferencias\.html/);
+    const cartel = page.locator('dialog.perfil-dialogo');
+    await expect(cartel).toBeVisible();
+    await cartel.getByRole('button', { name: /Para la familia/ }).click();
+    await expect(cartel).toHaveCount(0);
 }

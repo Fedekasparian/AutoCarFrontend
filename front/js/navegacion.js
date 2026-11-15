@@ -16,14 +16,14 @@
         // Sin almacenamiento: no hay sesión que mirar.
     }
     // 0.a Una cuenta personal que todavía no contestó "¿Para qué buscás el auto?" (o no aceptó la política de
-    //     privacidad) no puede seguir: va a preferencias.html y después vuelve a donde estaba. Así todas quedan
-    //     clasificadas. Legales se puede leer igual (ahí está la política).
+    //     privacidad) no puede seguir: encima de la página aparece el cartel con los cuatro perfiles
+    //     (js/servicios/perfil.js) y no se va hasta que elige uno. Así todas quedan clasificadas.
+    //     Legales se puede leer igual (ahí está la política).
     const pagina = window.location.pathname.split('/').pop();
     if (usuario && (usuario.preferencias_pendientes || usuario.privacidad_pendiente)
         && !['preferencias.html', 'legales.html', 'login.html'].includes(pagina)) {
-        const volver = encodeURIComponent(pagina + window.location.search);
-        window.location.replace(new URL(`../pages/auth/preferencias.html?volver=${volver}`, document.currentScript.src).href);
-        return;
+        const modulo = new URL('servicios/perfil.js', document.currentScript.src).href;
+        import(modulo).then(({ pedirPerfil }) => pedirPerfil(usuario));
     }
     if (usuario) {
         const [ruta, etiqueta] = usuario.rol === 'admin'

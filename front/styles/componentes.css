@@ -694,3 +694,71 @@ textarea.campo__input{
     font-size: 16px;
 }
 .perfil-foto:focus-visible{ outline: 3px solid var(--marca-tinta, #222); outline-offset: 3px; }
+
+/* ---------- "¿Para qué buscás el auto?": tarjetas de perfil (js/servicios/perfil.js) ---------- */
+.perfiles{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--esp-3);
+}
+.perfil{
+    display: flex;
+    flex-direction: column;
+    gap: var(--esp-2);
+    min-height: 140px;
+    padding: var(--esp-4);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-grande);
+    background: var(--color-fondo);
+    color: var(--color-texto);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color .15s, box-shadow .15s, transform .15s;
+}
+.perfil:hover,
+.perfil:focus-visible{
+    border-color: var(--color-principal);
+    box-shadow: 0 6px 18px rgb(0 0 0 / .12);
+    transform: translateY(-2px);
+}
+.perfil[aria-pressed="true"]{
+    border: 2px solid var(--color-principal);
+}
+.perfil__titulo{
+    font-size: var(--tam-lg);
+    font-weight: 700;
+}
+.perfil__texto{
+    font-size: var(--tam-md);
+    color: var(--color-texto-suave);
+}
+/* El cartel de la primera vez: la página se ve atrás, borrosa, y no se puede usar hasta elegir */
+.perfil-dialogo{
+    width: min(960px, calc(100% - 32px));
+    max-height: calc(100% - 32px);
+    margin: auto;
+    padding: var(--esp-5);
+    border: 0;
+    border-radius: var(--radio-grande);
+    background: var(--color-fondo);
+    color: var(--color-texto);
+    overflow: auto;
+}
+.perfil-dialogo::backdrop{
+    background: rgb(0 0 0 / .35);
+    backdrop-filter: blur(6px);
+}
+.perfil-dialogo h2{
+    font-size: var(--tam-xl);
+}
+.perfil-dialogo .perfiles{
+    margin-top: var(--esp-4);
+}
+.perfil-dialogo .casilla{
+    margin-top: var(--esp-4);
+}
+@media (prefers-reduced-motion: reduce){
+    .perfil{ transition: none; }
+    .perfil:hover, .perfil:focus-visible{ transform: none; }
+}
