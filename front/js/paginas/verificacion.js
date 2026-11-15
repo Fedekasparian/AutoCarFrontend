@@ -1,5 +1,5 @@
 // Una inspección del lado del comprador (verificacion.html?id=N): estado y qué sigue, cancelar mientras está
-// pedida, informe firmado, trámites para pedir antes de pagar y reclamo dentro de los 15 días.
+// pedida, informe firmado, trámites para pedir antes de pagar y reclamo dentro de los días de reclamo de la inspección.
 // También la ven el mecánico asignado y quien resuelve reclamos, pero sólo el comprador cancela y reclama.
 import * as api from '../api/inspecciones.js';
 import * as formato from '../servicios/formato.js';
@@ -39,7 +39,7 @@ function mostrarResumen(i) {
     $('resumen-estado').replaceChildren(informe.etiquetaEstado(i), ' ', proximoPaso(i));
     $('resumen-linea').replaceChildren(informe.lineaDeTiempo(i));
     $('resumen-datos').replaceChildren(...informe.filasDatos([
-        ['Aviso', el('a', { href: i.url, target: '_blank', rel: 'noopener noreferrer' }, `Ver en ${insp.fuente(i.fuente)}`)],
+        ['Aviso', informe.enlaceAviso(i)],
         ['Mecánico', `${i.mecanico.nombre} · ${i.mecanico.taller || ''}`],
         i.mecanico.direccion ? ['Taller', `${i.mecanico.direccion}, ${i.mecanico.localidad}`] : null,
         i.fecha_turno ? ['Turno', formato.fechaHora(i.fecha_turno)] : null,
@@ -98,7 +98,7 @@ function mostrarReclamo(i) {
     }
     if (puedeReclamar) {
         $('reclamo-plazo').textContent = `Si el mecánico pasó por alto algo que se veía, podés reclamar una vez hasta el ${formato.fecha(i.reclamo_hasta)}.`;
-        $('reclamo-alcance').replaceChildren(informe.bloqueAlcance());
+        $('reclamo-alcance').replaceChildren(informe.bloqueAlcance(false, { dias: i.dias_reclamo, tope: i.tope_veces }));
     }
 }
 

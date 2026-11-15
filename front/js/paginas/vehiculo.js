@@ -39,7 +39,10 @@ function mostrar(v) {
     $('dato-transmision').textContent = formato.transmision(v.transmision);
     $('dato-estado').textContent = formato.estado(v.estado);
     // Datos que puede no tener (una publicación vieja o el auto sin versión): si faltan, no se muestra el renglón
-    [['version', v.version], ['condicion', v.condicion && formato.condicion(v.condicion)], ['localidad', v.localidad]]
+    // Canje: solo el dato ("Sí, busca: ..."). Si le interesa, lo charla con el vendedor por el chat
+    const canje = v.acepta_canje && (v.busca_canje ? `Sí, busca: ${v.busca_canje}` : 'Sí');
+    [['version', v.version], ['condicion', v.condicion && formato.condicion(v.condicion)], ['localidad', v.localidad],
+        ['canje', canje]]
         .filter(([, valor]) => valor)
         .forEach(([dato, valor]) => {
             $(`dato-${dato}`).textContent = valor;
@@ -69,7 +72,6 @@ function mostrar(v) {
         const acciones = document.querySelector('.detalle__acciones');
         acciones.prepend(botonConsultar);
         acciones.after(avisoConsultar);
-        $('vehiculo-canje').hidden = false;
         mostrarFavorito();
         barraDeAccion(v);
     }

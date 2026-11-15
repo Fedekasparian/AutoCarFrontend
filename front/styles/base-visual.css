@@ -1204,3 +1204,5 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
     .resumen-admin__dinero strong{ font-size: 17px; }
     .barras__fila{ grid-template-columns: minmax(80px, 110px) minmax(0, 1fr) 40px; gap: 8px; }
 }
+/* Por qué este auto le conviene a su perfil ("para vos", ver js/servicios/perfil.js) */
+.resultado__para-vos{ display: block; margin-top: 4px; font-size: var(--tam-sm); color: var(--color-texto-suave); }

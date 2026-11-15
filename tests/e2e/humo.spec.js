@@ -23,19 +23,18 @@ test.describe('@humo', () => {
         await expect(page).toHaveTitle(/AutoCar/i);
     });
 
-    // Un formulario de maqueta no manda nada (no hay ruta en el back): avisa y se queda en la página.
-    // (Contacto ya está conectado a la API: se prueba con "Cambiar de nivel" del plan, que sigue siendo maqueta.)
-    test('un formulario de maqueta avisa en lugar de dar 404', async ({ page }) => {
-        await page.goto(pagina('pages/info/plan.html'));
-        const formulario = page.locator('form[data-proximamente]');
-        await formulario.locator('[type="submit"]').click();
-        await expect(formulario.locator('.formulario__alerta')).toContainText('todavía no está disponible');
-        await expect(page).toHaveURL(/plan\.html$/);
-    });
-
     test('el listado de vehículos se muestra', async ({ page }) => {
         await page.goto(pagina('pages/vehiculos/buscar.html'));
         // Con o sin resultados, el total se completa cuando responde la API.
         await expect(page.locator('#resultados-total')).not.toBeEmpty();
+    });
+
+    // Los números de "Cómo funciona" salen de los parámetros (GET /api/parametros), no están fijos en la página
+    test('cómo funciona muestra los números de los parámetros', async ({ page }) => {
+        const p = await (await page.request.get('/api/parametros')).json();
+        await page.goto(pagina('pages/info/como-funciona.html'));
+        const dias = page.locator('#comprar [data-parametro="dias_reclamo"]');
+        await expect(dias).toHaveText(String(p.dias_reclamo));
+        await expect(page.locator('#mecanicos [data-parametro="comision_autocar"]')).toHaveText(String(p.comision_autocar));
     });
 });

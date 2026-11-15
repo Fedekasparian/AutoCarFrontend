@@ -124,7 +124,7 @@ function abrir(r) {
     resolverAuto.textContent = `${insp.tituloAuto(r.inspeccion)} · ${r.descripcion}`;
     campoCompensacion.max = r.tope;
     document.getElementById('compensacion-ayuda').textContent =
-        `Además se le devuelven ${formato.precio(r.inspeccion.precio)}. Compensación máxima: ${formato.precio(r.tope)} (3 veces el precio).`;
+        `Además se le devuelven ${formato.precio(r.inspeccion.precio)}. Compensación máxima: ${formato.precio(r.tope)}.`;
     alternarCompensacion();
     formularios.alerta(form, '');
     dialogo.showModal();

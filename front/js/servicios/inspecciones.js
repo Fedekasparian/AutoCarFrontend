@@ -98,16 +98,31 @@ export const TRAMITES = [
 export const tituloAuto = (inspeccion) =>
     inspeccion.titulo || `Auto de ${fuente(inspeccion.fuente)}`;
 
-// Igual que Inspecciones\Precio::desglose: AutoCar se queda el 23 % (redondeado a miles) y un tercio de eso
-// va al fondo de garantía. El resto es del mecánico. Con $ 130.000: 100.000 / 30.000 (10.000 al fondo).
-const COMISION = 0.23;
-const PARTE_FONDO = 1 / 3;
+// Igual que Inspecciones\Precio::desglose: AutoCar se queda su comisión (redondeada a miles) y una parte de eso
+// va al fondo de garantía. El resto es del mecánico. Los porcentajes son parámetros que cambia el admin:
+// p = lo que devuelve GET /api/parametros ({comision_autocar, parte_fondo, ...}, 23 = 23 %).
+// Con $ 100.000, 23 % y un tercio al fondo: 77.000 / 23.000 (8.000 al fondo).
 const redondear = (monto) => Math.round(monto / 1000) * 1000;
 
-export function desglose(precio) {
-    const autocar = Math.min(precio, redondear(precio * COMISION));
-    const fondo = Math.min(autocar, redondear(autocar * PARTE_FONDO));
+export function desglose(precio, p) {
+    const autocar = Math.min(precio, redondear(precio * p.comision_autocar / 100));
+    const fondo = Math.min(autocar, redondear(autocar * p.parte_fondo / 100));
     return { precio, monto_mecanico: precio - autocar, monto_autocar: autocar, monto_fondo: fondo };
+}
+
+// Patente: igual que Inspecciones\Patente. Sin espacios, guiones ni puntos y en mayúsculas; vieja (ABC123) o
+// Mercosur (AB123CD). normalizarPatente devuelve null si no tiene un formato argentino.
+export function normalizarPatente(texto) {
+    const limpia = String(texto || '').replace(/[\s.-]/g, '').toUpperCase();
+    return /^([A-Z]{3}\d{3}|[A-Z]{2}\d{3}[A-Z]{2})$/.test(limpia) ? limpia : null;
+}
+
+// Para mostrar: "AB 123 CD" o "ABC 123".
+export function formatoPatente(patente) {
+    if (!patente) return '';
+    return patente.length === 7
+        ? `${patente.slice(0, 2)} ${patente.slice(2, 5)} ${patente.slice(5)}`
+        : `${patente.slice(0, 3)} ${patente.slice(3)}`;
 }
 
 // Cuántos ítems del checklist ya tienen resultado.
@@ -138,13 +153,14 @@ export function validarInforme({ items, conclusion: concl, resumen = '' }, compl
 }
 
 // Lo que se manda al back: sólo los ítems con resultado (mientras no firma puede guardar a medias).
-export function cuerpoInforme({ items, conclusion: concl, resumen = '' }) {
+export function cuerpoInforme({ items, conclusion: concl, resumen = '', patente = '' }) {
     return {
         items: items
             .filter((i) => i.resultado)
             .map(({ codigo, resultado: res, nota = '' }) => ({ codigo, resultado: res, nota: nota.trim() })),
         conclusion: concl || null,
         resumen: resumen.trim(),
+        patente: patente.trim(),
     };
 }
 
@@ -159,7 +175,10 @@ export const ALCANCE = {
         'Los papeles: deudas de patente, multas, prendas o inhibiciones. Te decimos qué trámites pedir.',
         'Si el precio del aviso es justo.',
     ],
-    procede: 'El reclamo procede si el problema ya estaba el día de la revisión y se podía ver con el checklist. '
-        + 'Tenés 15 días desde la firma y un solo reclamo. Si procede, te devolvemos lo que pagaste y te '
-        + 'compensamos con hasta 3 veces el precio de la inspección.',
 };
+
+// Cuándo procede un reclamo. dias y tope: los de la inspección (o los parámetros de hoy, antes de pedirla).
+export const textoReclamo = (dias, tope) =>
+    'El reclamo procede si el problema ya estaba el día de la revisión y se podía ver con el checklist. '
+    + `Tenés ${dias} días desde la firma y un solo reclamo. Si procede, te devolvemos lo que pagaste y te `
+    + `compensamos con hasta ${tope} veces el precio de la inspección.`;

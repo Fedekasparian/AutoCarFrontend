@@ -4,10 +4,12 @@
 // Una inspección llega así:
 // {id, estado: pedida|aceptada|rechazada|cancelada|firmada|no_realizada, fuente, url, vehiculo_id, titulo, anio, kilometraje,
 //  precio_publicado, localidad, fecha_turno, motivo_rechazo, precio, monto_mecanico, monto_autocar, monto_fondo,
+//  tope_veces, dias_reclamo (con los que se pidió),
 //  pago: retenido|liberado|reembolsado, conclusion, resumen, firmado_por, taller_firma, firmada_at, huella,
 //  created_at, comprador: {id, nombre}, mecanico: {id, nombre, taller, direccion, localidad},
 //  reclamo: null | {id, estado: abierto|procede|no_procede, item_codigo, descripcion, compensacion, respuesta, ...},
-//  reclamo_hasta, puede_reclamar, items: [{codigo, resultado, nota}]}   (items sólo en el detalle)
+//  reclamo_hasta, puede_reclamar, patente, patente_foto (ruta de la foto de la chapa o null),
+//  items: [{codigo, resultado, nota}]}   (items sólo en el detalle)
 import { get, post, put, patch } from './cliente.js';
 
 const id = (n) => encodeURIComponent(n);
@@ -27,7 +29,7 @@ export const mias = () => get('/api/mis-inspecciones');
 // Sólo antes de que el mecánico la acepte. → {inspeccion}
 export const cancelar = (n) => post(`/api/inspecciones/${id(n)}/cancelar`, {});
 
-// Una vez, hasta 15 días después de la firma. {descripcion, item_codigo?} → {inspeccion} (201)
+// Una vez, dentro de los días de reclamo de la inspección (dias_reclamo). {descripcion, item_codigo?} → {inspeccion} (201)
 export const reclamar = (n, reclamo) => post(`/api/inspecciones/${id(n)}/reclamo`, reclamo);
 
 // ---------- Mecánico ----------
@@ -62,6 +64,13 @@ export const guardarInforme = (n, informe) => put(`/api/mecanico/inspecciones/${
 
 // Firma lo guardado: exige los 10 ítems y la conclusión. Después, cualquier cambio da 409. → {inspeccion}
 export const firmar = (n) => post(`/api/mecanico/inspecciones/${id(n)}/firma`, {});
+
+// Foto de la chapa. formulario: FormData con el campo "foto". → {inspeccion}
+export const subirFotoPatente = (n, formulario) => post(`/api/mecanico/inspecciones/${id(n)}/patente-foto`, formulario);
+
+// Historial de un auto por su patente (con sesión). → {patente, items: [{firmada_at, titulo, anio, kilometraje,
+// conclusion, observaciones, firmado_por, taller, reclamo_procedente}]}
+export const historial = (patente) => get('/api/historial-patente', { patente });
 
 // ---------- "Adherí tu taller" ----------
 // La solicitud llega así: {usuario_id, responsable, email, rol, taller, cuit, direccion, localidad, telefono, horarios,

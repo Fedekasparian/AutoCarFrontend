@@ -2,6 +2,8 @@
 // (verificacion.html) y el admin. Todo con el DOM, nada con innerHTML.
 import * as formato from './formato.js';
 import * as insp from './inspecciones.js';
+import { API_URL } from '../api/config.js';
+import { ruta } from './rutas.js';
 import { el } from './vistas.js';
 
 // Pares [dt, dd] → los hijos de un <dl class="datos">. Los pares null se saltean.
@@ -82,6 +84,9 @@ export function lineaDeTiempo(i) {
 // Quién firmó y cuándo. La huella (SHA-256) la guarda el back para controlar que el informe no cambió,
 // pero no se muestra en ninguna pantalla.
 export const datosFirma = (i) => filasDatos([
+    i.patente ? ['Patente', el('a', { href: ruta(`historial.html?patente=${i.patente}`) },
+        `${insp.formatoPatente(i.patente)} · ver el historial`)] : null,
+    i.patente_foto ? ['Chapa', el('a', { href: API_URL + i.patente_foto, target: '_blank', rel: 'noopener' }, 'Ver la foto')] : null,
     ['Firmado por', i.firmado_por],
     ['Taller', i.taller_firma],
     ['Fecha', formato.fechaHora(i.firmada_at)],
@@ -109,7 +114,8 @@ export function etiquetaEstado(i) {
 }
 
 // Qué revisa el mecánico y qué queda afuera (insp.ALCANCE), como <details> plegable.
-export function bloqueAlcance(abierto = false) {
+// plazo: {dias, tope} para reclamar (los de la inspección, o los parámetros de hoy si todavía no se pidió).
+export function bloqueAlcance(abierto, plazo) {
     const lista = (items) => el('ul', { class: 'pila' }, ...items.map((t) => el('li', {}, t)));
     return el('details', { class: 'alcance', open: abierto },
         el('summary', {}, 'Qué revisa el mecánico y qué queda afuera'),
@@ -117,5 +123,22 @@ export function bloqueAlcance(abierto = false) {
         lista(insp.ALCANCE.cubre()),
         el('h3', { class: 'alcance__titulo' }, 'No cubre'),
         lista(insp.ALCANCE.noCubre),
-        el('p', { class: 'campo__ayuda' }, insp.ALCANCE.procede));
+        el('p', { class: 'campo__ayuda' }, insp.textoReclamo(plazo.dias, plazo.tope)));
+}
+
+// Link al aviso que se inspeccionó. Que el auto se venda o la publicación se dé de baja es lo normal: el informe
+// sigue valiendo y queda en la patente, así que en lugar de un link que da "no existe" se dice eso.
+// - Publicación de AutoCar: el link se arma con su id (no con la URL guardada, que pudo ser de otro dominio)
+//   y si ya no está a la vista (aviso_publicado false), solo el texto.
+// - Aviso de otro sitio: no sabemos si sigue publicado, así que va el link con la aclaración.
+export function enlaceAviso(i, texto = `Ver en ${insp.fuente(i.fuente)}`, clase = null) {
+    if (i.vehiculo_id) {
+        if (i.aviso_publicado === false) {
+            return el('span', { class: 'suave' }, 'La publicación ya no está en AutoCar (se vendió o la dieron de baja). El informe sigue valiendo y queda en la patente.');
+        }
+        return el('a', { class: clase, href: ruta(`vehiculo.html?id=${i.vehiculo_id}`) }, texto);
+    }
+    return el('span', {},
+        el('a', { class: clase, href: i.url, target: '_blank', rel: 'noopener noreferrer' }, texto),
+        el('span', { class: 'suave' }, ' (si el auto ya se vendió, puede que el aviso no esté más)'));
 }

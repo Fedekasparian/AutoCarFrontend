@@ -72,7 +72,8 @@ export function requerirLogin() {
 }
 
 // Permisos de las pantallas de administración (el admin los tiene todos; el moderador, sólo moderar).
-export const PERMISOS_PANEL = ['usuarios.ver', 'vehiculos.moderar', 'vehiculos.gestionar', 'metricas.ver', 'reclamos.resolver'];
+export const PERMISOS_PANEL = ['usuarios.ver', 'vehiculos.moderar', 'vehiculos.gestionar', 'metricas.ver', 'reclamos.resolver',
+    'parametros.editar'];
 export const vePanel = () => PERMISOS_PANEL.some(puede);
 
 // Para las pantallas de administración: hace falta alguno de los permisos pedidos (sin argumentos, cualquiera
@@ -83,10 +84,6 @@ export function requerirPermiso(...permisos) {
     window.location.replace(ruta('home.html'));
     return false;
 }
-
-// El admin tiene siempre el mejor plan, incluido y sin cobro: los planes no aplican para él.
-export const PLAN_ADMIN = { nombre: 'Ambas', nivel: 'Platino', anuncios: 'Sin límite', descuento: '25 %' };
-export const planIncluido = () => (esAdmin() ? PLAN_ADMIN : null);
 
 // Destino seguro del parámetro ?volver= (sólo páginas de este mismo sitio).
 export function destinoDespuesDelLogin() {

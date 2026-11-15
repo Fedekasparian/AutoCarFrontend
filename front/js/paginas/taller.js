@@ -2,8 +2,10 @@
 // Pedidos: aceptar con fecha de turno o rechazar con motivo. Por revisar y firmadas: abren el checklist.
 // Hace falta el permiso verificaciones.realizar (rol mecanico); el back lo vuelve a controlar en cada pedido.
 import * as api from '../api/inspecciones.js';
+import * as parametros from '../api/parametros.js';
 import * as formato from '../servicios/formato.js';
 import * as formularios from '../servicios/formularios.js';
+import * as informe from '../servicios/informe.js';
 import * as insp from '../servicios/inspecciones.js';
 import * as sesion from '../servicios/sesion.js';
 import * as vistas from '../servicios/vistas.js';
@@ -37,6 +39,7 @@ const { dialogo: dialogoPerfil, formulario: formPerfil } = formularioEnHoja({
     ],
 });
 const ayudaPrecio = document.getElementById('perfil-precio-ayuda');
+let valores = null; // GET /api/parametros (se piden al iniciar)
 ayudaPrecio.setAttribute('aria-live', 'polite');
 
 const autoAceptar = el('p', { class: 'suave' });
@@ -89,7 +92,7 @@ function mostrarPerfil() {
     document.getElementById('taller-subtitulo').textContent = taller ? `${taller.nombre} · ${taller.localidad}` : '';
     if (!taller) return;
 
-    const { monto_mecanico: paraVos } = insp.desglose(Number(taller.precio_inspeccion));
+    const { monto_mecanico: paraVos } = insp.desglose(Number(taller.precio_inspeccion), valores);
     const filas = [
         ['Dirección', `${taller.direccion}, ${taller.localidad}`],
         ['Teléfono', taller.telefono],
@@ -100,11 +103,12 @@ function mostrarPerfil() {
 
 function describirPrecio() {
     const precio = Number(formPerfil.elements.precio_inspeccion.value);
-    if (!precio || precio < 1000) {
-        ayudaPrecio.textContent = 'Lo paga el comprador al pedir la inspección.';
+    if (!precio || precio < valores.precio_minimo) {
+        ayudaPrecio.textContent = `Lo paga el comprador al pedir la inspección. Entre ${formato.precio(valores.precio_minimo)} `
+            + `y ${formato.precio(valores.precio_maximo)}; te sugerimos ${formato.precio(valores.precio_sugerido)}.`;
         return;
     }
-    const d = insp.desglose(precio);
+    const d = insp.desglose(precio, valores);
     ayudaPrecio.textContent = `De cada inspección cobrás ${formato.precio(d.monto_mecanico)}. `
         + `AutoCar se queda ${formato.precio(d.monto_autocar)}, de los que ${formato.precio(d.monto_fondo)} `
         + 'van al fondo de garantía que paga los reclamos.';
@@ -113,7 +117,7 @@ function describirPrecio() {
 function abrirPerfil() {
     const campos = formPerfil.elements;
     ['nombre', 'direccion', 'localidad', 'telefono'].forEach((c) => { campos[c].value = taller?.[c] || ''; });
-    campos.precio_inspeccion.value = taller ? Number(taller.precio_inspeccion) : 130000;
+    campos.precio_inspeccion.value = taller ? Number(taller.precio_inspeccion) : valores.precio_sugerido;
     formularios.alerta(formPerfil, '');
     describirPrecio();
     dialogoPerfil.showModal();
@@ -145,9 +149,7 @@ function metaDe(i) {
     return partes.join(' · ');
 }
 
-function enlaceAviso(i) {
-    return el('a', { class: 'boton-link', href: i.url, target: '_blank', rel: 'noopener noreferrer' }, 'Ver el aviso');
-}
+const enlaceAviso = (i) => informe.enlaceAviso(i, 'Ver el aviso', 'boton-link');
 
 function filaPedida(i) {
     return el('li', {},
@@ -256,6 +258,10 @@ formularios.alEnviar(formRechazar, async ({ motivo }) => {
 async function iniciar() {
     marcarPestanas();
     try {
+        // Comisión, fondo y rango del precio: parámetros que cambia el admin
+        valores = await parametros.publicos();
+        formPerfil.elements.precio_inspeccion.min = valores.precio_minimo;
+        formPerfil.elements.precio_inspeccion.max = valores.precio_maximo;
         taller = (await api.perfil()).taller;
         mostrarPerfil();
     } catch (error) {

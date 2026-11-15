@@ -11,7 +11,7 @@
 //   E2E_MECANICO_EMAIL / E2E_MECANICO_PASSWORD / E2E_MECANICO_TALLER  (por defecto, el mecánico 5 de la demo)
 //   E2E_ADMIN_EMAIL / E2E_ADMIN_PASSWORD  (alguien con reclamos.resolver; sin ellas se saltea la resolución)
 import { test, expect } from '@playwright/test';
-import { pagina, soloFueraDeProduccion, emailNuevo, PASSWORD } from './entorno.js';
+import { pagina, soloFueraDeProduccion, emailNuevo, PASSWORD, contestarPreferencias } from './entorno.js';
 
 soloFueraDeProduccion();
 
@@ -22,6 +22,10 @@ const MECANICO = {
 };
 const ADMIN = { email: process.env.E2E_ADMIN_EMAIL, password: process.env.E2E_ADMIN_PASSWORD };
 
+// Patente propia de cada corrida (formato Mercosur) y una foto de la chapa de 1×1 píxel
+const patente = `AE${String(Date.now() % 1000).padStart(3, '0')}ZZ`;
+const CHAPA = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
+
 const CODIGOS = ['carroceria', 'estructura', 'motor', 'transmision', 'frenos',
     'suspension', 'neumaticos', 'electricidad', 'kilometraje', 'identificacion'];
 
@@ -31,7 +35,9 @@ async function registrar(page, nombre) {
     await page.fill('#email', emailNuevo());
     await page.fill('#password', PASSWORD);
     await page.fill('#password_confirm', PASSWORD);
+    await page.check('#acepta_privacidad');
     await page.click('#form-registro button[type="submit"]');
+    await contestarPreferencias(page);
     await expect(page).toHaveURL(/home\.html/);
 }
 
@@ -104,6 +110,14 @@ test('recorrido de la demo: pedir, aceptar, firmar, reclamar y resolver', async 
         await mecanico.fill('#resumen', 'Auto en buen estado general. Revisar el rayón antes de cerrar el precio.');
         await expect(mecanico.locator('#progreso-texto')).toHaveText('10 de 10');
 
+        // Sin la patente y la foto de la chapa no deja firmar
+        await mecanico.click('#informe button[type="submit"]');
+        await expect(mecanico.locator('#patente-error')).not.toBeEmpty();
+        await expect(mecanico.locator('#patente_foto-error')).not.toBeEmpty();
+        await mecanico.fill('#patente', patente.toLowerCase());
+        await mecanico.setInputFiles('#patente_foto', { name: 'chapa.png', mimeType: 'image/png', buffer: CHAPA });
+        await expect(mecanico.locator('#patente_foto-estado')).toContainText('cargada');
+
         await mecanico.click('#informe button[type="submit"]');
         await mecanico.click('#confirmar-firma');
         await expect(mecanico.locator('#firmado')).toBeVisible();
@@ -119,6 +133,12 @@ test('recorrido de la demo: pedir, aceptar, firmar, reclamar y resolver', async 
         await expect(comprador.locator('#informe-firma')).toContainText(MECANICO.taller);
         await expect(comprador.locator('#informe-firma')).not.toContainText(/[0-9a-f]{64}/);
         await expect(comprador.locator('#tramites')).toBeVisible();
+
+        // La patente lleva al historial del auto, con esta inspección
+        await comprador.click('#informe-firma a[href*="historial.html"]');
+        await expect(comprador.locator('#lista li')).toHaveCount(1);
+        await expect(comprador.locator('#lista')).toContainText(MECANICO.taller);
+        await comprador.goto(pagina(`pages/talleres/verificacion.html?id=${id}`));
 
         await expect(comprador.locator('#form-reclamo')).toBeVisible();
         await expect(comprador.locator('#reclamo-alcance details')).toBeAttached();

@@ -15,6 +15,16 @@
     } catch {
         // Sin almacenamiento: no hay sesión que mirar.
     }
+    // 0.a Una cuenta personal que todavía no contestó "¿Para qué buscás el auto?" (o no aceptó la política de
+    //     privacidad) no puede seguir: encima de la página aparece el cartel con los cuatro perfiles
+    //     (js/servicios/perfil.js) y no se va hasta que elige uno. Así todas quedan clasificadas.
+    //     Legales se puede leer igual (ahí está la política).
+    const pagina = window.location.pathname.split('/').pop();
+    if (usuario && (usuario.preferencias_pendientes || usuario.privacidad_pendiente)
+        && !['preferencias.html', 'legales.html', 'login.html'].includes(pagina)) {
+        const modulo = new URL('servicios/perfil.js', document.currentScript.src).href;
+        import(modulo).then(({ pedirPerfil }) => pedirPerfil(usuario));
+    }
     if (usuario) {
         const [ruta, etiqueta] = usuario.rol === 'admin'
             ? ['../pages/admin/admin-moderar.html', 'AutoCar, moderar publicaciones']

@@ -2,6 +2,7 @@
 // mecánico del ranking, ve el desglose del precio y confirma. POST /api/inspecciones; el pago es simulado.
 // Si llega con ?url=..., el link queda fijo (solo lectura): es el del auto que estaba mirando.
 import * as api from '../api/inspecciones.js';
+import * as parametros from '../api/parametros.js';
 import * as formato from '../servicios/formato.js';
 import * as formularios from '../servicios/formularios.js';
 import * as insp from '../servicios/inspecciones.js';
@@ -179,7 +180,10 @@ if (sesion.requerirLogin()) {
             vistas.el('a', { class: 'boton boton--secundario', href: ruta('home.html') }, 'Explorar autos')));
         sinAuto.hidden = false;
     } else {
-        document.getElementById('alcance').replaceChildren(bloqueAlcance(true));
+        // Los días y el tope para reclamar son parámetros: se muestran los de hoy
+        parametros.publicos().then((p) => {
+            document.getElementById('alcance').replaceChildren(bloqueAlcance(true, { dias: p.dias_reclamo, tope: p.tope_veces }));
+        });
         precargar();
         cargarMecanicos();
     }

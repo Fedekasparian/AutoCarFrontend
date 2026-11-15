@@ -5,6 +5,7 @@ import * as vehiculos from '../api/vehiculos.js';
 import * as corazones from '../servicios/corazones.js';
 import * as formato from '../servicios/formato.js';
 import * as vistas from '../servicios/vistas.js';
+import { ruta } from '../servicios/rutas.js';
 
 const FILTROS = ['q', 'marca', 'combustible', 'precio_max', 'page'];
 

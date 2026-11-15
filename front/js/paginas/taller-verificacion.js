@@ -8,6 +8,7 @@ import * as informe from '../servicios/informe.js';
 import * as insp from '../servicios/inspecciones.js';
 import * as sesion from '../servicios/sesion.js';
 import * as vistas from '../servicios/vistas.js';
+import { achicar } from '../servicios/imagenes.js';
 import { ruta } from '../servicios/rutas.js';
 import { boton, campo, confirmacion, formularioEnHoja } from '../servicios/acciones.js';
 
@@ -35,7 +36,7 @@ function mostrarAuto(i) {
     document.getElementById('titulo').textContent = insp.tituloAuto(i);
     document.title = `${insp.tituloAuto(i)} · Inspección - AutoCar`;
     const filas = [
-        ['Aviso', el('a', { href: i.url, target: '_blank', rel: 'noopener noreferrer' }, `Ver en ${insp.fuente(i.fuente)}`)],
+        ['Aviso', informe.enlaceAviso(i)],
         i.anio ? ['Año', String(i.anio)] : null,
         i.kilometraje !== null && i.kilometraje !== undefined ? ['Kilometraje', formato.km(i.kilometraje)] : null,
         i.precio_publicado ? ['Precio publicado', formato.precio(i.precio_publicado)] : null,
@@ -84,6 +85,8 @@ function mostrarFormulario(i) {
     document.getElementById('items').replaceChildren(...insp.CHECKLIST.map((c) => campoItem(c, porCodigo[c.codigo])));
     document.getElementById('conclusion').replaceChildren(...radios('conclusion', insp.CONCLUSIONES, i.conclusion));
     form.elements.resumen.value = i.resumen || '';
+    form.elements.patente.value = insp.formatoPatente(i.patente);
+    mostrarEstadoFoto(i);
     actualizarProgreso();
     form.hidden = false;
 }
@@ -98,7 +101,54 @@ function leerInforme() {
         })),
         conclusion: campos.conclusion.value,
         resumen: campos.resumen.value,
+        patente: campos.patente.value,
     };
+}
+
+// ---------- Patente y foto de la chapa ----------
+
+const entradaFoto = document.getElementById('patente_foto');
+const estadoFoto = document.getElementById('patente_foto-estado');
+
+function mostrarEstadoFoto(i) {
+    estadoFoto.textContent = i.patente_foto ? 'Foto de la chapa cargada. Si sacás otra, reemplaza a esta.' : 'Todavía no cargaste la foto.';
+}
+
+// La foto se sube apenas la elige (achicada en el navegador, como las demás fotos)
+entradaFoto.addEventListener('change', async () => {
+    if (!entradaFoto.files[0]) return;
+    document.getElementById('patente_foto-error').textContent = '';
+    estadoFoto.textContent = 'Subiendo la foto…';
+    try {
+        const datos = new FormData();
+        datos.append('foto', await achicar(entradaFoto.files[0]));
+        inspeccion = (await api.subirFotoPatente(id, datos)).inspeccion;
+        mostrarEstadoFoto(inspeccion);
+    } catch (error) {
+        if (error.status === 401) sesion.requerirLogin();
+        document.getElementById('patente_foto-error').textContent = error.errores?.foto || error.message;
+        mostrarEstadoFoto(inspeccion);
+    }
+    entradaFoto.value = '';
+});
+
+// Lo de la patente que se revisa además del checklist: el formato siempre y, para firmar, que estén las dos
+function revisarPatente(cargado, completo) {
+    const errores = {};
+    const escrita = cargado.patente.trim();
+    if (escrita && !insp.normalizarPatente(escrita)) errores.patente = 'Escribila como está en la chapa: ABC123 o AB123CD.';
+    if (completo && !escrita) errores.patente = 'Cargá la patente.';
+    if (completo && !inspeccion.patente_foto) errores.patente_foto = 'Sacale una foto a la chapa.';
+    return errores;
+}
+
+// Junta los errores del checklist y los de la patente
+function revisar(cargado, completo) {
+    const revision = insp.validarInforme(cargado, completo);
+    const errores = { ...revisarPatente(cargado, completo), ...revision.errores };
+    let mensaje = revision.mensaje;
+    if (!mensaje && Object.keys(errores).length) mensaje = completo ? 'Para firmar falta completar o corregir lo marcado.' : 'Revisá los datos marcados.';
+    return { errores, mensaje };
 }
 
 function actualizarProgreso() {
@@ -134,7 +184,7 @@ function mostrarErrores({ errores, mensaje }) {
 async function guardar(completo) {
     limpiarErrores();
     const cargado = leerInforme();
-    const revision = insp.validarInforme(cargado, completo);
+    const revision = revisar(cargado, completo);
     if (revision.mensaje) {
         mostrarErrores(revision);
         return false;
@@ -145,6 +195,10 @@ async function guardar(completo) {
         return true;
     } catch (error) {
         if (error.status === 401) sesion.requerirLogin();
+        if (Object.keys(error.errores || {}).length) {
+            mostrarErrores({ errores: error.errores, mensaje: error.message });
+            return false;
+        }
         alertaForm.textContent = error.message;
         alertaForm.focus();
         return false;
@@ -173,7 +227,7 @@ const pedirFirma = confirmacion({
     volver: 'Volver',
     detalle: (conclusion) => [
         el('p', {}, `Vas a firmar con tu nombre, ${sesion.usuario()?.nombre || ''}, un informe "${conclusion}" sobre ${insp.tituloAuto(inspeccion)}.`),
-        el('p', { class: 'campo__ayuda' }, 'Después de firmar el informe queda cerrado y no se puede cambiar. Si se te pasó algo que se veía, el comprador puede reclamar durante 15 días.'),
+        el('p', { class: 'campo__ayuda' }, `Después de firmar el informe queda cerrado y no se puede cambiar. Si se te pasó algo que se veía, el comprador puede reclamar durante ${inspeccion.dias_reclamo} días.`),
     ],
     hacer: async () => {
         // Se guarda lo último que cargó y después se firma eso mismo. Si no se pudo guardar, el motivo
@@ -197,7 +251,7 @@ const pedirFirma = confirmacion({
 form.addEventListener('submit', (evento) => {
     evento.preventDefault();
     limpiarErrores();
-    const revision = insp.validarInforme(leerInforme(), true);
+    const revision = revisar(leerInforme(), true);
     if (revision.mensaje) {
         mostrarErrores(revision);
         return;

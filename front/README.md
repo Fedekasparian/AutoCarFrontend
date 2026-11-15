@@ -39,39 +39,35 @@ El back es una API JSON en PHP ([AutoCarBackend](https://github.com/MateoPonti/A
 
 Las páginas que piden sesión mandan a `login.html` si no hay sesión iniciada. Las de administración, además, mandan a `home.html` si el rol no es admin. Es sólo una comodidad: el back controla el rol en cada pedido.
 
-### Pantallas que siguen siendo maqueta
+### Sin maquetas
 
-Al 10/11/2026 casi todo usa la API (favoritos, publicar, mis publicaciones, metabuscador, chat, perfil, inspecciones, talleres, contacto, reportar y el panel). Siguen con datos de ejemplo:
+Desde el 14/11/2026 todas las pantallas usan la API. Se sacaron las que eran maqueta y no hacían nada: **canje** (`proponer-canje.html`, `propuestas.html`: el back nunca tuvo propuestas de canje), **planes** (`planes.html`, `plan.html`: niveles Bronce a Platino que no se cobraban), **mapa** (`mapa.html`: precios inventados) y **verificar vehículo** (`verificar-vehiculo.html`: flujo viejo, hoy es "Mandale un mecánico"). También `js/proximamente.js`, que solo servía para esas.
 
-- **canje** (`proponer-canje.html`, `propuestas.html`): solo existe la marca "acepta canje" de la publicación;
-- **planes** (`planes.html`, `plan.html`): dependen de las suscripciones, que no están hechas;
-- **mapa** (`mapa.html`) y **verificar-vehiculo** (`verificar-vehiculo.html`, flujo viejo: hoy se usa "Mandale un mecánico").
+La suscripción del vendedor se va a hacer de nuevo con lo decidido el 14/11 (publicar es gratis; la suscripción da prioridad y precio sugerido con tiempo de venta).
 
 La lista viva está en [`../PENDIENTES.md`](../PENDIENTES.md).
 
 | Página | Ruta futura | Pantalla |
 |---|---|---|
 | `index.html` | `/` | Landing pública |
-| `planes.html` | `/planes` | Planes y precios |
 | `favoritos.html` | `/cuenta/favoritos` | Favoritos (`GET /api/favoritos`); se guardan desde el detalle |
-| `mis-publicaciones.html` | `/mis-publicaciones` | Publicaciones propias con el cupo del plan |
+| `mis-publicaciones.html` | `/mis-publicaciones` | Publicaciones propias |
 | `publicar.html` | `/mis-publicaciones/nueva` | Publicar vehículo en 6 pasos |
-| `propuestas.html` | `/mis-publicaciones/propuestas` | Propuestas de canje recibidas y enviadas |
-| `proponer-canje.html` | `/vehiculo/:id/proponer-canje` | Proponer un canje |
-| `mapa.html` | `/mapa` | Mapa de vehículos |
 | `meta-busqueda.html` | `/meta-busqueda` | Mis intereses (búsquedas guardadas) |
 | `meta-busqueda-nueva.html` | `/meta-busqueda/nueva` | Nueva búsqueda: marca, modelo, años, precio, km y transmisión |
 | `meta-busqueda-resultados.html` | `/meta-busqueda/:id` | Autos de MercadoLibre, Kavak, Autocosmos y AutoCar, precio típico y "Mandale un mecánico" |
 | `mensajes.html` | `/mensajes` | Conversaciones |
 | `conversacion.html` | `/mensajes/:id` | Conversación |
-| `plan.html` | `/cuenta/plan` | Plan activo y cambio de nivel |
+| `preferencias.html` | `/cuenta/preferencias` | "¿Para qué buscás el auto?" (`PUT /api/me/preferencias`). Obligatoria para las cuentas personales: `js/navegacion.js` las trae acá hasta que contestan y aceptan la política de privacidad |
 | `talleres.html` | `/talleres` | Mecánicos de la red: ranking público (`GET /api/mecanicos`) y filtro por localidad. El mecánico se pide desde un auto |
-| `verificar-vehiculo.html` | `/mis-publicaciones/:id/verificar` | Código para verificar en el taller |
 | `verificacion.html` | `/verificacion/:id` | Informe de verificación |
 | `talleres-adherirse.html` | `/talleres/adherirse` | Alta de un taller |
 | `taller.html` | `/taller` | Panel del mecánico |
 | `taller-verificacion.html` | `/taller/verificacion/:id` | Inspección con el checklist |
-| `legales.html` | `/legales` | Términos y privacidad |
+| `historial.html` | `/historial` | Historial por patente: las inspecciones firmadas de un auto (`GET /api/historial-patente`, con sesión) |
+| `como-funciona.html` | `/como-funciona` | Cómo funciona para quien compra, vende o es mecánico; los números salen de `GET /api/parametros` |
+| `legales.html` | `/legales` | Términos y política de privacidad (se acepta al registrarse) |
+| `admin-parametros.html` | `/admin/parametros` | Parámetros del negocio (`GET/PUT /api/admin/parametros`, permiso `parametros.editar`): comisión, fondo, tope, días de reclamo y precio de la inspección, con historial de cambios |
 | `contacto.html` | `/ayuda/contacto` | Contacto (`POST /api/contacto`, sin cuenta) |
 | `reportar.html` | `/reportes/nuevo` | Reportar publicación (`?vehiculo=N`) o usuario (`?usuario=N`) |
 | `admin-soporte.html` | `/admin/soporte` | Panel: reportes (moderador) y mensajes de contacto (admin) |
