@@ -1216,3 +1216,4 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .orden__opcion input:checked + span{ background: var(--marca-tinta); border-color: var(--marca-tinta); color: var(--marca-blanco); }
 .orden__opcion input:focus-visible + span{ outline: 2px solid var(--marca-acento); outline-offset: 2px; }
 .campos-fila > .orden{ grid-column: 1 / -1; }
+.resultado__original{ flex-basis: 100%; font-size: var(--tam-xs); color: var(--color-texto-suave); }
