@@ -51,14 +51,17 @@
       <p class="campo__ayuda" id="aclaracion"></p>
     </section>
     <form class="campos-fila" id="filtros" hidden>
-      <div class="campo">
-        <label class="campo__etiqueta" for="orden">Ordenar por</label>
-        <select class="campo__input" id="orden" name="orden">
-          <option value="precio">Menor precio</option>
-          <option value="km">Menos km</option>
-          <option value="nuevos">Más nuevos</option>
-        </select>
-      </div>
+      <!-- "Recomendado" no manda orden: el back ordena según el perfil del comprador (para_vos) o, sin perfil,
+           por la diferencia con el precio típico -->
+      <fieldset class="campo orden">
+        <legend class="campo__etiqueta">Ordenar por</legend>
+        <div class="orden__opciones">
+          <label class="orden__opcion"><input type="radio" name="orden" value="" checked><span>Recomendado</span></label>
+          <label class="orden__opcion"><input type="radio" name="orden" value="precio"><span>Menor precio</span></label>
+          <label class="orden__opcion"><input type="radio" name="orden" value="km"><span>Menos km</span></label>
+          <label class="orden__opcion"><input type="radio" name="orden" value="nuevos"><span>Más nuevos</span></label>
+        </div>
+      </fieldset>
       <div class="campo">
         <label class="campo__etiqueta" for="fuente">Sitio</label>
         <select class="campo__input" id="fuente" name="fuente">
