@@ -86,12 +86,17 @@ export function reclamosProcedentes(m) {
 }
 
 // Qué tiene que pedir el comprador antes de pagar el auto (los papeles no los revisa el mecánico).
-// Los links van a la página principal de cada organismo (Provincia de Buenos Aires para patentes y VTV).
+// Cada link va a la página del trámite (revisados el 15/11/2026). Patentes y VTV son de Provincia de Buenos Aires:
+// si el auto está radicado en otra provincia, se piden en la de ahí.
 export const TRAMITES = [
-    { nombre: 'Informe de dominio', detalle: 'Prendas, embargos e inhibiciones', url: 'https://www.dnrpa.gov.ar/' },
-    { nombre: 'Libre deuda de patentes', detalle: 'En el organismo de rentas de la provincia', url: 'https://www.arba.gov.ar/' },
-    { nombre: 'VTV vigente', detalle: 'Verificación técnica vehicular', url: 'https://www.vtv.gba.gob.ar/' },
-    { nombre: 'Formulario 08 firmado', detalle: 'Con la firma del titular certificada', url: 'https://www.argentina.gob.ar/justicia/registro-automotor' },
+    { nombre: 'Informe de dominio', detalle: 'Prendas, embargos, denuncia de robo e inhibiciones. Se pide con la patente',
+        url: 'https://www.argentina.gob.ar/servicio/solicitar-un-informe-de-dominio-del-automotor' },
+    { nombre: 'Libre deuda de patentes', detalle: 'En ARBA: elegí "Automotor" y poné la patente',
+        url: 'https://www.arba.gov.ar/Aplicaciones/AvisoDeudas.asp' },
+    { nombre: 'VTV vigente', detalle: 'Verificación técnica vehicular de Provincia de Buenos Aires',
+        url: 'https://www.vtv.gba.gob.ar/' },
+    { nombre: 'Formulario 08 firmado', detalle: 'Para la transferencia, con la firma del titular certificada',
+        url: 'https://www.argentina.gob.ar/tramitar-en-linea-formulario-08-para-transferencia-automotor' },
 ];
 
 // Título del auto: el que vino con el pedido o, si el comprador no lo cargó, el sitio.
