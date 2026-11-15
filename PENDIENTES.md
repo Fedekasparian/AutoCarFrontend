@@ -93,14 +93,22 @@ Lo que pidió el profe el 13/11 ("variables y controles"). Todas las decisiones 
 - [x] **Política de privacidad**: se acepta al registrarse (obligatorio); las cuentas viejas la aceptan junto con la pregunta de arriba. Texto en Legales.
 - [x] **Maquetas afuera**: canje, planes, mapa y verificar vehículo.
 - [x] **Cómo funciona** (`como-funciona.html`, front #80): comprar, vender y ser mecánico, con los números de los parámetros. El detalle del auto muestra "Acepta canje" y Explorar ofrece "Autos hasta $X para vos" si el usuario dio su presupuesto.
-- [x] **Patente e historial** (back migración `022`): el mecánico carga la patente y una foto de la chapa en el checklist; sin las dos no se firma y la patente entra en la huella. `historial.html` busca las inspecciones firmadas de una patente (con sesión, sin datos del comprador ni del dueño). Las firmadas de antes tienen patentes inventadas (`AD000DM`…, la misma por aviso).
+- [x] **Patente e historial** (back migración `022`): el mecánico carga la patente y una foto de la chapa en el checklist; sin las dos no se firma y la patente entra en la huella. ~~`historial.html` busca las inspecciones firmadas de una patente~~ (se sacó el 15/11, ver abajo). Las firmadas de antes tienen patentes inventadas (`AD000DM`…, la misma por aviso).
 
 **Cambios de la noche del 14/11 (front y back #51, en `dev`):**
 
 - [x] **Perfil con tarjetas**: "¿Para qué buscás el auto?" ahora es un cartel encima de la página (se ve el sitio atrás, borroso) con cuatro tarjetas: Para mí, Para la familia, Para trabajar y Para manejar con aplicaciones. No se cierra hasta elegir una. Se sacaron tipo de auto, presupuesto y zona, y el atajo "Autos hasta $X para vos" de Explorar. Desde Mi cuenta se cambia con las mismas tarjetas.
 - [x] **Metabuscador "para vos"**: con el perfil, cada auto tiene un puntaje (precio contra autos parecidos, km, días publicado y año, con distinto peso por perfil) y un motivo ("Te conviene: 18 % más barato que autos parecidos…"). Es el orden por defecto si el usuario tiene perfil.
-- [x] **"Patentes" en la barra de arriba** (antes estaba en Mi cuenta).
+- [x] ~~**"Patentes" en la barra de arriba**~~ (se sacó el 15/11 junto con el buscador).
 - [x] **Fotos reales en las publicaciones de dev** (Wikimedia Commons, licencias libres). Los E2E suben una foto real de un Ford Ka en vez del recuadro rojo.
+
+**Historial del auto dentro del informe (15/11, back y front):**
+
+- [x] **Ya no hay buscador por patente** (se sacaron `historial.html`, "Patentes" de la barra y `GET /api/historial-patente`). Si cualquiera podía ver la conclusión de una inspección de ayer, nadie pagaba la suya; y el comprador casi nunca tiene la patente (los avisos no la muestran).
+- [x] **El historial viene con la inspección que se paga**: el informe firmado trae "Historial de este auto", las inspecciones anteriores de la misma patente (aunque hayan sido por otro aviso o en otra página) con fecha, km, conclusión, taller, qué ítems no estaban OK y si un reclamo procedió. Las notas y las fotos de esos informes no. Si el aviso dice menos km que una inspección anterior, avisa "Ojo con los km".
+- [x] **El mecánico también lo ve**: al cargar la patente en el checklist se guarda el borrador y aparece si el auto ya se revisó antes (y qué encontraron), para saber dónde mirar.
+- Para la defensa: en dev ninguna patente se repite, así que para mostrarlo el mecánico tiene que cargar en una inspección nueva la patente de un auto ya inspeccionado.
+- A futuro (no para el 18/11): vender la copia del informe completo al que terminó comprando el auto (30 % del precio, ya decidido) y las fallas típicas por modelo.
 
 ### Falta para el 18/11
 

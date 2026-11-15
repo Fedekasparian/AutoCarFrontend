@@ -58,8 +58,11 @@ function mostrarResumen(i) {
 function mostrarInforme(i) {
     const firmada = i.estado === 'firmada';
     $('informe').hidden = !firmada;
+    $('anteriores').hidden = !firmada;
     $('tramites').hidden = !firmada;
     if (!firmada) return;
+    // Viene con el informe que pagó: las inspecciones anteriores de la misma patente
+    $('anteriores-lista').replaceChildren(...informe.historialAuto(i));
     $('informe-conclusion').replaceChildren('Conclusión del mecánico ', informe.conclusionDestacada(i));
     $('informe-resumen').textContent = i.resumen || '';
     $('informe-resumen').hidden = !i.resumen;

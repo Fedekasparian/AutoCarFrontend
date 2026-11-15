@@ -1217,3 +1217,20 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .orden__opcion input:focus-visible + span{ outline: 2px solid var(--marca-acento); outline-offset: 2px; }
 .campos-fila > .orden{ grid-column: 1 / -1; }
 .resultado__original{ flex-basis: 100%; font-size: var(--tam-xs); color: var(--color-texto-suave); }
+
+/* Historial del auto en el informe: las inspecciones anteriores de la misma patente */
+.historial-auto{ display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.historial-auto__item{
+    display: grid; gap: 6px; padding: 12px 14px; border: 1px solid var(--marca-linea);
+    border-left: 4px solid var(--marca-acento); border-radius: 12px; background: var(--marca-blanco);
+}
+.historial-auto__item p{ margin: 0; }
+.historial-auto__cabeza{ display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.historial-auto__cabeza .etiqueta{ margin-left: auto; }
+.historial-auto__fecha, .historial-auto__datos{ font-size: 13px; color: var(--marca-gris); }
+.historial-auto__fallas{ display: flex; flex-wrap: wrap; gap: 6px; }
+.historial-auto__reclamo{ font-size: 13px; font-weight: 600; color: var(--falla); }
+.historial-auto__alerta{
+    margin: 0; padding: 12px 14px; border-radius: 12px; color: var(--falla);
+    background: color-mix(in srgb, var(--falla) 10%, transparent); border: 1px solid color-mix(in srgb, var(--falla) 35%, transparent);
+}

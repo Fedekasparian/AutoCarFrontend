@@ -84,13 +84,68 @@ export function lineaDeTiempo(i) {
 // Quién firmó y cuándo. La huella (SHA-256) la guarda el back para controlar que el informe no cambió,
 // pero no se muestra en ninguna pantalla.
 export const datosFirma = (i) => filasDatos([
-    i.patente ? ['Patente', el('a', { href: ruta(`historial.html?patente=${i.patente}`) },
-        `${insp.formatoPatente(i.patente)} · ver el historial`)] : null,
+    i.patente ? ['Patente', insp.formatoPatente(i.patente)] : null,
     i.patente_foto ? ['Chapa', el('a', { href: API_URL + i.patente_foto, target: '_blank', rel: 'noopener' }, 'Ver la foto')] : null,
     ['Firmado por', i.firmado_por],
     ['Taller', i.taller_firma],
     ['Fecha', formato.fechaHora(i.firmada_at)],
 ]);
+
+// "hace 3 meses": así se ve enseguida si un informe anterior es viejo
+function hace(iso) {
+    const dias = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+    if (dias < 1) return 'hoy';
+    if (dias === 1) return 'ayer';
+    if (dias < 31) return `hace ${dias} días`;
+    const meses = Math.floor(dias / 30);
+    if (meses < 12) return meses === 1 ? 'hace 1 mes' : `hace ${meses} meses`;
+    const anios = Math.floor(meses / 12);
+    return anios === 1 ? 'hace 1 año' : `hace ${anios} años`;
+}
+
+// La conclusión con el color de los resultados: verde, ámbar o rojo
+const TONO_CONCLUSION = { recomendable: 'ok', con_reparos: 'observado', no_recomendable: 'falla' };
+
+// Una inspección anterior del mismo auto: cuándo, con cuántos km, qué concluyó y qué ítems no estaban OK
+function filaAnterior(a) {
+    const datos = [a.titulo, a.anio, a.kilometraje !== null ? formato.km(a.kilometraje) : null, a.taller]
+        .filter(Boolean).join(' · ');
+    const fallas = a.fallas.length
+        ? a.fallas.map((f) => el('span', { class: `etiqueta resultado resultado--${f.resultado}` },
+            `${insp.nombreItem(f.codigo)}: ${insp.resultado(f.resultado).toLowerCase()}`))
+        : [el('span', { class: 'etiqueta resultado resultado--ok' }, 'Todo OK')];
+    return el('li', { class: 'historial-auto__item' },
+        el('p', { class: 'historial-auto__cabeza' },
+            el('strong', {}, hace(a.firmada_at)),
+            el('span', { class: 'historial-auto__fecha' }, formato.fecha(a.firmada_at)),
+            el('span', { class: `etiqueta resultado resultado--${TONO_CONCLUSION[a.conclusion] || 'sin'}` }, insp.conclusion(a.conclusion))),
+        el('p', { class: 'historial-auto__datos' }, datos),
+        el('p', { class: 'historial-auto__fallas' }, ...fallas),
+        a.reclamo_procedente
+            ? el('p', { class: 'historial-auto__reclamo' }, 'Hubo un reclamo que procedió: al mecánico se le pasó algo.')
+            : null);
+}
+
+// El historial del auto que trae el informe (las otras inspecciones de la misma patente, GET /api/inspecciones/{id}).
+// No se busca por patente: lo ven el comprador que pagó esta inspección y el mecánico. Si el aviso dice menos km
+// que una inspección anterior, se avisa arriba: es la señal más clara de km bajados.
+export function historialAuto(i) {
+    const anteriores = i.anteriores || [];
+    if (!anteriores.length) {
+        return [el('p', { class: 'campo__ayuda' }, 'Es la primera inspección de este auto en AutoCar.')];
+    }
+    const maximo = Math.max(...anteriores.map((a) => a.kilometraje ?? 0));
+    const kmBajados = i.kilometraje !== null && i.kilometraje < maximo;
+    return [
+        kmBajados ? el('p', { class: 'historial-auto__alerta', role: 'note' },
+            el('strong', {}, 'Ojo con los km. '),
+            `El aviso dice ${formato.km(i.kilometraje)}, pero en una inspección anterior tenía ${formato.km(maximo)}.`) : null,
+        el('p', { class: 'campo__ayuda' }, anteriores.length === 1
+            ? 'Este auto ya se revisó una vez en AutoCar:'
+            : `Este auto ya se revisó ${anteriores.length} veces en AutoCar:`),
+        el('ol', { class: 'historial-auto', role: 'list' }, ...anteriores.map(filaAnterior)),
+    ].filter(Boolean);
+}
 
 // Para el comprador: qué pasa con la inspección y qué sigue, en una línea.
 export function proximoPaso(i) {

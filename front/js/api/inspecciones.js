@@ -68,9 +68,6 @@ export const firmar = (n) => post(`/api/mecanico/inspecciones/${id(n)}/firma`, {
 // Foto de la chapa. formulario: FormData con el campo "foto". → {inspeccion}
 export const subirFotoPatente = (n, formulario) => post(`/api/mecanico/inspecciones/${id(n)}/patente-foto`, formulario);
 
-// Historial de un auto por su patente (con sesión). → {patente, items: [{firmada_at, titulo, anio, kilometraje,
-// conclusion, observaciones, firmado_por, taller, reclamo_procedente}]}
-export const historial = (patente) => get('/api/historial-patente', { patente });
 
 // ---------- "Adherí tu taller" ----------
 // La solicitud llega así: {usuario_id, responsable, email, rol, taller, cuit, direccion, localidad, telefono, horarios,
