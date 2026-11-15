@@ -54,6 +54,25 @@
     }, { passive: true });
     revisarScroll();
 
+    // 1.b La flecha de volver de la cabecera: si llegaste desde otra página del sitio, vuelve ahí (como el botón
+    //     del navegador). Así el mecánico que abre el aviso desde una inspección vuelve a la inspección y no a
+    //     Explorar. El href del HTML queda para cuando la página se abre directo (link compartido, pestaña nueva).
+    //     No se vuelve a un formulario ya enviado ni al ingreso.
+    const volver = document.querySelector('.encabezado__volver');
+    if (volver) {
+        volver.addEventListener('click', (evento) => {
+            let anterior = null;
+            try { anterior = document.referrer ? new URL(document.referrer) : null; } catch { anterior = null; }
+            const sirve = anterior && anterior.origin === window.location.origin
+                && anterior.pathname !== window.location.pathname
+                && !/\/(login|registro|preferencias|publicar)\.html$/.test(anterior.pathname);
+            if (sirve && window.history.length > 1) {
+                evento.preventDefault();
+                window.history.back();
+            }
+        });
+    }
+
     // 2. Píldora que se desliza entre los links de la barra (solo escritorio: en celular la barra es de pestañas)
     const lista = document.querySelector('.barra__lista');
     if (!lista) return;

@@ -18,13 +18,19 @@
 
     const base = document.currentScript.src;
     const url = (ruta) => new URL(`../pages/${ruta}`, base).href;
+    // [texto, página, otras páginas de esa sección]: el link queda marcado en cualquiera de ellas
+    const EXPLORAR = ['Explorar', 'info/home.html', ['vehiculos/buscar.html', 'vehiculos/vehiculo.html']];
     const ITEMS = {
-        moderador: [['Explorar', 'info/home.html'], ['Moderar', 'admin/admin-moderar.html'],
-            ['Reportes', 'admin/admin-soporte.html'], ['Reclamos', 'admin/admin-reclamos.html']],
+        moderador: [EXPLORAR, ['Moderar', 'admin/admin-moderar.html'],
+            ['Reportes', 'admin/admin-soporte.html'], ['Reclamos', 'admin/admin-reclamos.html', ['talleres/verificacion.html']]],
         admin: [['Moderar', 'admin/admin-moderar.html'], ['Usuarios', 'admin/admin-usuarios.html'],
-            ['Estadísticas', 'admin/admin-metricas.html'], ['Panel', 'admin/admin.html']],
-        mecanico: [['Explorar', 'info/home.html'], ['Mi taller', 'talleres/taller.html']],
+            ['Estadísticas', 'admin/admin-metricas.html'],
+            ['Panel', 'admin/admin.html', ['admin/admin-talleres.html', 'admin/admin-soporte.html', 'admin/admin-reclamos.html',
+                'admin/admin-parametros.html', 'admin/admin-vehiculos.html', 'talleres/verificacion.html']]],
+        mecanico: [EXPLORAR, ['Mi taller', 'talleres/taller.html', ['talleres/taller-verificacion.html']]],
     }[rol];
+    const aqui = window.location.pathname;
+    const esAqui = (ruta) => new URL(url(ruta)).pathname === aqui;
 
     // Ícono de escudo, armado con el DOM (en el proyecto no se usa innerHTML)
     function icono() {
@@ -42,12 +48,12 @@
         return svg;
     }
 
-    function item(texto, href) {
+    function item(texto, ruta, otras = []) {
         const li = document.createElement('li');
         const a = document.createElement('a');
         a.className = 'barra__enlace';
-        a.href = href;
-        if (new URL(href).pathname === window.location.pathname) a.setAttribute('aria-current', 'page');
+        a.href = url(ruta);
+        if ([ruta, ...otras].some(esAqui)) a.setAttribute('aria-current', 'page');
         const caja = document.createElement('span');
         caja.className = 'barra__icono';
         caja.append(icono());
@@ -58,15 +64,16 @@
         return li;
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    // Se arma apenas está el HTML y antes que navegacion.js (que va después y ubica la píldora en el link marcado).
+    // Si esperara a DOMContentLoaded, la píldora quedaba en un link de la barra del usuario que ya no está.
+    function armar() {
         const lista = document.querySelector('.barra__lista');
         if (lista) {
-            // Queda solo "Cuenta" de la barra original; el resto lo pone el rol
+            // Queda solo "Cuenta" de la barra original; el resto lo pone el rol. Cuenta solo queda marcada en su página
+            // (en la barra del usuario también marca páginas que para el rol son de otra sección)
             const cuenta = Array.from(lista.children).find((li) => li.querySelector('a[href$="cuenta.html"]'));
-            lista.replaceChildren(...ITEMS.map(([texto, ruta]) => item(texto, url(ruta))), ...(cuenta ? [cuenta] : []));
-            if (lista.querySelectorAll('[aria-current="page"]').length > 1 && cuenta) {
-                cuenta.querySelector('a').removeAttribute('aria-current');
-            }
+            if (cuenta && !esAqui('auth/cuenta.html')) cuenta.querySelector('a').removeAttribute('aria-current');
+            lista.replaceChildren(...ITEMS.map(([texto, ruta, otras]) => item(texto, ruta, otras)), ...(cuenta ? [cuenta] : []));
             lista.classList.add('barra__lista--admin');
         }
 
@@ -77,5 +84,7 @@
             enlace.textContent = rol === 'mecanico' ? 'Mi taller' : 'Panel';
             nav.insertBefore(enlace, nav.querySelector('.nav-ingreso'));
         });
-    });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', armar);
+    else armar();
 })();
