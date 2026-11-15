@@ -46,8 +46,8 @@ test('ingresar con una cuenta existente y salir', async ({ page }) => {
 
     // Un link abierto en otra pestaña (ruedita del mouse) sigue con la sesión: no pide ingresar de nuevo
     const otra = await page.context().newPage();
-    await otra.goto(pagina('pages/talleres/historial.html'));
-    await expect(otra).toHaveURL(/historial\.html/);
+    await otra.goto(pagina('pages/talleres/mis-inspecciones.html'));
+    await expect(otra).toHaveURL(/mis-inspecciones\.html/);
     await otra.close();
 
     await page.click('#salir');
