@@ -100,14 +100,14 @@ Lo que pidió el profe el 13/11 ("variables y controles"). Todas las decisiones 
 - [x] **Perfil con tarjetas**: "¿Para qué buscás el auto?" ahora es un cartel encima de la página (se ve el sitio atrás, borroso) con cuatro tarjetas: Para mí, Para la familia, Para trabajar y Para manejar con aplicaciones. No se cierra hasta elegir una. Se sacaron tipo de auto, presupuesto y zona, y el atajo "Autos hasta $X para vos" de Explorar. Desde Mi cuenta se cambia con las mismas tarjetas.
 - [x] **Metabuscador "para vos"**: con el perfil, cada auto tiene un puntaje (precio contra autos parecidos, km, días publicado y año, con distinto peso por perfil) y un motivo ("Te conviene: 18 % más barato que autos parecidos…"). Es el orden por defecto si el usuario tiene perfil.
 - [x] **"Patentes" en la barra de arriba** (antes estaba en Mi cuenta).
-- [x] **Fotos reales en las publicaciones de dev** (Wikimedia Commons, licencias libres). Los E2E suben una foto real de un Ford Ka en vez del recuadro rojo. Falta poner los créditos de las fotos (autor y licencia) en Legales.
+- [x] **Fotos reales en las publicaciones de dev** (Wikimedia Commons, licencias libres). Los E2E suben una foto real de un Ford Ka en vez del recuadro rojo.
 
 ### Falta para el 18/11
 
 - [ ] **Auto vendido**: turno que confirma el vendedor y se cae si el aviso pasa a pausado o vendido; si el mecánico ya fue, se firma igual y el comprador original recibe un crédito del 30 %; cupón solo con turno confirmado y aviso vendido dentro de las 48 h.
 - [ ] **Pagos al mecánico** (simulados): a los 10 días todo menos la franquicia (40 % de lo que cobra) y a los 15 la franquicia si no hubo reclamo. Franquicia, crédito y días como parámetros.
 - [ ] **Corregir el doc de ideas** con `ideas-14-11-2026/decisiones-14-11-2026.md`.
-- [ ] **Pase a main**: correr `021` y `022` en Neon main y mergear dev → main en los dos repos.
+- [x] **Pase a main** (14/11 noche): `021` y `022` corridas en Neon main y dev → main mergeado en los dos repos (back #54, front #83).
 
 ### Del 21/11 al 30/11
 
