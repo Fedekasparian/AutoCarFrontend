@@ -25,7 +25,7 @@ test('guardar deja disponibles usuario y csrf', () => {
 test('una sesión vencida se descarta', () => {
     sesion.guardar({ csrf: 'abc', expira_en: -1, usuario: admin });
     assert.equal(sesion.iniciada(), false);
-    assert.equal(sessionStorage.getItem('autocar.sesion'), null);
+    assert.equal(localStorage.getItem('autocar.sesion'), null);
 });
 
 test('permisos: puede y vePanel según lo que manda el back', () => {
