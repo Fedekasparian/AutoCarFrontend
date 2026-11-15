@@ -121,7 +121,9 @@ Lo que pidió el profe el 13/11 ("variables y controles"). Todas las decisiones 
 Decidido el 14/11: el comprador no tiene plan pago. **Publicar es gratis y sin límite**; la **suscripción del vendedor** da prioridad de sus publicaciones y precio sugerido con tiempo estimado de venta. Es lo último que se hace. El pago de la inspección entra a la cuenta de AutoCar y se le paga al mecánico a los 10 días (menos la franquicia, 40 %) y a los 15 (la franquicia, si no hubo reclamo).
 
 - [ ] **Suscripción del vendedor** (con o sin; el precio, como parámetro del admin).
-- [ ] **Mercado Pago sandbox** para la inspección (acreditación a 35 días).
+- [ ] **Mercado Pago sandbox** para la inspección (acreditación a 35 días). Charlado el 14/11, **sin decidir cómo hacerlo**:
+  - **Cobro al comprador** (se puede hacer real en sandbox): Checkout Pro → el comprador paga con tarjeta de prueba y vuelve a AutoCar; Mercado Pago avisa al back (webhook, Render dev es público) y la inspección pasa a pagada. Con la API REST directo desde PHP, sin SDK (regla de no usar dependencias). Más o menos un día de trabajo. **Falta:** crear la cuenta de desarrollador de Mercado Pago, la aplicación y los usuarios de prueba, y pasar las credenciales de prueba.
+  - **Pago al mecánico** (a los 10 y 15 días): propuesta = simulado. Hasta donde sabemos (sin verificar en la documentación), Mercado Pago no tiene una API simple para transferirle a otra cuenta cuando AutoCar quiere. El modelo marketplace (el mecánico conecta su cuenta y se reparte al cobrar) choca con retener la plata 10/15 días. Idea: el back calcula montos y fechas, el admin ve "a pagar hoy" y marca "transferido" (como una transferencia bancaria).
 
 ## Datos y scraper
 
