@@ -4,7 +4,7 @@ import { pagina, soloFueraDeProduccion, emailNuevo, PASSWORD, contestarPreferenc
 
 soloFueraDeProduccion();
 
-const sesionGuardada = (page) => page.evaluate(() => JSON.parse(sessionStorage.getItem('autocar.sesion')));
+const sesionGuardada = (page) => page.evaluate(() => JSON.parse(localStorage.getItem('autocar.sesion')));
 
 test('registrarse inicia sesión y deja la cookie del propio sitio', async ({ page, context, baseURL }) => {
     const email = emailNuevo();
@@ -43,6 +43,13 @@ test('ingresar con una cuenta existente y salir', async ({ page }) => {
 
     await page.goto(pagina('pages/auth/cuenta.html'));
     await expect(page.locator('#usuario-email')).toHaveText(email);
+
+    // Un link abierto en otra pestaña (ruedita del mouse) sigue con la sesión: no pide ingresar de nuevo
+    const otra = await page.context().newPage();
+    await otra.goto(pagina('pages/talleres/historial.html'));
+    await expect(otra).toHaveURL(/historial\.html/);
+    await otra.close();
+
     await page.click('#salir');
     await expect.poll(() => sesionGuardada(page)).toBeNull();
     expect((await page.request.get('/api/me')).status()).toBe(401);

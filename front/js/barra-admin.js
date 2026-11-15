@@ -8,7 +8,7 @@
 (() => {
     let usuario = null;
     try {
-        const guardada = JSON.parse(sessionStorage.getItem('autocar.sesion'));
+        const guardada = JSON.parse(localStorage.getItem('autocar.sesion'));
         if (guardada?.usuario && !(guardada.vence && Date.now() > guardada.vence)) usuario = guardada.usuario;
     } catch {
         // Sin almacenamiento: no hay sesión que mirar.

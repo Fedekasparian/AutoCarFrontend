@@ -12,7 +12,7 @@ class AlmacenEnMemoria {
 const definir = (nombre, valor) =>
     Object.defineProperty(globalThis, nombre, { value: valor, configurable: true, writable: true });
 
-definir('sessionStorage', new AlmacenEnMemoria());
+definir('localStorage', new AlmacenEnMemoria());
 definir('window', {
     location: {
         hostname: 'localhost',
@@ -35,7 +35,7 @@ definir('fetch', async (url, opciones = {}) => {
 });
 
 export function reiniciar() {
-    sessionStorage.clear();
+    localStorage.clear();
     pedidos.length = 0;
     respuestas.length = 0;
 }

@@ -6,11 +6,11 @@
     const raiz = document.documentElement;
 
     // 0. Con sesión, el logo lleva a Explorar y no a la portada pública (la de "Ingresar" y "Crear cuenta").
-    //    Se lee lo mismo que barra-admin.js: los datos públicos de la sesión en sessionStorage.
+    //    Se lee lo mismo que barra-admin.js: los datos públicos de la sesión en localStorage.
     //    El admin no tiene "Explorar" en su barra: su logo lleva a Moderar, su primera pestaña.
     let usuario = null;
     try {
-        const guardada = JSON.parse(sessionStorage.getItem('autocar.sesion'));
+        const guardada = JSON.parse(localStorage.getItem('autocar.sesion'));
         if (guardada?.usuario && !(guardada.vence && Date.now() > guardada.vence)) usuario = guardada.usuario;
     } catch {
         // Sin almacenamiento: no hay sesión que mirar.
