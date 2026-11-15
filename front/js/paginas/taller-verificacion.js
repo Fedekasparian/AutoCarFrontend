@@ -36,7 +36,7 @@ function mostrarAuto(i) {
     document.getElementById('titulo').textContent = insp.tituloAuto(i);
     document.title = `${insp.tituloAuto(i)} · Inspección - AutoCar`;
     const filas = [
-        ['Aviso', el('a', { href: i.url, target: '_blank', rel: 'noopener noreferrer' }, `Ver en ${insp.fuente(i.fuente)}`)],
+        ['Aviso', informe.enlaceAviso(i)],
         i.anio ? ['Año', String(i.anio)] : null,
         i.kilometraje !== null && i.kilometraje !== undefined ? ['Kilometraje', formato.km(i.kilometraje)] : null,
         i.precio_publicado ? ['Precio publicado', formato.precio(i.precio_publicado)] : null,

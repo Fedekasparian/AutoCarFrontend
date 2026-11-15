@@ -39,7 +39,7 @@ function mostrarResumen(i) {
     $('resumen-estado').replaceChildren(informe.etiquetaEstado(i), ' ', proximoPaso(i));
     $('resumen-linea').replaceChildren(informe.lineaDeTiempo(i));
     $('resumen-datos').replaceChildren(...informe.filasDatos([
-        ['Aviso', el('a', { href: i.url, target: '_blank', rel: 'noopener noreferrer' }, `Ver en ${insp.fuente(i.fuente)}`)],
+        ['Aviso', informe.enlaceAviso(i)],
         ['Mecánico', `${i.mecanico.nombre} · ${i.mecanico.taller || ''}`],
         i.mecanico.direccion ? ['Taller', `${i.mecanico.direccion}, ${i.mecanico.localidad}`] : null,
         i.fecha_turno ? ['Turno', formato.fechaHora(i.fecha_turno)] : null,

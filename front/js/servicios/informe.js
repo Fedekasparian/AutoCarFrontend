@@ -125,3 +125,20 @@ export function bloqueAlcance(abierto, plazo) {
         lista(insp.ALCANCE.noCubre),
         el('p', { class: 'campo__ayuda' }, insp.textoReclamo(plazo.dias, plazo.tope)));
 }
+
+// Link al aviso que se inspeccionó. Que el auto se venda o la publicación se dé de baja es lo normal: el informe
+// sigue valiendo y queda en la patente, así que en lugar de un link que da "no existe" se dice eso.
+// - Publicación de AutoCar: el link se arma con su id (no con la URL guardada, que pudo ser de otro dominio)
+//   y si ya no está a la vista (aviso_publicado false), solo el texto.
+// - Aviso de otro sitio: no sabemos si sigue publicado, así que va el link con la aclaración.
+export function enlaceAviso(i, texto = `Ver en ${insp.fuente(i.fuente)}`, clase = null) {
+    if (i.vehiculo_id) {
+        if (i.aviso_publicado === false) {
+            return el('span', { class: 'suave' }, 'La publicación ya no está en AutoCar (se vendió o la dieron de baja). El informe sigue valiendo y queda en la patente.');
+        }
+        return el('a', { class: clase, href: ruta(`vehiculo.html?id=${i.vehiculo_id}`) }, texto);
+    }
+    return el('span', {},
+        el('a', { class: clase, href: i.url, target: '_blank', rel: 'noopener noreferrer' }, texto),
+        el('span', { class: 'suave' }, ' (si el auto ya se vendió, puede que el aviso no esté más)'));
+}
