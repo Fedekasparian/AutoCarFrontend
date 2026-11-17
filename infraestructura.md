@@ -139,6 +139,12 @@ export default function middleware(request) {
 
 **Por qué:** si se filtra una clave de dev, producción no queda expuesta. Y el historial de git no se puede limpiar después de subir una clave.
 
+### D5 bis. Encabezados de seguridad en `vercel.json` (17/11/2026)
+
+**Decisión:** Vercel manda en todas las páginas `Content-Security-Policy` (solo scripts propios, sin estilos en línea salvo uno permitido por hash, API por el mismo dominio, sin iframes de afuera), `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy` y `Cross-Origin-Opener-Policy`. HTTP → HTTPS y HSTS ya los pone Vercel solo.
+
+**Para tener en cuenta:** un `<script>` o un `style="…"` escrito en el HTML, o un atributo `style` puesto desde el JS, queda **bloqueado**. Las variables CSS se ponen con `elemento.style.setProperty(...)`, que sí se permite. Todo lo de seguridad (front, back e infraestructura) está en [`AutoCarBackend/docs/seguridad.md`](https://github.com/MateoPonti/AutoCarBackend/blob/main/docs/seguridad.md).
+
 ### D6. Un solo proyecto de Vercel y dos servicios de Render
 
 **Decisión:** el front de dev es el *Preview deployment* de la rama `dev` en el mismo proyecto de Vercel, con una URL fija por rama. El back de dev es un segundo Web Service de Render con el mismo Dockerfile y *Branch: dev*.
