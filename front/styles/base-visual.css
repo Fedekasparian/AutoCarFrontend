@@ -827,6 +827,7 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .novedad__tipo{ display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: #edf2f7; color: var(--marca-gris); }
 .novedad--nuevo .novedad__tipo, .novedad__tipo.novedad--nuevo{ background: #d6f5e3; color: #17603a; }
 .novedad--bajo .novedad__tipo, .novedad__tipo.novedad--bajo{ background: #dbeafe; color: #1e4e8c; }
+.resultado{ scroll-margin-top: 96px; }
 .resultado:target{ outline: 2px solid var(--marca-acento); outline-offset: 2px; border-radius: 12px; }
 
 /* Destacados: tres tarjetas arriba de la lista */
