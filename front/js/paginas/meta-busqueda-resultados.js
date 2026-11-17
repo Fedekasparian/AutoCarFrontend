@@ -71,11 +71,54 @@ function comparacion(a) {
 // El sitio como una pastilla de color (solo el nombre: sin logos de otras marcas)
 const sitio = (fuente) => el('span', { class: `sitio sitio--${fuente}` }, insp.fuente(fuente));
 
+// ---------- Novedades sin ver: cuáles son, no solo cuántas ----------
+// Al abrir la búsqueda sus avisos quedan vistos; por eso se guardan en la sesión del navegador y siguen
+// apareciendo al cambiar de página u orden en esta pestaña.
+const TIPOS_AVISO = { nuevo: 'Nuevo', bajo: 'Bajó de precio', reservado: 'Reservado', retirado: 'Ya no está' };
+let avisos = [];
+const idFila = (autoId) => `auto-${autoId.replace(/[^\w-]/g, '-')}`;
+
+async function traerAvisos() {
+    const clave = `avisos-busqueda-${id}`;
+    try {
+        const guardados = sessionStorage.getItem(clave);
+        if (guardados) return JSON.parse(guardados);
+    } catch { /* sin almacenamiento: se piden de nuevo */ }
+    try {
+        const propios = (await api.avisosSinVer()).avisos.filter((a) => String(a.busqueda_id) === id);
+        try { sessionStorage.setItem(clave, JSON.stringify(propios)); } catch { /* no pasa nada */ }
+        return propios;
+    } catch {
+        return []; // si no responde, queda solo la cantidad
+    }
+}
+
+function detalleAviso(a) {
+    if (a.tipo !== 'bajo' || !a.precio_anterior || !a.precio_actual) return null;
+    const pct = Math.round((1 - a.precio_actual / a.precio_anterior) * 100);
+    return el('span', { class: 'novedad__detalle' }, `bajó un ${pct} %`);
+}
+
+function mostrarAvisos(items) {
+    const caja = $('novedades-sin-ver');
+    if (!avisos.length) { caja.hidden = true; return; }
+    const enPagina = new Set(items.map((a) => a.id));
+    $('novedades-lista').replaceChildren(...avisos.map((a) => el('li', { class: `novedad novedad--${a.tipo}` },
+        el('span', { class: 'novedad__tipo' }, TIPOS_AVISO[a.tipo] ?? a.tipo),
+        el('span', { class: 'novedad__auto' }, `${a.marca} ${a.modelo}${a.version ? ` ${a.version}` : ''} ${a.anio}`),
+        sitio(a.fuente),
+        detalleAviso(a),
+        enPagina.has(a.auto_id) ? el('a', { class: 'boton-link', href: `#${idFila(a.auto_id)}` }, 'Ver en la lista') : null)));
+    caja.hidden = false;
+}
+
 function fila(a, i) {
     const datos = [a.km !== null ? formato.km(a.km) : null, a.ubicacion].filter(Boolean).join(' · ');
-    const li = el('li', { class: 'fila resultado' },
+    const aviso = avisos.find((v) => v.auto_id === a.id); // el más nuevo primero
+    const li = el('li', { class: 'fila resultado', id: idFila(a.id) },
         el('span', { class: 'fila__cuerpo' },
             el('span', { class: 'resultado__arriba' }, sitio(a.fuente),
+                aviso && !(aviso.tipo === 'reservado' && a.reservado) ? el('span', { class: `novedad__tipo novedad--${aviso.tipo}` }, TIPOS_AVISO[aviso.tipo] ?? aviso.tipo) : null,
                 a.reservado ? el('span', { class: 'etiqueta etiqueta--oscura' }, 'Reservado') : null),
             el('span', { class: 'fila__titulo' }, `${a.marca} ${a.modelo} ${a.anio ?? ''}`.trim(),
                 a.version ? el('span', { class: 'suave' }, ` · ${a.version}`) : null),
@@ -163,6 +206,7 @@ function mostrar(r) {
 
     const res = r.resultados;
     $('resultados').replaceChildren(...res.items.map(fila));
+    mostrarAvisos(res.items);
     $('resultados').classList.add('lista-filas--entra');
     $('estado').replaceChildren(res.items.length ? '' : vistas.aviso('No hay autos con estos filtros.',
         'Probá con otro sitio o sacá algún criterio. La búsqueda queda guardada: si aparece un auto, te avisamos.'));
@@ -187,7 +231,10 @@ async function cargar() {
     $('estado').replaceChildren(vistas.cargando());
     try {
         const filtros = Object.fromEntries(['orden', 'fuente', 'page'].filter((k) => params.get(k)).map((k) => [k, params.get(k)]));
-        mostrar(await api.reporte(id, filtros));
+        // Los avisos se piden antes de marcarlos vistos: si no, ya no se sabría cuáles eran
+        const [reporte, sinVer] = await Promise.all([api.reporte(id, filtros), traerAvisos()]);
+        avisos = sinVer;
+        mostrar(reporte);
         api.marcarVistos(id).catch(() => {}); // al abrirla, sus avisos quedan vistos
     } catch (error) {
         if (error.status === 401) {
