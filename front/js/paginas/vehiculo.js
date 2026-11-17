@@ -214,12 +214,20 @@ function pintarFavorito(guardado) {
     botonFavorito.textContent = guardado ? 'Guardado en favoritos' : 'Guardar en favoritos';
 }
 
+// La lista de guardados está en Cuenta → Favoritos: abajo del botón, el atajo
+function enlaceAFavoritos() {
+    avisoFavorito.replaceChildren(el('a', { href: ruta('favoritos.html') }, 'Ver mis favoritos'));
+    avisoFavorito.hidden = false;
+}
+
 async function mostrarFavorito() {
     $('vehiculo-vendido').after(botonFavorito, avisoFavorito);
     if (!sesion.iniciada()) return;
     try {
         const { items } = await favoritos.listar();
-        pintarFavorito(items.some((f) => String(f.id) === id));
+        const guardado = items.some((f) => String(f.id) === id);
+        pintarFavorito(guardado);
+        if (guardado) enlaceAFavoritos();
     } catch {
         // Si no se pudo saber, el botón queda en "Guardar": al tocarlo se guarda igual
     }
@@ -234,6 +242,9 @@ async function guardarOSacar() {
         if (guardado) await favoritos.sacar(id);
         else await favoritos.agregar(id);
         pintarFavorito(!guardado);
+        // Mismo aviso que el corazón de las fichas
+        vistas.avisoFlotante(guardado ? 'Se sacó de favoritos.' : 'Guardado en favoritos.');
+        if (!guardado) enlaceAFavoritos();
     } catch (error) {
         // 409: es una publicación propia
         avisoFavorito.textContent = error.message;
