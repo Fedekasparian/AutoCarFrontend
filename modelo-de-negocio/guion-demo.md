@@ -13,11 +13,11 @@ Todas son `@autocar.test` y tienen la misma contraseña (está en los apuntes de
 | Ventana | Quién | Cuenta |
 |---|---|---|
 | 1 | Comprador | `lucia.martinez@autocar.test` (o una cuenta nueva creada en el momento: muestra la pregunta "¿Para qué buscás el auto?") |
-| 2 | Vendedor | `diego.fernandez@autocar.test` (tiene 3 autos publicados) |
+| 2 | Vendedor | `diego.fernandez@autocar.test` (tiene 3 autos publicados: Etios, Onix y Ranger) |
 | 3 | Mecánico que revisa | `taller.ferreyra@autocar.test` (Taller Ferreyra Hnos., Mercedes) |
 | 4 | Admin | La cuenta de admin del equipo |
 
-Para el presupuesto (paso 6) la ventana 3 cambia a otro taller: `mecanica.gomez@autocar.test` (Mercedes).
+Para el presupuesto (paso 6) la ventana 3 cambia a otro taller: `mecanica.gomez@autocar.test` (Mercedes). Si hace falta mostrar un reclamo resuelto por alguien que no es admin, está la moderadora `paula.correa@autocar.test`.
 
 ### Esa mañana (30 minutos antes)
 
@@ -33,7 +33,7 @@ Para el presupuesto (paso 6) la ventana 3 cambia a otro taller: `mecanica.gomez@
 > "Cuando comprás un usado, la revisión la hace alguien que elige el vendedor, o un inspector anónimo de la empresa que te lo vende. Si se equivoca, nadie responde. Y nadie te dice qué falla suele tener ese modelo ni cuánto te va a salir dejarlo bien."
 
 ### 2. El comprador encuentra el auto (1 min) · ventana 1
-- **Explorar → el auto de Diego.** Mostrar el comparador ("¿Está bien el precio?": son precios de avisos, no de ventas) y, si el modelo tiene, **Fallas típicas de este modelo**.
+- **Explorar → el Chevrolet Onix de Diego.** Mostrar el comparador ("¿Está bien el precio?": son precios de avisos, no de ventas) y **Fallas típicas de este modelo**: en producción el Onix tiene 20 inspecciones firmadas, así que muestra el porcentaje medido (frenos 35 %), fallas de internet con su fuente y las que votaron los mecánicos. El Gol Trend (24 firmadas) también sirve, en el metabuscador o con un link de afuera.
 - Tocar **Mandale un mecánico**: el link del auto queda fijo. Los mecánicos aparecen con su **puntaje** (sale de las inspecciones firmadas y de los reclamos que procedieron; nadie paga para subir).
 - Elegir **Taller Ferreyra Hnos.** Mostrar el desglose: con un taller de $ 100.000, **$ 77.000 al mecánico y $ 23.000 a AutoCar, de los que $ 8.000 van al fondo de garantía**. Si Lucía tiene un crédito, aparece descontado.
 - Abrir **qué revisa y qué no cubre**, marcar la casilla y **Pedir la inspección**.
@@ -89,7 +89,7 @@ Para el presupuesto (paso 6) la ventana 3 cambia a otro taller: `mecanica.gomez@
 | "Ya tenés una inspección en curso para ese auto" | Elegir otro auto de Diego |
 | No aparece el pedido de presupuesto en Gómez | Se les pide a 3 talleres de la red (primero los de la localidad del que revisó): probar con `acosta.service@` o `benitez.motor@` |
 | El admin no ve el botón Resolver | Está ingresado con la cuenta del comprador o la del mecánico: el que tiene interés propio no puede resolver |
-| No aparecen fallas típicas | El modelo todavía no tiene: proponer una desde el checklist (paso 4) |
+| No aparecen fallas típicas | El modelo todavía no tiene: usar el Onix o el Gol Trend, o proponer una desde el checklist (paso 4) |
 | Algo raro en la pantalla | **Plan B:** la prueba automática hace el mismo recorrido sola, contra dev: `BASE_URL=https://autocar-git-dev-autocar4.vercel.app npx playwright test tests/e2e/inspecciones.spec.js tests/e2e/auto-vendido.spec.js --headed --project=chromium` |
 
 ## Después de cada ensayo
