@@ -114,7 +114,9 @@ Lo que pidió el profe el 13/11 ("variables y controles"). Todas las decisiones 
 
 - [x] ~~**Auto vendido**~~ (17/11, back migración `024`): turno que confirma el vendedor y se cae si el aviso pasa a pausado o vendido; si el mecánico ya fue, se firma igual y el comprador original recibe un crédito del 30 %; cupón solo con turno confirmado y aviso vendido dentro de las 48 h.
 - [x] ~~**Fondo de garantía con saldo** y franquicia del mecánico (40 % de lo que cobró)~~. Franquicia, crédito y horas del cupón son parámetros.
-- [ ] **Correr `024`, `025` y `026` en Neon dev** antes de mergear los PR del back, y en Neon main en el próximo pase.
+- [x] ~~**Correr `024`, `025` y `026` en Neon dev**~~ (17/11). Las firmadas de las E2E quedaron como Volkswagen Gol Trend. Todo mergeado a `dev` (back #65, #67, #66; front #98, #99) y probado: E2E de inspecciones contra el preview de dev, 9 pasan (las que necesitan admin se saltean).
+- [ ] **Pase a `main`**: correr `024`, `025` y `026` en Neon main y mergear `dev` → `main` en los dos repos.
+- [ ] **E2E de auto vendido** (`auto-vendido.spec.js`): necesita `E2E_ADMIN_EMAIL` y `E2E_ADMIN_PASSWORD` de una cuenta admin de dev para aprobar la publicación.
 - [x] ~~**Corregir el doc de ideas**~~ (17/11): la carpeta `ideas-14-11-2026/` entró a `dev` y `PLAN.md`, el README del modelo de negocio, el guion y este archivo dicen lo mismo. La rama `docs/ideas-14-11-2026` se borró.
 - **Pagos al mecánico** (a los 10 y a los 15 días): **pasan al final** (17/11), junto con la decisión de usar o no Mercado Pago.
 - [x] **Pase a main** (14/11 noche): `021` y `022` corridas en Neon main y dev → main mergeado en los dos repos (back #54, front #83).
