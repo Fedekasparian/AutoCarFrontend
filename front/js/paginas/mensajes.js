@@ -193,8 +193,12 @@ async function abrirConversacion(c) {
 }
 
 function esqueletoChat() {
-    return [['', 46], ['--mio', 34], ['', 58], ['--mio', 40]].map(([lado, ancho]) =>
-        el('li', { class: `chat__esqueleto chat__esqueleto${lado}`, 'aria-hidden': 'true', style: `--ancho:${ancho}%` }));
+    // El ancho con style.setProperty y no con un atributo style: la Content-Security-Policy no deja estilos en línea
+    return [['', 46], ['--mio', 34], ['', 58], ['--mio', 40]].map(([lado, ancho]) => {
+        const li = el('li', { class: `chat__esqueleto chat__esqueleto${lado}`, 'aria-hidden': 'true' });
+        li.style.setProperty('--ancho', `${ancho}%`);
+        return li;
+    });
 }
 
 // Elegir otra conversación en la bandeja cambia solo el panel: sin recargar la página. La URL pasa a

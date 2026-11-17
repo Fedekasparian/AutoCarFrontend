@@ -14,6 +14,8 @@
 // Transición suave entre páginas. Solo en Chromium (navigator.userAgentData existe solo ahí): el WebKit de las
 // pruebas E2E se colgaba al navegar con ella activa, y Firefox todavía no la soporta. Con "menos movimiento", nada.
 if (navigator.userAgentData) {
+    // La Content-Security-Policy (vercel.json) permite este <style> por su hash sha256: si se cambia el texto
+    // de abajo hay que recalcularlo, o el navegador lo bloquea (el sitio anda igual, sin la transición).
     const transicion = document.createElement('style');
     transicion.textContent = '@media (prefers-reduced-motion: no-preference){ @view-transition{ navigation: auto; } }';
     document.head.append(transicion);
