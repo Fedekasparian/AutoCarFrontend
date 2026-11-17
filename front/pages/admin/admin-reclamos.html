@@ -39,12 +39,24 @@
        Lo arma js/paginas/admin-reclamos.js. -->
   <main id="contenido" class="pantalla">
     <p class="recuadro" id="aviso" role="status" hidden></p>
+
+    <!-- Fondo de garantía: solo paga reclamos (GET /api/admin/fondo, pago simulado). Lo llena js/paginas/admin-reclamos.js. -->
+    <section class="recuadro pila" id="fondo" aria-labelledby="fondo-titulo" hidden>
+      <h2 id="fondo-titulo" class="titulo-seccion">Fondo de garantía</h2>
+      <dl class="datos" id="fondo-datos"></dl>
+      <p class="campo__ayuda" id="fondo-supuesto"></p>
+      <details>
+        <summary>Últimos movimientos</summary>
+        <ul class="lista-filas" id="fondo-movimientos" role="list"></ul>
+      </details>
+    </section>
+
     <nav class="pestanas" id="pestanas" aria-label="Estado de los reclamos">
       <a class="pestanas__pestana" href="admin-reclamos.html?estado=abierto" data-estado="abierto">Por resolver</a>
       <a class="pestanas__pestana" href="admin-reclamos.html?estado=procede" data-estado="procede">Procedieron</a>
       <a class="pestanas__pestana" href="admin-reclamos.html?estado=no_procede" data-estado="no_procede">No procedieron</a>
     </nav>
-    <p class="campo__ayuda">Procede si el mecánico pasó por alto algo que se veía sin desarmar el auto. Entonces se le devuelve al comprador lo que pagó, se le paga la compensación (hasta el tope que tenía la inspección) y el mecánico baja en el ranking.</p>
+    <p class="campo__ayuda">Procede si el mecánico pasó por alto algo que se veía sin desarmar el auto. Entonces el fondo de garantía le devuelve al comprador lo que pagó y le paga la compensación (hasta el tope que tenía la inspección); el mecánico paga una franquicia al fondo y baja en el ranking.</p>
     <div class="pila" id="lista"></div>
     <div class="estado" id="estado"></div>
   </main>

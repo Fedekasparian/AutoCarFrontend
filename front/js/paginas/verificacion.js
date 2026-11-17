@@ -2,6 +2,7 @@
 // pedida, informe firmado, trámites para pedir antes de pagar y reclamo dentro de los días de reclamo de la inspección.
 // También la ven el mecánico asignado y quien resuelve reclamos, pero sólo el comprador cancela y reclama.
 import * as api from '../api/inspecciones.js';
+import * as fallas from '../servicios/fallas.js';
 import * as formato from '../servicios/formato.js';
 import * as formularios from '../servicios/formularios.js';
 import * as informe from '../servicios/informe.js';
@@ -43,7 +44,13 @@ function mostrarResumen(i) {
         ['Mecánico', `${i.mecanico.nombre} · ${i.mecanico.taller || ''}`],
         i.mecanico.direccion ? ['Taller', `${i.mecanico.direccion}, ${i.mecanico.localidad}`] : null,
         i.fecha_turno ? ['Turno', formato.fechaHora(i.fecha_turno)] : null,
+        // Auto de AutoCar: el vendedor confirma el turno (si vende antes, se cae solo y te devolvemos todo)
+        i.fecha_turno && i.vehiculo_id && i.estado === 'aceptada'
+            ? ['Vendedor', i.turno_confirmado_at ? `Confirmó el turno el ${formato.fecha(i.turno_confirmado_at)}` : 'Todavía no confirmó el turno']
+            : null,
         ['Inspección', formato.precio(i.precio)],
+        i.credito_usado > 0 ? ['Crédito usado', `−${formato.precio(i.credito_usado)} (pagaste ${formato.precio(i.a_pagar)})`] : null,
+        i.credito ? ['Crédito a tu favor', `${formato.precio(i.credito.monto)}: ${insp.CREDITOS[i.credito.tipo] || ''}. Se descuenta solo en tu próxima inspección.`] : null,
         ['Pago', PAGOS[i.pago] || i.pago],
         ['Pedida el', formato.fecha(i.created_at)],
     ]));
@@ -60,7 +67,9 @@ function mostrarInforme(i) {
     $('informe').hidden = !firmada;
     $('anteriores').hidden = !firmada;
     $('tramites').hidden = !firmada;
+    $('costo').hidden = !firmada;
     if (!firmada) return;
+    mostrarCostoTotal(i);
     // Viene con el informe que pagó: las inspecciones anteriores de la misma patente
     $('anteriores-lista').replaceChildren(...informe.historialAuto(i));
     $('informe-conclusion').replaceChildren('Conclusión del mecánico ', informe.conclusionDestacada(i));
@@ -79,6 +88,35 @@ function mostrarInforme(i) {
             el('span', { 'aria-hidden': 'true' }, '›')))));
 }
 
+// ---------- Costo total (idea A) y fallas típicas (idea B) ----------
+
+function mostrarCostoTotal(i) {
+    const nodos = informe.costoTotal(i);
+    // Un informe firmado antes de que existiera el costo total no tiene presupuestos: el comprador los pide
+    if (soyComprador() && !(i.presupuestos || []).length && i.costo_total?.items.length) {
+        nodos.push(boton('Pedir presupuestos a otros talleres', async (evento) => {
+            evento.currentTarget.disabled = true;
+            inspeccion = (await api.pedirPresupuestos(id)).inspeccion;
+            mostrarCostoTotal(inspeccion);
+            avisar('Les pedimos presupuesto a otros talleres de la red. Las respuestas aparecen acá.');
+        }, 'boton boton--secundario', 'pedir-presupuestos'));
+    }
+    $('costo-lista').replaceChildren(...nodos);
+}
+
+async function mostrarFallas(i) {
+    $('fallas').hidden = true;
+    if (!i.marca || !i.modelo) return;
+    try {
+        const { fallas_tipicas: d } = await api.fallasTipicas(i.marca, i.modelo);
+        $('fallas-titulo').textContent = `Fallas típicas del ${i.marca} ${i.modelo}`;
+        $('fallas-lista').replaceChildren(...fallas.lista(d));
+        $('fallas').hidden = false;
+    } catch {
+        // Sin las fallas típicas el informe igual sirve
+    }
+}
+
 // ---------- Reclamo ----------
 
 function mostrarReclamo(i) {
@@ -94,7 +132,7 @@ function mostrarReclamo(i) {
             ['Qué pasó', r.descripcion],
             ['Enviado el', formato.fecha(r.created_at)],
             r.respuesta ? ['Respuesta', r.respuesta] : null,
-            r.estado === 'procede' ? ['Te devolvemos', formato.precio(i.precio)] : null,
+            r.estado === 'procede' ? ['Te devolvemos', formato.precio(r.devolucion ?? i.a_pagar ?? i.precio)] : null,
             r.estado === 'procede' ? ['Compensación', formato.precio(r.compensacion || 0)] : null,
         ]));
         return;
@@ -141,6 +179,7 @@ function mostrarTodo(i) {
     mostrarResumen(i);
     mostrarInforme(i);
     mostrarReclamo(i);
+    mostrarFallas(i);
 }
 
 async function iniciar() {

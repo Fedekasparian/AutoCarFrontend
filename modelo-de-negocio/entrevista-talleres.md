@@ -33,7 +33,7 @@ Mostrale la lista de 10 ítems: carrocería, estructura, motor, transmisión, fr
 
 ## 4. Los números
 
-9. Si cobrás $ 130.000 por la inspección, ¿te parece bien quedarte con $ 100.000 y que la app se quede con $ 30.000? ¿Con cuánto te quedarías para que te convenga?
+9. Si cobrás $ 100.000 por la inspección, ¿te parece bien quedarte con $ 77.000 y que la app se quede con $ 23.000? ¿Con cuánto te quedarías para que te convenga?
 10. ¿Cuál sería un precio razonable para el comprador en Mercedes o Luján?
 11. ¿Cuántas inspecciones por semana podrías tomar?
 

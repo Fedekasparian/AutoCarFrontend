@@ -2,7 +2,9 @@
 import * as vehiculos from '../api/vehiculos.js';
 import * as chat from '../api/chat.js';
 import * as favoritos from '../api/favoritos.js';
+import * as inspecciones from '../api/inspecciones.js';
 import { API_URL } from '../api/config.js';
+import * as fallas from '../servicios/fallas.js';
 import * as formato from '../servicios/formato.js';
 import * as galeria from '../servicios/galeria.js';
 import * as sesion from '../servicios/sesion.js';
@@ -80,6 +82,20 @@ function mostrar(v) {
     $('vehiculo-reportar').href = ruta(`reportar.html?vehiculo=${v.id}`);
     $('vehiculo').hidden = false;
     $('vehiculo-info').hidden = false;
+    mostrarFallas(v);
+}
+
+// Las fallas típicas del modelo: qué mirar (y qué le va a mirar el mecánico) antes de comprar
+async function mostrarFallas(v) {
+    try {
+        const { fallas_tipicas: d } = await inspecciones.fallasTipicas(v.marca, v.modelo);
+        if (!d.fallas.length && !d.medidas.length) return; // sin nada cargado, no se ocupa lugar
+        $('fallas-titulo').textContent = `Fallas típicas del ${v.marca} ${v.modelo}`;
+        $('fallas-lista').replaceChildren(...fallas.lista(d));
+        $('vehiculo-fallas').hidden = false;
+    } catch {
+        // Sin las fallas típicas el detalle igual sirve
+    }
 }
 
 async function cargar() {

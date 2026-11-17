@@ -1,6 +1,8 @@
 // F9: el recorrido de la demo de inspecciones, de punta a punta y con tres navegadores a la vez
 // (comprador, mecánico y admin), como se muestra el 30/11:
 //   ranking → pedir → aceptar → checklist y firma → informe → reclamo → resolución.
+// Además: marca y modelo (obligatorios para firmar), una falla típica que propone el mecánico (idea B) y el costo total
+// con el presupuesto de otro taller de la red (idea A).
 // Escribe datos: corre contra dev o local, nunca contra producción.
 //
 // Necesita los datos de demo del back (database/demo-inspecciones.sql). Usa al mecánico 5 (Luján) para no
@@ -59,6 +61,7 @@ function turnoDeManana() {
 test('recorrido de la demo: pedir, aceptar, firmar, reclamar y resolver', async ({ browser }) => {
     test.setTimeout(360_000); // tres sesiones (en WebKit local tarda ~3 min) y, en dev, Render puede estar dormido
     const titulo = `E2E Volkswagen Gol ${Date.now()}`;
+    const falla = `E2E pintura que se descascara ${Date.now()}`;
     const comprador = await (await browser.newContext()).newPage();
     const mecanico = await (await browser.newContext()).newPage();
     let id;
@@ -74,6 +77,10 @@ test('recorrido de la demo: pedir, aceptar, firmar, reclamar y resolver', async 
         await comprador.locator('#datos-auto summary').click();
         await comprador.fill('#titulo', titulo);
         await comprador.fill('#localidad', 'Luján');
+        await comprador.fill('#precio_publicado', '9000000'); // con el precio del aviso, el informe arma el costo total
+        // Marca y modelo del catálogo: le llegan al mecánico ya elegidos (los puede corregir)
+        await comprador.selectOption('#marca', 'Volkswagen');
+        await comprador.selectOption('#modelo', 'Gol Trend');
 
         // Sin aceptar el alcance no se puede pedir
         await comprador.click('#pedido button[type="submit"]');
@@ -121,6 +128,17 @@ test('recorrido de la demo: pedir, aceptar, firmar, reclamar y resolver', async 
         await mecanico.setInputFiles('#patente_foto', { name: 'chapa.png', mimeType: 'image/png', buffer: CHAPA });
         await expect(mecanico.locator('#patente_foto-estado')).toContainText('cargada');
 
+        // Marca y modelo vienen del pedido; con el modelo aparecen sus fallas típicas y el mecánico propone una
+        await expect(mecanico.locator('#marca')).toHaveValue('Volkswagen');
+        await expect(mecanico.locator('#modelo')).toHaveValue('Gol Trend');
+        await expect(mecanico.locator('#fallas')).toBeVisible();
+        await mecanico.click('#proponer-falla');
+        await mecanico.selectOption('#falla-item', 'carroceria');
+        await mecanico.fill('#falla-titulo', falla);
+        await mecanico.click('#form-falla button[type="submit"]');
+        await expect(mecanico.locator('#fallas-lista')).toContainText(falla);
+        await expect(mecanico.locator('#item-carroceria')).toContainText('Falla típica de este modelo');
+
         await mecanico.click('#informe button[type="submit"]');
         await mecanico.click('#confirmar-firma');
         await expect(mecanico.locator('#firmado')).toBeVisible();
@@ -142,6 +160,13 @@ test('recorrido de la demo: pedir, aceptar, firmar, reclamar y resolver', async 
         await expect(comprador.locator('#anteriores')).toBeVisible();
         await expect(comprador.locator('#anteriores')).toContainText('primera inspección');
 
+        // Idea A: la carrocería observada se le pidió a otros talleres; idea B: la falla que propuso el mecánico
+        await expect(comprador.locator('#costo')).toBeVisible();
+        await expect(comprador.locator('#costo-lista')).toContainText('Carrocería');
+        await expect(comprador.locator('#costo-lista')).not.toContainText(MECANICO.taller); // el que revisó no presupuesta
+        await expect(comprador.locator('#fallas')).toBeVisible();
+        await expect(comprador.locator('#fallas-lista')).toContainText(falla);
+
         await expect(comprador.locator('#form-reclamo')).toBeVisible();
         await expect(comprador.locator('#reclamo-alcance details')).toBeAttached();
         await comprador.selectOption('#item_codigo', 'estructura');
@@ -150,6 +175,37 @@ test('recorrido de la demo: pedir, aceptar, firmar, reclamar y resolver', async 
         await expect(comprador.locator('#reclamo-datos')).toBeVisible();
         await expect(comprador.locator('#reclamo-datos')).toContainText('En revisión');
         await expect(comprador.locator('#form-reclamo')).toBeHidden(); // un solo reclamo
+    });
+
+    await test.step('otro taller de la red presupuesta el arreglo y entra en el costo total', async () => {
+        // Al firmar, el arreglo se le pidió a otros talleres de la red (no sabemos a cuáles): se busca uno de demo que lo tenga
+        const otro = await (await browser.newContext()).newPage();
+        let respondio = false;
+        for (const n of [1, 2, 3, 4]) {
+            await ingresar(otro, { email: `mecanico${n}@demo.autocar.com.ar`, password: MECANICO.password });
+            await otro.goto(pagina('pages/talleres/taller.html'));
+            const fila = otro.locator('#presupuestos-lista li', { hasText: titulo });
+            await otro.locator('#presupuestos-estado, #presupuestos-lista li').first().waitFor();
+            if (await fila.count()) {
+                await fila.getByRole('button', { name: 'Presupuestar' }).click();
+                await otro.fill('#presupuesto-monto', '85000');
+                await otro.fill('#presupuesto-detalle', 'Pulido y retoque de pintura de la puerta');
+                await otro.click('#form-presupuesto button[type="submit"]');
+                await expect(otro.locator('#aviso')).toContainText('Enviaste el presupuesto');
+                respondio = true;
+                break;
+            }
+            await otro.context().clearCookies();
+        }
+        await otro.context().close();
+        if (!respondio) {
+            test.info().annotations.push({ type: 'salteado', description: 'El pedido de presupuesto no fue a ningún taller de demo 1 a 4.' });
+            return;
+        }
+        await comprador.reload();
+        await expect(comprador.locator('#costo-lista')).toContainText('El más barato');
+        await expect(comprador.locator('#costo-lista')).toContainText('Costo total');
+        await expect(comprador.locator('#costo-lista')).toContainText('9.085.000'); // $ 9.000.000 del aviso + $ 85.000
     });
 
     await test.step('otro usuario no puede ver la inspección', async () => {

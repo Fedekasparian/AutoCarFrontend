@@ -1,6 +1,6 @@
 # Plan de trabajo: el mecánico que firma
 
-**Actualizado el 08/11/2026.** Este archivo es el plan de todo el grupo hasta la defensa del **30/11**: qué vamos a hacer, qué ya está, qué falta, quién lo hace y en qué orden. El modelo de negocio completo (por qué, quién gana y cómo se sustenta) está en el [README](README.md).
+**Actualizado el 17/11/2026.** Las decisiones del 14/11 (precio, parámetros, patente, auto vendido, planes) están en [`ideas-14-11-2026/decisiones-14-11-2026.md`](../ideas-14-11-2026/decisiones-14-11-2026.md) y la lista viva de lo que falta, en [`PENDIENTES.md`](../PENDIENTES.md). Este archivo es el plan de todo el grupo hasta la defensa del **30/11**: qué vamos a hacer, qué ya está, qué falta, quién lo hace y en qué orden. El modelo de negocio completo (por qué, quién gana y cómo se sustenta) está en el [README](README.md).
 
 ---
 
@@ -26,7 +26,7 @@ También nos dejó pensar los **planes** y la **sustentabilidad**. Están en el 
 
 > El comprador encuentra un auto en cualquier lado (MercadoLibre, Kavak, Autocosmos o AutoCar), pega el link en AutoCar o toca **"Mandale un mecánico"** en el metabuscador, y elige un mecánico de la zona por su ranking. El vendedor no puede elegirlo. El mecánico lo revisa con un checklist y **firma el informe con su nombre**. Si se le pasó algo que se veía, AutoCar le devuelve la plata al comprador, le paga una compensación y el mecánico baja en el ranking. El comprador paga la inspección: AutoCar se queda una parte y el resto es para el mecánico. Se arranca con 5 talleres de Mercedes y Luján, sin necesitar autos publicados.
 
-**Cómo gana AutoCar:** una parte de cada inspección, desde el primer día. Después, la comisión de los talleres por los arreglos y el plan Plus. Las cuentas están en el README.
+**Cómo gana AutoCar:** una parte de cada inspección, desde el primer día. Después, la comisión de los talleres por los arreglos (idea A) y la suscripción del vendedor. Las cuentas están en el README.
 
 ## 3. La demo del 30/11 (lo que tiene que funcionar sí o sí)
 
@@ -34,7 +34,7 @@ Todo lo que no sirva para esta demo va después.
 
 1. **Comprador:** entra al metabuscador, ve una búsqueda guardada con autos de **MercadoLibre, Kavak y AutoCar** juntos y un aviso de "bajó de precio".
 2. Toca **"Mandale un mecánico"** en un auto de MercadoLibre: se abre el pedido con el link ya cargado.
-3. Ve los mecánicos de Mercedes y Luján con su **ranking**, elige uno y ve el desglose: $ 130.000 → $ 100.000 al mecánico y $ 30.000 a AutoCar (con el fondo de garantía). Confirma; el pago es simulado.
+3. Ve los mecánicos de Mercedes y Luján con su **ranking**, elige uno y ve el desglose (con el precio sugerido): $ 100.000 → $ 77.000 al mecánico y $ 23.000 a AutoCar, de los que $ 8.000 van al fondo de garantía. Confirma; el pago es simulado.
 4. **Mecánico:** entra con su usuario, ve el pedido, lo acepta, completa el **checklist** y **firma**.
 5. **Comprador:** ve el informe firmado, con el nombre del mecánico y la huella. El informe ya no se puede cambiar.
 6. El comprador **reclama** ("tenía un golpe en el zócalo y no lo marcó") y el **admin** decide que procede: devolución + compensación, y el mecánico **baja en el ranking** en vivo.
@@ -55,6 +55,8 @@ Todo lo que no sirva para esta demo va después.
 | **Comparador de precio** (`GET /api/vehiculos/{id}/comparacion`) | back `dev` | ✅ Back hecho. Pasa a ser un **dato** en el informe y el metabuscador |
 | **Base de las inspecciones:** tablas `taller`, `inspeccion`, `inspeccion_item` y `reclamo` (`schema.sql` + `006-inspecciones.sql`), permiso `reclamos.resolver`, datos de demo (5 talleres de Mercedes y Luján) y las reglas de negocio como funciones puras (`src/Inspecciones/`: `Fuente`, `Precio`, `Checklist`, `Huella`, `Estados`, `Ranking`) con 20 pruebas unitarias. Explicado en `docs/inspecciones.md` del back | back `dev` | ✅ Base y reglas hechas (B1, B10 y las unitarias de B9). Endpoints B2–B8 en `dev` desde el 08/11 (PR #2 del back) |
 | Maquetas: `talleres.html`, `taller.html`, `taller-verificacion.html` (checklist), `verificacion.html`, `verificar-vehiculo.html`, `meta-busqueda*.html` | front `dev` | 🟡 Solo HTML/CSS, sin API. Se reusan |
+
+> **Al 17/11** todo lo de esta tabla está conectado y en `main`: Firestore de producción cargado por la corrida diaria, pantallas de inspecciones y metabuscador con la API, y las maquetas que no se usaban (canje, planes, mapa, verificar vehículo) se sacaron el 14/11. Desde el 14/11 también: parámetros editables por el admin, patente con foto de la chapa, historial del auto dentro del informe, privacidad y "¿Para qué buscás el auto?".
 
 **El 08/11 se pasaron `feat/inspecciones` y `feat/comparador` (con la rama `scraper` de Taro) a `dev` del back**, con el CI en verde (unitarias + integración) y Render dev ya desplegado. `main` del back todavía no los tiene: va en el próximo `dev` → `main`.
 
@@ -91,23 +93,23 @@ La base ya está en `dev`: B1, B10 y las pruebas unitarias de B9 (ver la secció
 
 | ID | Tarea | Prioridad | Depende de |
 |---|---|---|---|
-| M1 | Hacer que el `Importador` de Taro también cargue la salida de los recolectores de **MercadoLibre y Autocosmos** (usan el mismo formato común; verificarlo con un archivo real) | P1 | — |
-| M2 | Que los resultados del metabuscador traigan **los autos de AutoCar primero** y la **URL original** de cada auto, que es lo que necesita el botón | P1 | M1 |
+| M1 | ✅ Hacer que el `Importador` de Taro también cargue la salida de los recolectores de **MercadoLibre y Autocosmos** (usan el mismo formato común; verificarlo con un archivo real) | P1 | — |
+| M2 | ✅ Que los resultados del metabuscador traigan la **URL original** de cada auto, que es lo que necesita el botón. "AutoCar primero" se cambió el 14/11 por el orden "Recomendado" según "¿Para qué buscás el auto?" | P1 | M1 |
 | M3 | Agregar a cada resultado la etiqueta del comparador (Buen precio / En precio / Caro) como **dato** | P2 | M1 |
-| M4 | Programar la corrida diaria a las 9:00 en la PC (`diario.bat` → recolectar → importar) | P2 | M1 |
+| M4 | ✅ Corrida diaria sin la PC: workflow `Scraper` de GitHub Actions (todos los días a las 06:00 de Argentina, desde `main`), carga el Firestore de producción. Anda sola desde el 12/11. `diario.bat` queda para correrla a mano | P2 | M1 |
 | M5 | ✅ Pasar `feat/comparador` a `dev`. Hecho el 08/11, antes de M1 y M2, para que todos trabajen sobre lo mismo | P1 | — |
 
 ### 5.3 Front (rama `feat/inspecciones` en el repo del front)
 
 | ID | Pantalla | Prioridad | Usa |
 |---|---|---|---|
-| F1 | 🟡 Hecho en `vehiculo.html`; falta en el metabuscador (va con M2). **Botón "Mandale un mecánico"** en `vehiculo.html` (autos de AutoCar) y en cada resultado de `meta-busqueda-resultados.html`. Lleva a `pedir-inspeccion.html?url=...` con los datos del auto | P1 | — |
+| F1 | ✅ **Botón "Mandale un mecánico"** en `vehiculo.html` (autos de AutoCar) y en cada resultado de `meta-busqueda-resultados.html`. Lleva a `pedir-inspeccion.html?url=...` con los datos del auto | P1 | — |
 | F2 | ✅ **`pedir-inspeccion.html`** (nueva): pegar el link (o venir ya cargado), datos del auto, lista de mecánicos por localidad con ranking, desglose del precio y confirmar | P1 | B3, B4 |
 | F3 | ✅ **`mis-inspecciones.html`** (nueva): lista con el estado de cada inspección, el informe firmado y el botón **Reclamar** dentro de los 15 días. Se puede rehacer `verificacion.html` | P1 | B5, B8 |
 | F4 | ✅ **Panel del mecánico:** perfil del taller, bandeja (aceptar o rechazar) y **checklist + firmar**, reusando la maqueta `taller-verificacion.html` | P1 | B2, B6, B7 |
 | F5 | ✅ **`admin-reclamos.html`** (nueva): cola de reclamos con "Procede / No procede", compensación y respuesta | P1 | B8 |
 | F6 | ✅ `talleres.html` con el ranking real (sacar los datos de ejemplo y el "plan Oro") | P2 | B3 |
-| F7 | Metabuscador conectado: búsquedas guardadas, resultados y avisos de "nuevo / bajó" | P1 | M2 |
+| F7 | ✅ Metabuscador conectado: búsquedas guardadas, resultados y avisos de "nuevo / bajó" (solo dentro del sitio, sin mail) | P1 | M2 |
 | F8 | ✅ Sumar las pantallas nuevas a `rutas.js` y a la barra de navegación según los permisos (`sesion.puede(...)`) | P1 | F2–F5 |
 | F9 | ✅ `tests/e2e/inspecciones.spec.js`: pasa en Chromium, Firefox y WebKit. Pruebas E2E con Playwright del flujo de la demo (contra `dev`) | P2 | F1–F5 |
 
@@ -118,16 +120,23 @@ La base ya está en `dev`: B1, B10 y las pruebas unitarias de B9 (ver la secció
 | N1 | PPT v4 y README con el eje nuevo | ✅ Hecho (esta rama) |
 | N2 | ⚪ **Opcional (validación para un caso real).** Es un proyecto: los números de D1 y el alcance son supuestos y la demo usa datos de prueba. El guion (`entrevista-talleres.md`) queda como **cómo los validaríamos** con 2 o 3 talleres reales (precio, ~23 % para AutoCar, compensación) y sirve para responder en la defensa de dónde salen los números | P3 |
 | N3 | ✅ Escribir el **alcance de la inspección** ("qué se considera que se veía") para mostrarlo antes de pagar. Base: la sección 7 | P1 |
-| N4 | 🟡 Guion listo (`guion-demo.md`); falta ensayar. Ensayar la demo de la sección 3 con los datos de demo | P1 |
+| N4 | 🟡 Guion reescrito el 17/11 (`guion-demo.md`: URL pública, auto vendido, costo total, fallas típicas, fondo y parámetros); falta ensayar. Ensayar la demo de la sección 3 con los datos de demo | P1 |
 
-### 5.5 Fase 2: va en la presentación, no se programa ahora (P3)
+### 5.5 Auto vendido, fondo e ideas A y B (programado el 17/11)
 
-Detalle en `AutoCar/ideas-costo-total-y-fallas.txt` (lo que nos dijo el profe antes).
+✅ **Hecho el 17/11** (back #65, #67 y #66, migraciones `024` a `026`; front #98 y #99), probado con E2E. Antes eran "fase 2"; la cátedra pidió A y B en el mapa de capas del 10/11. Detalle en `AutoCar/ideas-costo-total-y-fallas.txt` (lo que nos dijo el profe antes) y en `decisiones-14-11-2026.md`.
 
-- **Idea B, fallas típicas por modelo:** se juntan de internet, las confirman los mecánicos y las miden las inspecciones. Además, ordenan el checklist del mecánico.
-- **Idea A, costo total con 3 presupuestos:** cada arreglo que marca el mecánico se presupuesta en 3 talleres de la red. **El mecánico que revisó no presupuesta lo que encontró.** El taller paga un 6 %.
+- **Auto vendido:** turno que confirma el vendedor y se cae si el aviso pasa a pausado o vendido; si el mecánico ya fue, se firma igual y el comprador original recibe un crédito del 30 %; cupón solo con turno confirmado y aviso vendido dentro de las 48 h.
+- **Fondo de garantía con saldo:** suma con cada inspección, de ahí salen las compensaciones y el mecánico paga una franquicia del 40 % de lo que cobró.
+- **Idea A, costo total con 3 presupuestos:** cada arreglo que marca el mecánico se presupuesta en 3 talleres de la red. **El mecánico que revisó no presupuesta lo que encontró.** El total suma el presupuesto vigente más barato de cada ítem. El taller paga un 6 %.
+- **Idea B, fallas típicas por modelo:** se juntan de internet, las confirman los mecánicos y las miden las inspecciones; no se muestra con menos de 20. Además, ordenan el checklist del mecánico.
+
+### 5.6 Al final o fase 2 (P3)
+
+- Pagos al mecánico (a los 10 y a los 15 días) y Mercado Pago sandbox: se decide al final si se usa Mercado Pago.
+- Suscripción del vendedor (prioridad de sus publicaciones y precio sugerido con tiempo estimado de venta). Publicar es gratis y sin límite. El comprador no tiene plan pago.
 - Informe para vender: lo paga el vendedor y el mecánico lo asigna AutoCar.
-- Plan Plus, Mercado Pago real y más ciudades.
+- Más ciudades.
 
 ## 6. Modelo de datos propuesto (B1)
 
@@ -155,14 +164,14 @@ inspeccion             N──0..1 vehiculo   (solo si el auto es de AutoCar)
 | El comprador elige al mecánico. Si el link es de un auto de AutoCar y quien pide la inspección es el dueño de la publicación → **409 `vehiculo_propio`** | B4 |
 | El mecánico no puede inspeccionar su propio auto ni un auto que publicó él → 409 | B4 |
 | Solo se pueden elegir mecánicos activos y con el perfil del taller completo → si no, 422 | B4 |
-| Precio: el del taller. Para el mecánico el **77 %** y para AutoCar el **23 %**, de los cuales **un tercio va al fondo de garantía** (con $ 130.000: $ 100.000, $ 30.000 y $ 10.000) | B4 (una función pura, con prueba) |
+| Precio: el del taller, entre **$ 70.000 y $ 150.000** (sugerido $ 100.000). Para el mecánico el **77 %** y para AutoCar el **23 %**, de los cuales **un tercio va al fondo de garantía** (con $ 100.000: $ 77.000, $ 23.000 y $ 8.000). Todos los números son parámetros que edita el admin | B4 (una función pura, con prueba) |
 | Estados: `pedida` → `aceptada` → `firmada`. Desde `pedida` puede pasar a `rechazada` (por el mecánico) o `cancelada` (por el comprador), y en los dos casos el pago queda `reembolsado` | B5, B6 |
 | Se firma solo con los 10 ítems completos y una conclusión. Al firmar, el pago pasa a `liberado` | B7 |
 | El informe firmado no se puede cambiar (409). La huella es el SHA-256 del informe (ítems, conclusión, resumen, mecánico y fecha) | B7 |
 | El comprador puede reclamar hasta **15 días** después de la firma, una sola vez por inspección | B8 |
 | Si el reclamo procede: el pago queda `reembolsado` y la **compensación tiene un tope de 3 veces el precio** (si se pide más, 422) | B8 |
 | **Ranking:** puntaje = 5 × (1 − 2 × reclamos que procedieron ÷ inspecciones firmadas), con mínimo 0. Con menos de 3 inspecciones firmadas se muestra "Nuevo en la red" en lugar del puntaje. Orden: puntaje y después cantidad de inspecciones. **No depende de ningún pago** | B3 (una función pura, con prueba) |
-| Mercado Pago no se integra: el pago es **simulado** y se guarda el desglose. En pantalla se aclara | B4 |
+| Mercado Pago no se integra por ahora (se decide al final): el pago es **simulado** y se guarda el desglose. En pantalla se aclara | B4 |
 
 ### 7.1 Alcance de la inspección (N3)
 
@@ -180,8 +189,8 @@ Es un supuesto; en un caso real se validaría con talleres (N2, opcional).
 |---|---|
 | **Lun 09/11** | Presentar la v4 y este plan. Repartir las tareas |
 | **Mié 11/11** (entrega semanal) | B1–B7 en `dev`, y F2 y F4 funcionando aunque sean básicas: se puede pedir, aceptar y firmar una inspección. M1 hecho |
-| **Mié 18/11** | B8, F3, F5 (reclamo y ranking), F1 (botón en el detalle y en el metabuscador), M2 y F7 (metabuscador con ML + Kavak + AutoCar) |
-| **Mié 25/11** | B9, B10 y F9 (pruebas y datos de demo), F6, N3–N4, documentación (README, apuntes, seguridad por capa). **`dev` → `main`** y tag `entrega-final` |
+| **Mié 18/11** | ✅ Todo lo de la sección 5.1 a 5.3 y la 5.5 (auto vendido, fondo, ideas A y B), en `main` |
+| **21/11 al 30/11** | Datos de prueba de A y B, foto obligatoria al marcar una falla y auditoría al azar, E2E de cada función nueva, ensayo de la demo (N4). **`dev` → `main`** y tag `entrega-final` |
 | **Lun 30/11** | Defensa. Despertar Render antes de empezar |
 
 ## 9. Reparto (propuesta para charlar el lunes)
@@ -200,7 +209,7 @@ Cada uno tiene que poder explicar todo en la defensa, pero conviene que cada par
 
 | # | Decisión | Qué se decidió |
 |---|---|---|
-| D1 | Precio de la inspección y reparto | $ 130.000 (77 % para el mecánico, 23 % para AutoCar). Supuesto; se validaría con talleres reales (N2, opcional) |
+| D1 | Precio de la inspección y reparto | Sugerido $ 100.000 (antes $ 130.000), cada taller entre $ 70.000 y $ 150.000; 77 % para el mecánico y 23 % para AutoCar. Cambiado el 14/11; son parámetros. Supuesto; se validaría con talleres reales (N2, opcional) |
 | D2 | Plazo para reclamar | 15 días |
 | D3 | Tope de la compensación | 3 veces el precio de la inspección |
 | D4 | ¿El metabuscador sigue en **Neon** o todo lo del scraper pasa a **Firestore**? | **Todo a Firestore (NoSQL)**, como sugirió el profe: comparador y metabuscador. Hecho el 08/11 (PR #3 del back). Neon queda para lo nuestro: usuarios, vehículos, chat, sesiones e inspecciones. Falta crear el proyecto de Firebase |
@@ -212,7 +221,9 @@ Cada uno tiene que poder explicar todo en la defensa, pero conviene que cada par
 - **La garantía de 7 días con pago retenido:** la reemplaza la garantía del mecánico, que funciona aunque la venta no pase por AutoCar.
 - **Los papeles incluidos en el precio:** no hay una API pública del Registro. El mecánico verifica motor y chasis contra la cédula, y le decimos al comprador qué trámites pedir.
 - **La comisión por venta y el destacado por subasta:** no hacen falta para arrancar. Quedan para más adelante.
-- **El canje:** queda lo que ya está y no se invierte más tiempo.
+- **El canje:** se sacó la maqueta el 14/11; queda "acepta canje" al publicar y se arregla por el chat.
+- **El plan Plus del comprador y los niveles Bronce a Platino:** sacados el 14/11. Publicar es gratis y sin límite.
+- **El perfil revendedor:** sacado el 14/11 (compite con el comprador que paga la inspección).
 
 ## 12. Cuándo una tarea está terminada
 

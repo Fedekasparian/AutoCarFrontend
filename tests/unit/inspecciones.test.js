@@ -83,12 +83,16 @@ test('cuerpoInforme manda sólo los ítems con resultado y recorta los textos', 
         { codigo: 'frenos', resultado: '', nota: '' },
     ];
     assert.deepEqual(insp.cuerpoInforme({ items, conclusion: '', resumen: ' ok ' }), {
+        marca: null,
+        modelo: null,
         items: [{ codigo: 'motor', resultado: 'falla', nota: 'pierde aceite' }],
         conclusion: null,
         resumen: 'ok',
         patente: '',
     });
     assert.equal(insp.cuerpoInforme({ items, conclusion: '', patente: ' ab 123 cd ' }).patente, 'ab 123 cd');
+    // Marca y modelo del catálogo (idea B): van tal cual, o null si todavía no los eligió
+    assert.equal(insp.cuerpoInforme({ items, marca: 'Toyota', modelo: 'Etios' }).modelo, 'Etios');
 });
 
 test('patente: igual que Inspecciones\Patente, vieja o Mercosur, sin espacios ni guiones', () => {
