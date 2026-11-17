@@ -817,6 +817,17 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .novedades__cifra--nuevos strong{ color: #2f855a; }
 .novedades__cifra--bajaron strong{ color: #2b6cb0; }
 .novedades__cifra--retirados strong{ color: var(--marca-gris); }
+/* Cuáles son las novedades sin ver: una fila por auto, con el tipo como pastilla */
+.novedades-sin-ver__titulo{ margin: 4px 0 8px; font-family: var(--fuente-titulos); font-size: 18px; }
+.novedades-sin-ver__lista{ display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.novedad{ display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 10px 14px; border: 1px solid var(--marca-linea); border-radius: 12px; background: var(--marca-blanco); font-size: 14px; }
+.novedad__auto{ font-weight: 600; }
+.novedad__detalle{ color: var(--marca-gris); }
+.novedad .boton-link{ margin-left: auto; }
+.novedad__tipo{ display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: #edf2f7; color: var(--marca-gris); }
+.novedad--nuevo .novedad__tipo, .novedad__tipo.novedad--nuevo{ background: #d6f5e3; color: #17603a; }
+.novedad--bajo .novedad__tipo, .novedad__tipo.novedad--bajo{ background: #dbeafe; color: #1e4e8c; }
+.resultado:target{ outline: 2px solid var(--marca-acento); outline-offset: 2px; border-radius: 12px; }
 
 /* Destacados: tres tarjetas arriba de la lista */
 .destacados{ display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin: 0; padding: 0; list-style: none; }

@@ -45,6 +45,11 @@
       <p class="suave" id="novedades"></p>
       <!-- Nuevos, bajaron y ya no están, como cifras (cuando hay dos corridas para comparar) -->
       <ul class="novedades" id="novedades-cifras" role="list" hidden></ul>
+      <!-- Cuáles son las novedades sin ver de esta búsqueda (GET /api/meta-busquedas/avisos?sin_ver=1) -->
+      <div class="novedades-sin-ver" id="novedades-sin-ver" hidden>
+        <h2 class="novedades-sin-ver__titulo">Novedades desde tu última visita</h2>
+        <ul class="novedades-sin-ver__lista" id="novedades-lista" role="list"></ul>
+      </div>
       <!-- Mejor relación precio-km, el más barato y el menos usado -->
       <ul class="destacados" id="destacados" role="list" aria-label="Destacados" hidden></ul>
       <p class="campo__ayuda" id="aclaracion"></p>
