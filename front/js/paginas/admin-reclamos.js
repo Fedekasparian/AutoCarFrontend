@@ -71,6 +71,8 @@ function tarjeta(r) {
             ['Inspección', `${formato.precio(i.precio)} (compensación hasta ${formato.precio(r.tope)})`],
             r.estado !== 'abierto' ? ['Resolución', `${insp.estadoReclamo(r.estado)} · ${r.resuelto_por || ''} · ${formato.fecha(r.resuelto_at)}`] : null,
             r.estado === 'procede' ? ['Compensación', formato.precio(r.compensacion || 0)] : null,
+            r.estado === 'procede' && r.devolucion !== null ? ['Devolución', formato.precio(r.devolucion)] : null,
+            r.estado === 'procede' && r.franquicia !== null ? ['Franquicia del mecánico', formato.precio(r.franquicia)] : null,
             r.respuesta ? ['Respuesta', r.respuesta] : null,
         ])),
         propio && r.estado === 'abierto'
@@ -124,7 +126,7 @@ function abrir(r) {
     resolverAuto.textContent = `${insp.tituloAuto(r.inspeccion)} · ${r.descripcion}`;
     campoCompensacion.max = r.tope;
     document.getElementById('compensacion-ayuda').textContent =
-        `Además se le devuelven ${formato.precio(r.inspeccion.precio)}. Compensación máxima: ${formato.precio(r.tope)}.`;
+        `Además el fondo le devuelve lo que pagó (hasta ${formato.precio(r.inspeccion.precio)}) y el mecánico paga la franquicia. Compensación máxima: ${formato.precio(r.tope)}.`;
     alternarCompensacion();
     formularios.alerta(form, '');
     dialogo.showModal();
@@ -140,13 +142,43 @@ formularios.alEnviar(form, async ({ compensacion, respuesta }) => {
         ? { procede: true, compensacion: Number(compensacion), respuesta }
         : { procede: false, respuesta });
     dialogo.close();
+    cargarFondo();
     avisar(procede
         ? `El reclamo procede: se le devuelve la inspección al comprador y se le paga ${formato.precio(Number(compensacion))}.`
         : 'Listo: el reclamo no procede. El comprador ve tu respuesta en la inspección.');
     await cargar();
 });
 
+// ---------- Fondo de garantía ----------
+
+const MOVIMIENTOS = { aporte: 'Aporte de la inspección', devolucion: 'Devolución al comprador', compensacion: 'Compensación', franquicia: 'Franquicia del mecánico' };
+
+async function cargarFondo() {
+    try {
+        const { fondo: f } = await admin.fondo();
+        document.getElementById('fondo-datos').replaceChildren(...filasDatos([
+            ['Saldo', el('strong', {}, formato.precio(f.saldo))],
+            ['Entró', `${formato.precio(f.aportes)} de ${f.firmadas} inspecciones firmadas y ${formato.precio(f.franquicias)} de franquicias`],
+            ['Salió', `${formato.precio(f.devoluciones)} en devoluciones y ${formato.precio(f.compensaciones)} en compensaciones (${f.reclamos} reclamos)`],
+        ]));
+        const s = f.supuesto;
+        document.getElementById('fondo-supuesto').textContent = s.inspecciones_por_reclamo
+            ? `Supuesto, con el precio sugerido: cada inspección aporta ${formato.precio(s.aporte_por_inspeccion)} y un reclamo al tope cuesta `
+              + `${formato.precio(s.costo_reclamo)}. El fondo cierra si hay menos de 1 reclamo que procede cada ${String(s.inspecciones_por_reclamo).replace('.', ',')} inspecciones. Pago simulado.`
+            : 'Con los parámetros de hoy no entra nada al fondo.';
+        document.getElementById('fondo-movimientos').replaceChildren(...(f.movimientos.length ? f.movimientos.map((m) => el('li', { class: 'fila' },
+            el('span', { class: 'fila__cuerpo' },
+                el('span', { class: 'fila__titulo' }, `${MOVIMIENTOS[m.tipo] || m.tipo}: ${m.monto < 0 ? '−' : '+'}${formato.precio(Math.abs(m.monto))}`), el('br'),
+                el('span', { class: 'fila__meta' }, `${m.titulo || `Inspección ${m.inspeccion_id}`} · ${formato.fecha(m.fecha)}`))))
+            : [el('li', { class: 'suave' }, 'Todavía no hay movimientos.')]));
+        document.getElementById('fondo').hidden = false;
+    } catch {
+        // Sin el fondo la cola de reclamos igual sirve
+    }
+}
+
 if (sesion.requerirPermiso('reclamos.resolver')) {
     marcarPestanas();
     cargar();
+    cargarFondo();
 }

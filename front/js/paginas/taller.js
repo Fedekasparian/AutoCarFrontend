@@ -145,6 +145,8 @@ function metaDe(i) {
     if (i.localidad) partes.push(i.localidad);
     if (i.estado === 'pedida') partes.push(`Pedida el ${formato.fecha(i.created_at)} por ${i.comprador?.nombre || 'un comprador'}`);
     if (i.estado === 'aceptada') partes.push(`Turno ${formato.fechaHora(i.fecha_turno)}`);
+    // Auto de AutoCar: el vendedor confirma el turno; si vende antes, el pedido se cae solo
+    if (i.estado === 'aceptada' && i.vehiculo_id) partes.push(i.turno_confirmado_at ? 'El vendedor confirmó' : 'Falta que el vendedor confirme');
     if (i.estado === 'firmada') partes.push(`Firmada el ${formato.fecha(i.firmada_at)} · ${insp.conclusion(i.conclusion)}`);
     return partes.join(' · ');
 }
@@ -253,6 +255,65 @@ formularios.alEnviar(formRechazar, async ({ motivo }) => {
     await cargarBandeja();
 });
 
+// ---------- Presupuestos (idea A) ----------
+
+const listaPresupuestos = document.getElementById('presupuestos-lista');
+const estadoPresupuestos = document.getElementById('presupuestos-estado');
+let presupuestoElegido = null;
+
+const autoPresupuesto = el('p', { class: 'suave' });
+const { dialogo: dialogoPresupuesto, formulario: formPresupuesto } = formularioEnHoja({
+    titulo: 'Presupuestar el arreglo',
+    id: 'form-presupuesto',
+    enviar: 'Enviar presupuesto',
+    campos: [
+        autoPresupuesto,
+        campo('Monto ($)', el('input', { id: 'presupuesto-monto', name: 'monto', type: 'number', required: true, min: 1, step: 1, inputmode: 'numeric' })),
+        campo('Qué incluye', el('textarea', { id: 'presupuesto-detalle', name: 'detalle', rows: 3, required: true, minlength: 3, maxlength: 500,
+            placeholder: 'Repuestos y mano de obra' }), 'Vale unos días: después el comprador lo ve vencido.'),
+    ],
+});
+
+function filaPresupuesto(p) {
+    const auto = [p.auto.titulo, p.auto.anio, p.auto.localidad].filter(Boolean).join(' · ');
+    return el('li', {},
+        el('div', { class: 'fila fila--inspeccion' },
+            el('span', { class: 'fila__cuerpo' },
+                el('span', { class: 'fila__titulo' }, `${insp.nombreItem(p.item_codigo)} · ${auto}`), el('br'),
+                el('span', { class: 'fila__meta' }, `${insp.resultado(p.item.resultado)}: ${p.item.nota || 'sin nota'}`)),
+            el('ul', { class: 'acciones-fila', role: 'list' },
+                el('li', {}, boton('No lo hago', async (evento) => {
+                    evento.currentTarget.disabled = true;
+                    await api.responderPresupuesto(p.id, { rechazar: true });
+                    avisar('Listo: no vas a presupuestar ese arreglo.');
+                    await cargarPresupuestos();
+                }, 'boton boton--secundario boton--chico')),
+                el('li', {}, boton('Presupuestar', () => {
+                    presupuestoElegido = p;
+                    autoPresupuesto.textContent = `${insp.nombreItem(p.item_codigo)} · ${auto}. Lo que vio el mecánico: ${p.item.nota || 'sin nota'}`;
+                    formPresupuesto.reset();
+                    formularios.alerta(formPresupuesto, '');
+                    dialogoPresupuesto.showModal();
+                }, 'boton boton--chico', `presupuestar-${p.id}`)))));
+}
+
+async function cargarPresupuestos() {
+    try {
+        const { items } = await api.presupuestosDelTaller('pedido');
+        listaPresupuestos.replaceChildren(...items.map(filaPresupuesto));
+        estadoPresupuestos.replaceChildren(items.length ? '' : vistas.aviso('No tenés presupuestos pendientes.'));
+    } catch (error) {
+        if (error.status !== 401 && error.status !== 403) estadoPresupuestos.replaceChildren(vistas.avisoDeError(error));
+    }
+}
+
+formularios.alEnviar(formPresupuesto, async ({ monto, detalle }) => {
+    await api.responderPresupuesto(presupuestoElegido.id, { monto: Number(monto), detalle });
+    dialogoPresupuesto.close();
+    avisar('Enviaste el presupuesto. El comprador lo ve en el informe.');
+    await cargarPresupuestos();
+});
+
 // ---------- Inicio ----------
 
 async function iniciar() {
@@ -272,6 +333,7 @@ async function iniciar() {
         avisar(error.status === 403 ? 'Esta sección es para los mecánicos de la red.' : error.message);
     }
     await cargarBandeja();
+    await cargarPresupuestos();
 }
 
 if (sesion.requerirPermiso('verificaciones.realizar')) iniciar();

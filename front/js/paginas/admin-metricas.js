@@ -106,7 +106,8 @@ function mostrar(m) {
         tarjeta(g.facturado, `Facturado (${n(firmadas)} firmadas)`, pesos),
         tarjeta(g.mecanicos, 'Pagado a mecánicos', pesos),
         tarjeta(g.fondo.disponible, `Fondo de garantía (usado ${formato.precio(g.fondo.usado)})`, pesos),
-        tarjeta(g.retenido, 'Retenido (en curso)', pesos));
+        tarjeta(g.retenido, 'Retenido (en curso)', pesos),
+        tarjeta(g.creditos?.usados || 0, 'Créditos usados (autos vendidos)', pesos));
     const grafico = reparto(g);
     document.getElementById('reparto-figura').hidden = !grafico;
     if (grafico) llenar('reparto', ...grafico);

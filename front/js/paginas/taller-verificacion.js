@@ -2,10 +2,12 @@
 // Mientras está "aceptada" se puede guardar a medias (borrador). Firmar exige todo completo y cierra el informe:
 // después se muestra sólo para leer, con el firmante y la fecha.
 import * as api from '../api/inspecciones.js';
+import * as fallas from '../servicios/fallas.js';
 import * as formato from '../servicios/formato.js';
 import * as formularios from '../servicios/formularios.js';
 import * as informe from '../servicios/informe.js';
 import * as insp from '../servicios/inspecciones.js';
+import * as marcas from '../servicios/marcas.js';
 import * as sesion from '../servicios/sesion.js';
 import * as vistas from '../servicios/vistas.js';
 import { API_URL } from '../api/config.js';
@@ -67,9 +69,11 @@ function radios(nombre, opciones, elegido) {
 function campoItem(item, guardado) {
     const nombre = `resultado-${item.codigo}`;
     const nota = `nota-${item.codigo}`;
-    return el('fieldset', { class: 'pila item-checklist', 'aria-describedby': `${nombre}-error` },
+    return el('fieldset', { class: 'pila item-checklist', id: `item-${item.codigo}`, 'aria-describedby': `${nombre}-error` },
         el('legend', { class: 'campo__etiqueta' },
             el('strong', {}, item.nombre), ' ', el('span', { class: 'campo__ayuda' }, item.detalle)),
+        // "Falla típica de este modelo: …" (lo llena mostrarFallas)
+        el('p', { class: 'item-checklist__tipica', id: `tipica-${item.codigo}`, hidden: true }),
         el('div', { class: 'segmentado' }, ...radios(nombre, insp.RESULTADOS, guardado?.resultado)),
         el('span', { class: 'campo__error', id: `${nombre}-error` }),
         el('label', { class: 'solo-lector', for: nota }, `Nota sobre ${item.nombre}`),
@@ -91,6 +95,7 @@ function mostrarFormulario(i) {
     mostrarEstadoFoto(i);
     actualizarProgreso();
     form.hidden = false;
+    marcas.conectar(form.elements.marca, form.elements.modelo, { marca: i.marca, modelo: i.modelo }).then(cargarFallas);
 }
 
 function leerInforme() {
@@ -104,8 +109,78 @@ function leerInforme() {
         conclusion: campos.conclusion.value,
         resumen: campos.resumen.value,
         patente: campos.patente.value,
+        marca: campos.marca.value,
+        modelo: campos.modelo.value,
     };
 }
+
+// ---------- Fallas típicas del modelo (idea B) ----------
+
+let modeloFallas = null; // las fallas que se están mostrando: {marca, modelo, ...}
+
+function mostrarFallas(d) {
+    modeloFallas = d;
+    document.getElementById('fallas-lista').replaceChildren(...fallas.lista(d, votar), botonProponer);
+    document.getElementById('fallas').hidden = false;
+    // En cada ítem del checklist, las fallas típicas que no se descartaron
+    insp.CHECKLIST.forEach(({ codigo }) => {
+        const tipicas = d.fallas.filter((f) => f.item_codigo === codigo && f.estado !== 'descartada');
+        const caja = document.getElementById(`tipica-${codigo}`);
+        caja.textContent = tipicas.length ? `Falla típica de este modelo: ${tipicas.map((f) => f.titulo).join('; ')}.` : '';
+        caja.hidden = !tipicas.length;
+        document.getElementById(`item-${codigo}`).classList.toggle('item-checklist--tipica', tipicas.length > 0);
+    });
+}
+
+async function cargarFallas() {
+    const { marca, modelo } = form.elements;
+    if (!marca.value || !modelo.value) {
+        document.getElementById('fallas').hidden = true;
+        return;
+    }
+    try {
+        mostrarFallas((await api.fallasDelMecanico(marca.value, modelo.value)).fallas_tipicas);
+    } catch {
+        document.getElementById('fallas').hidden = true; // sin las fallas típicas igual se puede revisar y firmar
+    }
+}
+form.elements.modelo.addEventListener('change', cargarFallas);
+
+async function votar(falla, confirma) {
+    try {
+        mostrarFallas((await api.votarFalla(falla.id, confirma)).fallas_tipicas);
+    } catch (error) {
+        avisar(error.message);
+    }
+}
+
+// "Proponer una falla": la ventana la arma acciones.js
+const { dialogo: dialogoFalla, formulario: formFalla } = formularioEnHoja({
+    titulo: 'Proponer una falla típica',
+    id: 'form-falla',
+    enviar: 'Proponer',
+    volver: 'Volver',
+    campos: [
+        campo('Dónde se ve', el('select', { id: 'falla-item', name: 'item_codigo', required: true },
+            el('option', { value: '' }, 'Elegí el ítem'), ...insp.CHECKLIST.map((c) => el('option', { value: c.codigo }, c.nombre)))),
+        campo('La falla, en pocas palabras', el('input', { id: 'falla-titulo', name: 'titulo', required: true, minlength: 5, maxlength: 120,
+            placeholder: 'Bujes de parrilla gastados' })),
+        campo('Detalle (opcional)', el('textarea', { id: 'falla-descripcion', name: 'descripcion', rows: 3, maxlength: 500 }),
+            'La ven los compradores y los demás mecánicos, que votan si la vieron.'),
+    ],
+});
+const botonProponer = boton('Proponer una falla típica', () => {
+    formFalla.reset();
+    formularios.alerta(formFalla, '');
+    dialogoFalla.showModal();
+}, 'boton boton--secundario boton--chico', 'proponer-falla');
+
+formularios.alEnviar(formFalla, async (datos) => {
+    const r = await api.proponerFalla({ ...datos, marca: modeloFallas.marca, modelo: modeloFallas.modelo });
+    dialogoFalla.close();
+    mostrarFallas(r.fallas_tipicas);
+    avisar('Propusiste la falla. Queda con tu voto a favor hasta que la confirmen otros mecánicos.');
+});
 
 // ---------- Patente y foto de la chapa ----------
 
@@ -173,6 +248,8 @@ function revisarPatente(cargado, completo) {
     if (escrita && !insp.normalizarPatente(escrita)) errores.patente = 'Escribila como está en la chapa: ABC123 o AB123CD.';
     if (completo && !escrita) errores.patente = 'Cargá la patente.';
     if (completo && !inspeccion.patente_foto) errores.patente_foto = 'Sacale una foto a la chapa.';
+    if (completo && !cargado.marca) errores.marca = 'Elegí la marca.';
+    else if (completo && !cargado.modelo) errores.modelo = 'Elegí el modelo.';
     return errores;
 }
 

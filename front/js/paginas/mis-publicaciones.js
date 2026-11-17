@@ -2,12 +2,13 @@
 // Publicar por partes: las que están sin terminar muestran qué les falta y "Continuar" (publicar.html?id=N).
 // Arriba, pestañas por estado con la cantidad de cada una (la elegida queda en la URL: #revision, #publicadas…).
 import * as api from '../api/publicaciones.js';
+import * as inspecciones from '../api/inspecciones.js';
 import { API_URL } from '../api/config.js';
 import * as formato from '../servicios/formato.js';
 import * as sesion from '../servicios/sesion.js';
 import * as vistas from '../servicios/vistas.js';
 import { ruta } from '../servicios/rutas.js';
-import { confirmacion } from '../servicios/acciones.js';
+import { boton as botonAccion, confirmacion } from '../servicios/acciones.js';
 
 const { el } = vistas;
 const lista = document.getElementById('lista');
@@ -52,11 +53,13 @@ const pedirVendida = confirmacion({
         el('p', {}, resumenDe(v)),
         el('p', { class: 'campo__ayuda' }, 'La publicación deja de aparecer en Explorar y queda en tus publicaciones como ',
             el('strong', {}, 'Vendida'), '. Las conversaciones con los interesados siguen abiertas.'),
+        el('p', { class: 'campo__ayuda' }, 'Si había un turno de inspección que todavía no pasó, se cae solo y al comprador se le devuelve lo que pagó.'),
     ],
     hacer: async (v) => {
         await api.marcarVendida(v.id);
         avisar(`${formato.titulo(v)} quedó como vendida. ¡Felicitaciones!`);
         await cargar();
+        await cargarTurnos();
     },
 });
 
@@ -212,4 +215,40 @@ async function cargar() {
     }
 }
 
-if (sesion.requerirLogin()) cargar();
+// ---------- Turnos de inspección (auto vendido) ----------
+
+function filaTurno(t) {
+    return el('li', {},
+        el('div', { class: 'fila' },
+            el('span', { class: 'fila__cuerpo' },
+                el('span', { class: 'fila__titulo' }, t.titulo || 'Tu auto'), el('br'),
+                el('span', { class: 'fila__meta' }, `${formato.fechaHora(t.fecha_turno)} · Mecánico de ${t.taller_localidad || 'la red'}`)),
+            t.confirmado_at
+                ? el('span', { class: 'etiqueta' }, 'Confirmado')
+                : botonAccion('Confirmar turno', async (evento) => {
+                    evento.currentTarget.disabled = true;
+                    try {
+                        await inspecciones.confirmarTurno(t.id);
+                        avisar('Confirmaste el turno. El mecánico va a ir el día y la hora indicados.');
+                        await cargarTurnos();
+                    } catch (error) {
+                        avisar(error.message);
+                        evento.currentTarget.disabled = false;
+                    }
+                }, 'boton boton--chico', `confirmar-turno-${t.id}`)));
+}
+
+async function cargarTurnos() {
+    try {
+        const { items } = await inspecciones.turnosVendedor();
+        document.getElementById('turnos-lista').replaceChildren(...items.map(filaTurno));
+        document.getElementById('turnos').hidden = !items.length;
+    } catch {
+        // Sin los turnos la página igual sirve
+    }
+}
+
+if (sesion.requerirLogin()) {
+    cargar();
+    cargarTurnos();
+}

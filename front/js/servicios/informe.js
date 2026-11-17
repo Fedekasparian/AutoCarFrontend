@@ -57,8 +57,9 @@ export const sello = (i) => el('div', { class: 'sello', 'aria-hidden': 'true' },
 // cancelada o no se pudo hacer), el último paso va en rojo con ese estado.
 export function lineaDeTiempo(i) {
     const orden = ['pedida', 'aceptada', 'firmada'];
-    const corte = ['rechazada', 'cancelada', 'no_realizada'].includes(i.estado);
-    const hasta = corte ? (i.estado === 'no_realizada' ? 1 : 0) : orden.indexOf(i.estado);
+    const corte = ['rechazada', 'cancelada', 'no_realizada', 'caida'].includes(i.estado);
+    const llegoAAceptada = i.estado === 'no_realizada' || (i.estado === 'caida' && i.fecha_turno);
+    const hasta = corte ? (llegoAAceptada ? 1 : 0) : orden.indexOf(i.estado);
     const pasos = [
         ['Pedida', formato.fecha(i.created_at)],
         ['Aceptada', i.fecha_turno ? `Turno ${formato.fechaHora(i.fecha_turno)}` : ''],
@@ -151,10 +152,12 @@ export function historialAuto(i) {
 export function proximoPaso(i) {
     switch (i.estado) {
     case 'pedida': return 'Esperando que el mecánico acepte y te dé un turno.';
-    case 'aceptada': return `Turno: ${formato.fechaHora(i.fecha_turno)} en ${i.mecanico.direccion}, ${i.mecanico.localidad}.`;
+    case 'aceptada': return `Turno: ${formato.fechaHora(i.fecha_turno)} en ${i.mecanico.direccion}, ${i.mecanico.localidad}.`
+        + (i.vehiculo_id ? (i.turno_confirmado_at ? ' El vendedor lo confirmó.' : ' Falta que el vendedor lo confirme.') : '');
     case 'rechazada': return `El mecánico no la puede hacer: ${i.motivo_rechazo}. Te devolvimos lo que pagaste.`;
     case 'cancelada': return 'La cancelaste. Te devolvimos lo que pagaste.';
     case 'no_realizada': return `El mecánico no la pudo hacer: ${i.motivo_rechazo}. Te devolvimos lo que pagaste.`;
+    case 'caida': return i.motivo_rechazo || 'El auto se vendió antes del turno. Te devolvimos lo que pagaste.';
     case 'firmada':
         if (i.reclamo) return `Informe ${insp.conclusion(i.conclusion)}. Reclamo: ${insp.estadoReclamo(i.reclamo.estado)}.`;
         if (i.puede_reclamar) return `Informe ${insp.conclusion(i.conclusion)}. Podés reclamar hasta el ${formato.fecha(i.reclamo_hasta)}.`;
@@ -196,4 +199,46 @@ export function enlaceAviso(i, texto = `Ver en ${insp.fuente(i.fuente)}`, clase 
     return el('span', {},
         el('a', { class: clase, href: i.url, target: '_blank', rel: 'noopener noreferrer' }, texto),
         el('span', { class: 'suave' }, ' (si el auto ya se vendió, puede que el aviso no esté más)'));
+}
+
+// Idea A, costo total: cada arreglo del informe con los presupuestos de otros talleres (el que revisó nunca
+// presupuesta lo que encontró) y el total = precio del aviso + el presupuesto vigente más barato de cada arreglo.
+// i: la inspección del detalle (trae presupuestos y costo_total). Devuelve los nodos del recuadro.
+export function costoTotal(i) {
+    const c = i.costo_total;
+    if (!c || !c.items.length) {
+        return [el('p', { class: 'campo__ayuda' }, 'El mecánico no marcó arreglos: no hay nada que presupuestar.')];
+    }
+    const porItem = (codigo) => (i.presupuestos || []).filter((p) => p.item_codigo === codigo);
+    const filaPresupuesto = (p, mejor) => {
+        let estado = '';
+        if (p.estado === 'pedido') estado = 'Esperando respuesta';
+        else if (p.estado === 'rechazado') estado = 'No lo hace';
+        else if (!p.vigente) estado = `Vencido el ${formato.fecha(p.vigente_hasta)}`;
+        else estado = `Vale hasta el ${formato.fecha(p.vigente_hasta)}`;
+        const esMejor = p.vigente && p.monto === mejor;
+        return el('li', { class: `presupuesto${esMejor ? ' presupuesto--mejor' : ''}` },
+            el('span', { class: 'presupuesto__taller' },
+                el('strong', {}, p.taller.nombre || 'Taller'), ` · ${p.taller.localidad || ''}`),
+            el('span', { class: 'presupuesto__monto' }, p.monto !== null ? formato.precio(p.monto) : '—'),
+            el('span', { class: 'presupuesto__detalle suave' }, [p.detalle, estado].filter(Boolean).join(' · ')),
+            esMejor ? el('span', { class: 'etiqueta resultado resultado--ok' }, 'El más barato') : null);
+    };
+    const arreglos = c.items.map((a) => el('li', { class: 'costo-total__arreglo' },
+        el('p', {},
+            el('span', { class: `etiqueta resultado resultado--${a.resultado}` }, insp.nombreItem(a.codigo)), ' ',
+            a.mejor !== null ? el('strong', {}, formato.precio(a.mejor)) : el('span', { class: 'suave' }, 'Sin presupuesto todavía')),
+        el('ul', { class: 'pila', role: 'list' }, ...porItem(a.codigo).map((p) => filaPresupuesto(p, a.mejor)))));
+    return [
+        el('ul', { class: 'costo-total pila', role: 'list' }, ...arreglos),
+        filasDatos([
+            c.precio_publicado !== null ? ['Precio del aviso', formato.precio(c.precio_publicado)] : null,
+            ['Arreglos', formato.precio(c.arreglos)],
+            c.total !== null ? ['Costo total', el('strong', {}, formato.precio(c.total))] : null,
+        ]),
+        c.completo ? null : el('p', { class: 'campo__ayuda' },
+            'Algún arreglo todavía no tiene presupuesto: el total suma lo que ya respondieron los talleres.'),
+        el('p', { class: 'campo__ayuda' },
+            'Los presupuestos son de otros talleres de la red: el mecánico que revisó el auto nunca presupuesta lo que encontró.'),
+    ].filter(Boolean);
 }

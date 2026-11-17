@@ -6,6 +6,7 @@ import * as parametros from '../api/parametros.js';
 import * as formato from '../servicios/formato.js';
 import * as formularios from '../servicios/formularios.js';
 import * as insp from '../servicios/inspecciones.js';
+import * as marcas from '../servicios/marcas.js';
 import * as sesion from '../servicios/sesion.js';
 import * as vistas from '../servicios/vistas.js';
 import { bloqueAlcance, filasDatos } from '../servicios/informe.js';
@@ -23,6 +24,7 @@ const filtro = document.getElementById('filtro-localidad');
 const AYUDA_URL = ayudaUrl.textContent;
 
 let mecanicos = [];
+let credito = 0; // créditos del comprador (un auto anterior se vendió): se descuentan solos al pedir
 
 // ---------- El auto ----------
 
@@ -118,9 +120,12 @@ function mostrarDesglose() {
     document.getElementById('resumen').hidden = !m;
     if (!m) return;
     const d = m.desglose;
+    const descuento = Math.min(credito, d.precio);
     document.getElementById('desglose').replaceChildren(...filasDatos([
         ['Mecánico', `${m.mecanico} · ${m.taller}`],
-        ['Pagás', el('strong', {}, formato.precio(d.precio))],
+        descuento ? ['Inspección', formato.precio(d.precio)] : null,
+        descuento ? ['Tu crédito', `−${formato.precio(descuento)} (un auto que hiciste revisar se vendió)`] : null,
+        ['Pagás', el('strong', {}, formato.precio(d.precio - descuento))],
         ['Para el mecánico', formato.precio(d.monto_mecanico)],
         ['Para AutoCar', `${formato.precio(d.monto_autocar)} (${formato.precio(d.monto_fondo)} van al fondo de garantía que paga los reclamos)`],
     ]));
@@ -156,6 +161,9 @@ form.addEventListener('submit', async (evento) => {
             kilometraje: numeroONulo(datos.kilometraje),
             precio_publicado: numeroONulo(datos.precio_publicado),
             localidad: datos.localidad || null,
+            // Solo si eligió los dos (si el auto es de AutoCar, salen de la publicación)
+            marca: datos.marca && datos.modelo ? datos.marca : null,
+            modelo: datos.marca && datos.modelo ? datos.modelo : null,
         });
         window.location.assign(ruta(`mis-inspecciones.html?nueva=${inspeccion.id}`));
     } catch (error) {
@@ -186,5 +194,17 @@ if (sesion.requerirLogin()) {
         });
         precargar();
         cargarMecanicos();
+        // Marca y modelo: solo para avisos de otros sitios (los de AutoCar ya los tienen)
+        if (insp.fuenteDeUrl(campoUrl.value, window.location.hostname) === 'autocar') {
+            document.getElementById('marca-modelo').hidden = true;
+        } else {
+            marcas.conectar(form.elements.marca, form.elements.modelo, { textoVacio: 'No sé' }).catch(() => {
+                document.getElementById('marca-modelo').hidden = true;
+            });
+        }
+        api.creditos().then((r) => {
+            credito = r.total;
+            mostrarDesglose();
+        }).catch(() => {});
     }
 }

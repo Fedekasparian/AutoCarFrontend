@@ -1013,7 +1013,7 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .etiqueta-insp--aceptada{ --tono: #6b46c1; }
 .etiqueta-insp--firmada{ --tono: var(--ok); }
 .etiqueta-insp--rechazada, .etiqueta-insp--no_realizada{ --tono: var(--falla); }
-.etiqueta-insp--cancelada{ --tono: var(--marca-gris); }
+.etiqueta-insp--cancelada, .etiqueta-insp--caida{ --tono: var(--marca-gris); }
 @media (prefers-color-scheme: dark){ .etiqueta-insp--pedida{ --tono: #63b3ed; } .etiqueta-insp--aceptada{ --tono: #b794f4; } }
 
 /* El informe como un documento: hoja blanca, conclusión grande, ítems con color y el sello de la firma */
@@ -1264,3 +1264,31 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 @keyframes chapa-sube{ from{ transform: scaleX(.15); } to{ transform: scaleX(1); } }
 @media (max-width: 420px){ .chapa__marco{ width: 96px; } }
 @media (prefers-reduced-motion: reduce){ .chapa--subiendo .chapa__marco::after{ animation: none; } }
+
+/* Idea A, costo total: cada arreglo con los presupuestos de otros talleres; el más barato y vigente, destacado */
+.costo-total{ margin: 0; padding: 0; list-style: none; }
+.costo-total__arreglo{ padding: 12px 0; border-bottom: 1px solid var(--marca-linea); }
+.costo-total__arreglo > p{ margin: 0 0 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.costo-total__arreglo ul{ margin: 0; padding: 0; list-style: none; }
+.presupuesto{
+    display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: center;
+    padding: 8px 12px; border-radius: 10px; border: 1px solid var(--marca-linea); background: var(--marca-blanco);
+}
+.presupuesto__monto{ font-weight: 700; text-align: right; }
+.presupuesto__detalle{ grid-column: 1 / -1; font-size: 13px; }
+.presupuesto .etiqueta{ grid-column: 1 / -1; justify-self: start; }
+.presupuesto--mejor{ border-color: color-mix(in srgb, var(--ok) 55%, var(--marca-linea)); }
+
+/* Idea B, fallas típicas por modelo: las descartadas (solo las ve el mecánico) quedan apagadas */
+.falla-tipica{
+    padding: 12px 14px; border-radius: 12px; border: 1px solid var(--marca-linea);
+    border-left: 4px solid var(--observado); background: var(--marca-blanco);
+}
+.falla-tipica p{ margin: 0; }
+.falla-tipica__cabeza{ display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.falla-tipica__meta{ font-size: 13px; margin-top: 4px !important; }
+.falla-tipica__votos{ margin-top: 8px !important; }
+.falla-tipica--confirmada{ border-left-color: var(--falla); }
+.falla-tipica--descartada{ opacity: .6; border-left-color: var(--marca-linea); }
+.item-checklist--tipica{ border-left: 4px solid var(--observado); padding-left: 12px; }
+.item-checklist__tipica{ margin: 0; font-size: 13px; font-weight: 600; color: var(--observado); }
