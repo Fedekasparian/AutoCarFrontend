@@ -3,7 +3,7 @@
 Lista viva de lo que falta. Cuando alguien toma un ítem, pone su nombre; cuando lo termina, lo tacha (`~~así~~`) o lo borra con el PR que lo resuelve.
 El plan completo del enfoque del mecánico está en [`modelo-de-negocio/PLAN.md`](modelo-de-negocio/PLAN.md).
 
-Última actualización: 17/11/2026 (tarde). Las decisiones están en [`ideas-14-11-2026/decisiones-14-11-2026.md`](ideas-14-11-2026/decisiones-14-11-2026.md) y el plan en [`modelo-de-negocio/PLAN.md`](modelo-de-negocio/PLAN.md); los tres dicen lo mismo.
+Última actualización: 17/11/2026 (noche). Las decisiones están en [`ideas-14-11-2026/decisiones-14-11-2026.md`](ideas-14-11-2026/decisiones-14-11-2026.md) y el plan en [`modelo-de-negocio/PLAN.md`](modelo-de-negocio/PLAN.md); los tres dicen lo mismo.
 
 ## Pedido de la cátedra para la entrega final (mapa de capas del 10/11)
 
@@ -24,7 +24,7 @@ Todo entró a `dev` por PR (front #40 a #66, back #17 a #34) y pasó a `main` el
 
 | Migración | Qué hace |
 |---|---|
-| `011-vehiculo-con-vendedor.sql` | Toda publicación tiene vendedor (`usuario_id NOT NULL`); los autos sin dueño pasan a `vendedor-demo@autocar.test` |
+| `011-vehiculo-con-vendedor.sql` | Toda publicación tiene vendedor (`usuario_id NOT NULL`); los autos sin dueño pasan a `vendedor-demo@autocar.test` (en prod se renombró a `gustavo.ledesma@autocar.test` el 17/11) |
 | `012-favoritos.sql` | Tabla `favorito` |
 | `013-marcas-y-modelos.sql` | Tablas `marca` y `modelo` (62 marcas, ~1.080 modelos del scraper) y clave foránea `vehiculo (marca, modelo)` |
 | `014-foto-de-perfil.sql` | Tabla `usuario_foto` |
@@ -123,7 +123,12 @@ Lo que pidió el profe el 13/11 ("variables y controles"). Todas las decisiones 
 
 ### Del 21/11 al 30/11
 
-- [ ] Datos de prueba de las ideas A y B: presupuestos respondidos y fallas típicas (de internet, con fuente) en 3 o 4 modelos, y 20 inspecciones firmadas de un modelo para que se vea el porcentaje medido.
+- [x] ~~Datos de prueba de la idea B en producción~~ (17/11): 24 inspecciones firmadas del Gol Trend y 20 del Onix (con resultados variados, notas, las tres conclusiones y huellas válidas), 7 fallas de internet con fuente (4 Gol Trend, 3 Onix) y 4 propuestas de mecánicos con votos (2 confirmadas, 1 sin confirmar, 1 descartada). En prod se ve el medido: Gol Trend suspensión 50 % y motor 42 %; Onix frenos 35 %. Los links de los avisos de esas inspecciones son inventados y no abren. **Dev** sigue con los datos de las E2E (carrocería 100 % y propuestas "E2E pintura…").
+- [ ] Datos de prueba de la idea A: presupuestos respondidos (las 42 inspecciones de prueba no tienen presupuestos).
+- [x] ~~Producción presentable~~ (17/11): se borraron los usuarios de prueba (Admin Test, Usuario Postman ×2 y dos cuentas duplicadas), el auto de Postman y uno sin fotos; "Vendedor demo" pasó a `gustavo.ledesma@autocar.test`; hay una moderadora (`paula.correa@autocar.test`) y todas las `@autocar.test` tienen la misma contraseña (en los apuntes). Quedan 20 autos públicos, todos con foto.
+- [x] ~~Explorar dejaba la última fila con 1 auto y 3 huecos~~ (17/11, back #69/#70): 12 autos por página en vez de 9 (12 se divide por 2, 3 y 4 columnas).
+- [x] ~~Explicar la etiqueta de precio del metabuscador~~ (17/11, front #105/#106): abajo del precio, chico, "11 % más que 23 autos parecidos (año y km)", y al pasar el mouse contra qué se compara. Ordenar por precio no mira año ni km; la etiqueta sí.
+- [x] ~~Kavak en prod~~ (17/11): 1.255 autos cargados desde la PC. El primer intento cortó con un 429 de Firestore; ahora los commits se reintentan solos (back #71/#72).
 - [ ] Foto obligatoria al marcar una falla y auditoría al azar en el ranking.
 - [x] ~~Revisar el guion de la demo~~: reescrito el 17/11 para la URL pública, con auto vendido, costo total, fallas típicas, fondo y parámetros.
 - [ ] **Ensayar la demo** con el guion nuevo: primero en dev, el día de la defensa en producción.
