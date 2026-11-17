@@ -55,9 +55,19 @@ const COLOR_ETIQUETA = { barato: 'buen_precio', normal: 'en_precio', caro: 'caro
 const etiquetaPrecio = (a) => {
     const texto = ETIQUETAS[a.etiqueta?.valor];
     return texto
-        ? el('span', { class: `etiqueta etiqueta--${COLOR_ETIQUETA[a.etiqueta.valor]}`, title: a.etiqueta.explicacion || '' }, texto)
+        ? el('span', { class: `etiqueta etiqueta--${COLOR_ETIQUETA[a.etiqueta.valor]}`, title: CRITERIO }, texto)
         : null;
 };
+// Abajo del precio, chico: contra qué se comparó (el orden por precio no mira el año ni los km, la etiqueta sí)
+const CRITERIO = 'Se compara con autos del mismo modelo y sitio, de año (±2) y kilómetros (±30 %) parecidos.';
+function comparacion(a) {
+    const e = a.etiqueta;
+    if (!ETIQUETAS[e?.valor] || e.diferencia_pct === null) return null;
+    const pct = String(Math.abs(e.diferencia_pct)).replace('.', ',');
+    const relacion = e.diferencia_pct < 0 ? `${pct} % menos que` : e.diferencia_pct > 0 ? `${pct} % más que` : 'Igual que';
+    return el('span', { class: 'resultado__comparacion', title: CRITERIO },
+        `${relacion} ${e.comparables} autos parecidos (año y km)`);
+}
 // El sitio como una pastilla de color (solo el nombre: sin logos de otras marcas)
 const sitio = (fuente) => el('span', { class: `sitio sitio--${fuente}` }, insp.fuente(fuente));
 
@@ -70,7 +80,7 @@ function fila(a, i) {
             el('span', { class: 'fila__titulo' }, `${a.marca} ${a.modelo} ${a.anio ?? ''}`.trim(),
                 a.version ? el('span', { class: 'suave' }, ` · ${a.version}`) : null),
             el('span', { class: 'fila__meta' }, datos),
-            el('span', { class: 'resultado__precio' }, el('strong', {}, precio(a)), ' ', etiquetaPrecio(a), precioOriginal(a)),
+            el('span', { class: 'resultado__precio' }, el('strong', {}, precio(a)), ' ', etiquetaPrecio(a), precioOriginal(a), comparacion(a)),
             a.para_vos ? el('span', { class: 'resultado__para-vos' }, a.para_vos.motivo) : null),
         el('span', { class: 'fila__acciones' }, ...acciones(a)));
     li.style.setProperty('--n', String(i));
