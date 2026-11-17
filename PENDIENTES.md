@@ -116,7 +116,7 @@ Lo que pidió el profe el 13/11 ("variables y controles"). Todas las decisiones 
 - [x] ~~**Fondo de garantía con saldo** y franquicia del mecánico (40 % de lo que cobró)~~. Franquicia, crédito y horas del cupón son parámetros.
 - [x] ~~**Correr `024`, `025` y `026` en Neon dev**~~ (17/11). Las firmadas de las E2E quedaron como Volkswagen Gol Trend. Todo mergeado a `dev` (back #65, #67, #66; front #98, #99) y probado: E2E de inspecciones contra el preview de dev, 9 pasan (las que necesitan admin se saltean).
 - [ ] **Pase a `main`**: correr `024`, `025` y `026` en Neon main y mergear `dev` → `main` en los dos repos.
-- [ ] **E2E de auto vendido** (`auto-vendido.spec.js`): necesita `E2E_ADMIN_EMAIL` y `E2E_ADMIN_PASSWORD` de una cuenta admin de dev para aprobar la publicación.
+- [x] ~~**E2E de auto vendido**~~ (17/11): con la cuenta admin de dev pasan las 8 de `auto-vendido`, `inspecciones`, `preferencias` y `publicar` en Chromium contra el preview de dev. Falta cargar `E2E_ADMIN_*` como secretos de GitHub para que corran en Actions.
 - [x] ~~**Corregir el doc de ideas**~~ (17/11): la carpeta `ideas-14-11-2026/` entró a `dev` y `PLAN.md`, el README del modelo de negocio, el guion y este archivo dicen lo mismo. La rama `docs/ideas-14-11-2026` se borró.
 - **Pagos al mecánico** (a los 10 y a los 15 días): **pasan al final** (17/11), junto con la decisión de usar o no Mercado Pago.
 - [x] **Pase a main** (14/11 noche): `021` y `022` corridas en Neon main y dev → main mergeado en los dos repos (back #54, front #83).
@@ -125,7 +125,8 @@ Lo que pidió el profe el 13/11 ("variables y controles"). Todas las decisiones 
 
 - [ ] Datos de prueba de las ideas A y B: presupuestos respondidos y fallas típicas (de internet, con fuente) en 3 o 4 modelos, y 20 inspecciones firmadas de un modelo para que se vea el porcentaje medido.
 - [ ] Foto obligatoria al marcar una falla y auditoría al azar en el ranking.
-- [ ] Revisar el guion de la demo (`modelo-de-negocio/guion-demo.md`, es del 09/11) y ensayarla sobre la URL pública.
+- [x] ~~Revisar el guion de la demo~~: reescrito el 17/11 para la URL pública, con auto vendido, costo total, fallas típicas, fondo y parámetros.
+- [ ] **Ensayar la demo** con el guion nuevo: primero en dev, el día de la defensa en producción.
 - [ ] Recomendar autos según "¿Para qué buscás el auto?" (las publicaciones no tienen tipo de auto).
 - [ ] Al final: pagos al mecánico, Mercado Pago sandbox y suscripción del vendedor.
 - [ ] E2E automático en cada PR y secretos `E2E_ADMIN_*` / `E2E_CHAT_*` en GitHub.
@@ -152,5 +153,5 @@ Decidido el 14/11: el comprador no tiene plan pago. **Publicar es gratis y sin l
 
 ## Presentación y defensa
 
-- [ ] **Ensayar la demo** con el guion (N4).
+- [ ] **Ensayar la demo** con el guion (N4), reescrito el 17/11.
 - [ ] **Confirmar la fecha de la entrega final** (16/11 o la semana del 23/11; defensa el 30/11).

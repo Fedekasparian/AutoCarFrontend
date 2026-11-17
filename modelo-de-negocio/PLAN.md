@@ -120,11 +120,11 @@ La base ya está en `dev`: B1, B10 y las pruebas unitarias de B9 (ver la secció
 | N1 | PPT v4 y README con el eje nuevo | ✅ Hecho (esta rama) |
 | N2 | ⚪ **Opcional (validación para un caso real).** Es un proyecto: los números de D1 y el alcance son supuestos y la demo usa datos de prueba. El guion (`entrevista-talleres.md`) queda como **cómo los validaríamos** con 2 o 3 talleres reales (precio, ~23 % para AutoCar, compensación) y sirve para responder en la defensa de dónde salen los números | P3 |
 | N3 | ✅ Escribir el **alcance de la inspección** ("qué se considera que se veía") para mostrarlo antes de pagar. Base: la sección 7 | P1 |
-| N4 | 🟡 Guion listo (`guion-demo.md`); falta ensayar. Ensayar la demo de la sección 3 con los datos de demo | P1 |
+| N4 | 🟡 Guion reescrito el 17/11 (`guion-demo.md`: URL pública, auto vendido, costo total, fallas típicas, fondo y parámetros); falta ensayar. Ensayar la demo de la sección 3 con los datos de demo | P1 |
 
-### 5.5 Lo que falta programar (decidido el 17/11)
+### 5.5 Auto vendido, fondo e ideas A y B (programado el 17/11)
 
-Antes eran "fase 2"; la cátedra pidió A y B en el mapa de capas del 10/11, así que se programan. Detalle en `AutoCar/ideas-costo-total-y-fallas.txt` (lo que nos dijo el profe antes) y en `decisiones-14-11-2026.md`.
+✅ **Hecho el 17/11** (back #65, #67 y #66, migraciones `024` a `026`; front #98 y #99), probado con E2E. Antes eran "fase 2"; la cátedra pidió A y B en el mapa de capas del 10/11. Detalle en `AutoCar/ideas-costo-total-y-fallas.txt` (lo que nos dijo el profe antes) y en `decisiones-14-11-2026.md`.
 
 - **Auto vendido:** turno que confirma el vendedor y se cae si el aviso pasa a pausado o vendido; si el mecánico ya fue, se firma igual y el comprador original recibe un crédito del 30 %; cupón solo con turno confirmado y aviso vendido dentro de las 48 h.
 - **Fondo de garantía con saldo:** suma con cada inspección, de ahí salen las compensaciones y el mecánico paga una franquicia del 40 % de lo que cobró.
@@ -189,8 +189,8 @@ Es un supuesto; en un caso real se validaría con talleres (N2, opcional).
 |---|---|
 | **Lun 09/11** | Presentar la v4 y este plan. Repartir las tareas |
 | **Mié 11/11** (entrega semanal) | B1–B7 en `dev`, y F2 y F4 funcionando aunque sean básicas: se puede pedir, aceptar y firmar una inspección. M1 hecho |
-| **Mié 18/11** | ✅ Todo lo de la sección 5.1 a 5.3. Además: auto vendido y fondo de garantía (sección 5.5) |
-| **21/11 al 30/11** | Ideas A y B, foto obligatoria al marcar una falla y auditoría al azar, E2E de cada función nueva, ensayo de la demo (N4). **`dev` → `main`** y tag `entrega-final` |
+| **Mié 18/11** | ✅ Todo lo de la sección 5.1 a 5.3 y la 5.5 (auto vendido, fondo, ideas A y B), en `main` |
+| **21/11 al 30/11** | Datos de prueba de A y B, foto obligatoria al marcar una falla y auditoría al azar, E2E de cada función nueva, ensayo de la demo (N4). **`dev` → `main`** y tag `entrega-final` |
 | **Lun 30/11** | Defensa. Despertar Render antes de empezar |
 
 ## 9. Reparto (propuesta para charlar el lunes)
