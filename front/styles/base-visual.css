@@ -1217,6 +1217,7 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .orden__opcion input:focus-visible + span{ outline: 2px solid var(--marca-acento); outline-offset: 2px; }
 .campos-fila > .orden{ grid-column: 1 / -1; }
 .resultado__original{ flex-basis: 100%; font-size: var(--tam-xs); color: var(--color-texto-suave); }
+.resultado__comparacion{ flex-basis: 100%; font-size: var(--tam-xs); color: var(--color-texto-suave); cursor: help; }
 
 /* Historial del auto en el informe: las inspecciones anteriores de la misma patente */
 .historial-auto{ display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
