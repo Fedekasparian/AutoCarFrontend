@@ -2,6 +2,8 @@
 
 Unos 6 minutos. Es la demo de la sección 3 del PLAN, con lo que hoy funciona de verdad. Hay que ensayarla al menos dos veces: una el día anterior contra **dev** y otra esa mañana.
 
+> **Revisar antes de ensayar (17/11).** Este guion es del 09/11. Desde entonces cambió: la cátedra pide hacer la demo sobre la **URL pública** (producción ya tiene talleres `@autocar.test` e inspecciones firmadas, ver `PENDIENTES.md`); el ranking ya no tiene botón "Elegir" (se pide desde un aviso con "Mandale un mecánico"); el mecánico carga la **patente y la foto de la chapa** para firmar y el informe trae el **historial del auto**; el precio de cada taller está entre $ 70.000 y $ 150.000 y los números salen de los parámetros del admin. Faltan además los pasos de auto vendido, fondo de garantía y las ideas A y B cuando estén.
+
 **Quién hace qué:** uno maneja la computadora y otro habla. Cambiar de persona entre el comprador, el mecánico y el admin ayuda a que se entienda que son tres personas distintas.
 
 ## Antes de empezar
@@ -42,7 +44,7 @@ Unos 6 minutos. Es la demo de la sección 3 del PLAN, con lo que hoy funciona de
 ### 3. Pedir la inspección (1 min) · ventana 1, comprador
 - Tocar **Elegir** en Ferreyra. Si no hay sesión, ingresar: vuelve solo al pedido con Ferreyra marcado.
 - Pegar el link de MercadoLibre. Abajo aparece "Aviso de MercadoLibre".
-- Mostrar el desglose: **$ 130.000 → $ 100.000 al mecánico y $ 30.000 a AutoCar, de los que $ 10.000 van al fondo de garantía**.
+- Mostrar el desglose (con un taller de $ 100.000): **$ 100.000 → $ 77.000 al mecánico y $ 23.000 a AutoCar, de los que $ 8.000 van al fondo de garantía**.
 - Mostrar **qué revisa y qué no cubre** y marcar la casilla.
 > "El comprador sabe antes de pagar de qué se hace responsable el mecánico."
 - **Pedir la inspección.** Aparece en Mis inspecciones como "Esperando que el mecánico acepte".
@@ -61,7 +63,7 @@ Unos 6 minutos. Es la demo de la sección 3 del PLAN, con lo que hoy funciona de
 ### 6. El reclamo (1 min) · ventana 1 y después la 3
 - En la misma pantalla, **Reclamo**: ítem *Estructura*, "Tenía un golpe en el zócalo derecho y el informe no lo marca". **Enviar.**
 - Ventana 3 → **Administración → Reclamos de inspecciones** → **Resolver**.
-- Elegir **Procede**. Intentar poner una compensación más alta que el tope para mostrar que no deja. Después poner **$ 390.000**, que es el tope de 3 veces el precio, y una respuesta. **Guardar.**
+- Elegir **Procede**. Intentar poner una compensación más alta que el tope para mostrar que no deja. Después poner el tope de 3 veces el precio (**$ 300.000** con un taller de $ 100.000), y una respuesta. **Guardar.**
 
 ### 7. El ranking cambia en vivo (30 s) · ventana 1
 - Volver a **Mecánicos de la red**: **Ferreyra bajó al tercer lugar (3,9)** y ahora muestra "1 reclamo procedió".

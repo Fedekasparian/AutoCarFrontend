@@ -3,7 +3,7 @@
 Lista viva de lo que falta. Cuando alguien toma un ítem, pone su nombre; cuando lo termina, lo tacha (`~~así~~`) o lo borra con el PR que lo resuelve.
 El plan completo del enfoque del mecánico está en [`modelo-de-negocio/PLAN.md`](modelo-de-negocio/PLAN.md).
 
-Última actualización: 14/11/2026.
+Última actualización: 17/11/2026. Las decisiones están en [`ideas-14-11-2026/decisiones-14-11-2026.md`](ideas-14-11-2026/decisiones-14-11-2026.md) y el plan en [`modelo-de-negocio/PLAN.md`](modelo-de-negocio/PLAN.md); los tres dicen lo mismo.
 
 ## Pedido de la cátedra para la entrega final (mapa de capas del 10/11)
 
@@ -11,12 +11,12 @@ En orden, de adentro hacia afuera. Las ideas A y B se piden **las dos** (puntos 
 
 - [x] ~~**1. Circuito usable en producción**~~: talleres aprobados e inspecciones en Neon main (11/11). Falta que el ranking tenga historia (ver "Datos y scraper").
 - [x] ~~**2. Los dos invariantes**~~: un solo pedido en curso por comprador y aviso, y moderación con el estado leído (back, migración `020`).
-- [ ] **3. Idea A, costo total del auto**: 3 presupuestos por cada arreglo que marca el informe y bloque "Costo total". Reglas: el taller que inspeccionó nunca recibe el pedido; el total suma el presupuesto vigente más barato de cada ítem. Con datos de prueba alcanza.
-- [ ] **4. Idea B, fallas típicas por modelo**: cada falla con su origen (internet, mecánicos, medido), el voto del mecánico que cambia su estado y la inspección que actualiza el porcentaje; no se muestra con menos de 20. Misma clave de modelo que el comparador.
-- [ ] **5. Una integración real andando** (una de tres): crawler de fallas con IA, corrida diaria del scraper sin la PC (hay workflow en GitHub Actions, pero las dos corridas fallaron), o Mercado Pago en sandbox. Con la clave fuera del código.
-- [ ] **6. Metabuscador adentro o afuera**: si queda, autos cargados en prod, botón del mecánico en cada resultado y aviso de cambio de precio.
-- [ ] **7. Fondo de garantía**: saldo que suma con cada inspección, del que salen las compensaciones, con el descuento al mecánico.
-- [ ] **8. Maquetas afuera y `PLAN.md` al día**: ~~quedan canje, planes y verificar vehículo~~ sacadas el 14/11 (ver abajo); el `PLAN.md` todavía dice que A y B son "fase 2".
+- [ ] **3. Idea A, costo total del auto** (se hace, decidido el 17/11): 3 presupuestos por cada arreglo que marca el informe y bloque "Costo total". Reglas: el taller que inspeccionó nunca recibe el pedido; el total suma el presupuesto vigente más barato de cada ítem. Con datos de prueba alcanza.
+- [ ] **4. Idea B, fallas típicas por modelo** (se hace, decidido el 17/11): cada falla con su origen (internet, mecánicos, medido), el voto del mecánico que cambia su estado y la inspección que actualiza el porcentaje; no se muestra con menos de 20. Misma clave de modelo que el comparador.
+- [x] ~~**5. Una integración real andando**~~: la corrida diaria del scraper en GitHub Actions (workflow `Scraper`, todos los días a las 06:00 de Argentina desde `main`) anda sola desde el 12/11 y carga el Firestore de producción. Las que fallaron fueron el 09/11 y el 11/11.
+- [x] ~~**6. Metabuscador adentro o afuera**~~: **queda**. Autos cargados en prod, "Mandale un mecánico" en cada resultado y aviso de cambio de precio (nuevos, bajaron y retirados en los resultados; avisos sin ver en las búsquedas guardadas). El aviso es dentro del sitio, no por mail.
+- [ ] **7. Fondo de garantía** (se hace, decidido el 17/11): saldo que suma con cada inspección, del que salen las compensaciones, con el descuento al mecánico.
+- [x] ~~**8. Maquetas afuera y `PLAN.md` al día**~~: maquetas sacadas el 14/11; `PLAN.md`, el README del modelo de negocio y las decisiones puestos al día el 17/11 (A y B dejaron de ser "fase 2").
 
 ## Hecho el 10/11 (ya en `main` desde el 11/11)
 
@@ -113,15 +113,18 @@ Lo que pidió el profe el 13/11 ("variables y controles"). Todas las decisiones 
 ### Falta para el 18/11
 
 - [ ] **Auto vendido**: turno que confirma el vendedor y se cae si el aviso pasa a pausado o vendido; si el mecánico ya fue, se firma igual y el comprador original recibe un crédito del 30 %; cupón solo con turno confirmado y aviso vendido dentro de las 48 h.
-- [ ] **Pagos al mecánico** (simulados): a los 10 días todo menos la franquicia (40 % de lo que cobra) y a los 15 la franquicia si no hubo reclamo. Franquicia, crédito y días como parámetros.
-- [ ] **Corregir el doc de ideas** con `ideas-14-11-2026/decisiones-14-11-2026.md`.
+- [ ] **Fondo de garantía con saldo** y franquicia del mecánico (40 % de lo que cobró). Franquicia y crédito como parámetros.
+- [x] ~~**Corregir el doc de ideas**~~ (17/11): la carpeta `ideas-14-11-2026/` entró a `dev` y `PLAN.md`, el README del modelo de negocio, el guion y este archivo dicen lo mismo. La rama `docs/ideas-14-11-2026` se borró.
+- **Pagos al mecánico** (a los 10 y a los 15 días): **pasan al final** (17/11), junto con la decisión de usar o no Mercado Pago.
 - [x] **Pase a main** (14/11 noche): `021` y `022` corridas en Neon main y dev → main mergeado en los dos repos (back #54, front #83).
 
 ### Del 21/11 al 30/11
 
+- [ ] Idea A (costo total con 3 presupuestos) e idea B (fallas típicas por modelo), con datos de prueba.
 - [ ] Foto obligatoria al marcar una falla y auditoría al azar en el ranking.
+- [ ] Revisar el guion de la demo (`modelo-de-negocio/guion-demo.md`, es del 09/11) y ensayarla sobre la URL pública.
 - [ ] Recomendar autos según "¿Para qué buscás el auto?" (las publicaciones no tienen tipo de auto).
-- [ ] Mercado Pago sandbox y suscripción del vendedor.
+- [ ] Al final: pagos al mecánico, Mercado Pago sandbox y suscripción del vendedor.
 - [ ] E2E automático en cada PR y secretos `E2E_ADMIN_*` / `E2E_CHAT_*` en GitHub.
 
 ## Suscripciones y pagos (no hay nada hecho)
@@ -129,7 +132,7 @@ Lo que pidió el profe el 13/11 ("variables y controles"). Todas las decisiones 
 Decidido el 14/11: el comprador no tiene plan pago. **Publicar es gratis y sin límite**; la **suscripción del vendedor** da prioridad de sus publicaciones y precio sugerido con tiempo estimado de venta. Es lo último que se hace. El pago de la inspección entra a la cuenta de AutoCar y se le paga al mecánico a los 10 días (menos la franquicia, 40 %) y a los 15 (la franquicia, si no hubo reclamo).
 
 - [ ] **Suscripción del vendedor** (con o sin; el precio, como parámetro del admin).
-- [ ] **Mercado Pago sandbox** para la inspección (acreditación a 35 días). Charlado el 14/11, **sin decidir cómo hacerlo**:
+- [ ] **Mercado Pago sandbox** para la inspección (acreditación a 35 días). Charlado el 14/11, **sin decidir cómo hacerlo**; el 17/11 quedó para el final, junto con los pagos al mecánico:
   - **Cobro al comprador** (se puede hacer real en sandbox): Checkout Pro → el comprador paga con tarjeta de prueba y vuelve a AutoCar; Mercado Pago avisa al back (webhook, Render dev es público) y la inspección pasa a pagada. Con la API REST directo desde PHP, sin SDK (regla de no usar dependencias). Más o menos un día de trabajo. **Falta:** crear la cuenta de desarrollador de Mercado Pago, la aplicación y los usuarios de prueba, y pasar las credenciales de prueba.
   - **Pago al mecánico** (a los 10 y 15 días): propuesta = simulado. Hasta donde sabemos (sin verificar en la documentación), Mercado Pago no tiene una API simple para transferirle a otra cuenta cuando AutoCar quiere. El modelo marketplace (el mecánico conecta su cuenta y se reparte al cobrar) choca con retener la plata 10/15 días. Idea: el back calcula montos y fechas, el admin ve "a pagar hoy" y marca "transferido" (como una transferencia bancaria).
 
@@ -140,8 +143,8 @@ Decidido el 14/11: el comprador no tiene plan pago. **Publicar es gratis y sin l
 - [x] ~~**Cargar los autos del scraper en Firestore dev**~~ (10/11): corridas completas de MercadoLibre (86.395 autos, 958 modelos), Autocosmos (4.750) y Kavak (1.330); comparador con 1.073 modelos. Probado en dev: comparador y metabuscador con datos reales. Arreglos que salieron con datos de este tamaño: commits de Firestore por tamaño (back #26), autos mal cargados que no arruinan la corrida (back #27), `diario.bat` con 1 GB (back #18), etiquetas del metabuscador (front #58).
 - [x] ~~**Neon main**~~: migraciones `011`–`020` corridas y `dev` → `main` mergeado (11/11).
 - [x] ~~**Talleres de demo en producción**~~ (11/11): 5 talleres aprobados (`*@autocar.test`: Acosta, Benítez, Gómez, Medina, Ferreyra), 3 compradores y 15 inspecciones firmadas, 3 por mecánico. Ya se puede pedir una inspección sobre la URL pública. Son distintos de los de la `007`, que sigue solo en dev.
-- [ ] **Firestore prod (`autocar-9897d`)**: cargar todas las corridas completas desde la del 10/11 y verificar el metabuscador en producción (no revisado al 11/11).
-- [ ] **Corrida diaria** del scraper (`diario.bat` en la PC a las 9:00 o GitHub Actions). El `.env` de la PC necesita `MARCAS_URL` (ver `.env.example` del back) para filtrar las marcas que no están en el catálogo.
+- [x] ~~**Firestore prod (`autocar-9897d`)**~~: cargado desde el 11/11 por la corrida del workflow `Scraper` (sin el historial de dev) y actualizado todos los días.
+- [x] ~~**Corrida diaria** del scraper~~: GitHub Actions, todos los días desde el 12/11. `diario.bat` en la PC queda para correrla a mano (su `.env` necesita `MARCAS_URL`).
 - [ ] **Ranking con historia, en dev y en prod**: hoy en prod los 5 tienen 3 firmadas, 5,0 y ningún reclamo, así que en la demo nadie baja en el ranking. `bin/demo-historial.php` busca los emails de la `007` (`mecanicoN@demo.autocar.com.ar`): en dev anda pero todavía no se corrió; en prod falla porque esos usuarios no existen. Para prod hay que adaptarlo a los talleres `*@autocar.test` o cargar un par de reclamos desde el sitio.
 
 ## Presentación y defensa

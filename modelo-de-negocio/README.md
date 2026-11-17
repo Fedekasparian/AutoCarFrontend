@@ -8,6 +8,7 @@
 | [Presentación](AutoCar-modelo-de-negocio.pptx) | El modelo de negocio para exponer |
 | Este README | El mismo contenido en texto, con más detalle |
 | [PLAN.md](PLAN.md) | Qué tenemos que programar, qué ya está, qué falta y en qué orden |
+| [Decisiones del 14/11](../ideas-14-11-2026/decisiones-14-11-2026.md) | Las respuestas a la devolución del profe del 13/11 ("variables y controles"): precio, parámetros, patente, auto vendido, plata, planes. **Si algo de este README no coincide, vale ese archivo** |
 
 > **v4 (08/11/2026).** Reemplaza a la v3, que tenía como eje "la publicación que se compara sola". Cambia por la devolución del profe: MercadoLibre ya muestra precios de referencia, así que el precio justo dejó de diferenciarnos. El eje nuevo es **el mecánico independiente que firma**. Al final está la sección [Qué cambió respecto de la v3](#qué-cambió-respecto-de-la-v3).
 
@@ -100,26 +101,30 @@ Al principio el foco está en el comprador y en 5 talleres. Si el comprador conf
 
 | Concepto | Monto |
 |---|---|
-| El comprador paga la inspección | **$ 130.000** |
-| → para el mecánico | $ 100.000 |
-| → para AutoCar | $ 30.000 |
-| De lo de AutoCar, para el **fondo de garantía** | $ 10.000 |
-| De lo de AutoCar, ingreso propio | $ 20.000 |
+| El comprador paga la inspección (precio sugerido; cada taller pone el suyo entre $ 70.000 y $ 150.000) | **$ 100.000** |
+| → para el mecánico (77 %) | $ 77.000 |
+| → para AutoCar (23 %) | $ 23.000 |
+| De lo de AutoCar, para el **fondo de garantía** (un tercio) | $ 8.000 |
+| De lo de AutoCar, comisión de Mercado Pago (si se usa) | ~$ 1.800 |
+| De lo de AutoCar, **neto por inspección** | **~$ 13.200** |
+
+Todos estos números (porcentajes, montos y días) son **parámetros** que el admin cambia desde su panel, sin tocar código. Son los que juntamos en avisos y blogs: hay que validarlos con talleres reales.
 
 **El fondo de garantía paga los reclamos.** Si un reclamo procede:
 
-- Al comprador se le devuelven los $ 130.000 y se le paga una **compensación de hasta 3 veces el precio de la inspección** (en este ejemplo, hasta $ 390.000) o el costo del arreglo, lo que sea menor.
-- **El mecánico devuelve lo que cobró** (se le descuenta de las próximas inspecciones) y baja en el ranking.
+- Al comprador se le devuelven los $ 100.000 y se le paga una **compensación de hasta 3 veces el precio de la inspección** (en este ejemplo, hasta $ 300.000) o el costo del arreglo, lo que sea menor.
+- **El mecánico paga una franquicia del 40 % de lo que cobró** (con $ 100.000, $ 30.800) y baja en el ranking.
+- El fondo **solo paga reclamos**.
 
-**¿Alcanza el fondo?** Con 100 inspecciones entran $ 1.000.000 al fondo. Si 3 de cada 100 terminan en un reclamo que procede y cada una sale el tope ($ 390.000), salen $ 1.170.000, pero los mecánicos devuelven $ 300.000. Costo neto: $ 870.000. Alcanza aunque se equivoquen 3 de cada 100. Si los reclamos superan eso, se sube el aporte al fondo o se ajusta el tope.
+**¿Alcanza el fondo?** Un reclamo cuesta hasta ~$ 370.000 ($ 100.000 + $ 300.000 − $ 30.800 de franquicia). Con $ 8.000 por inspección, el fondo cierra si hay **menos de 1 reclamo que procede cada ~46 inspecciones**. Es un supuesto: si hay más, se sube la parte al fondo o se baja el tope (los dos son parámetros).
 
 ### Fuentes de ingreso
 
 | Fuente | Qué es | Peso |
 |---|---|---|
 | **Inspección** | AutoCar se queda una parte del precio de cada inspección | **Principal** (desde el día 1) |
-| **Comisión de los talleres** | Los talleres de la red pagan un 6 % por cada arreglo que les llega por AutoCar (idea A) | **Principal** (fase 2) |
-| **Plan comprador Plus** | Búsquedas y alertas sin límite, al instante, y descuento en las inspecciones | Secundaria |
+| **Comisión de los talleres** | Los talleres de la red pagan un 6 % por cada arreglo que les llega por AutoCar (idea A) | Secundaria (la plata está en la inspección) |
+| **Suscripción del vendedor** | Prioridad de sus publicaciones (destacadas) y precio sugerido con tiempo estimado de venta | Secundaria (lo último que se hace) |
 | **Informe para vender** | El vendedor paga una inspección y AutoCar asigna el mecánico | Secundaria (fase 2) |
 | **Datos agregados** | Estadísticas anónimas de fallas por modelo para aseguradoras, financieras y casas de repuestos. Nunca datos personales ni patentes. | A futuro |
 
@@ -129,8 +134,9 @@ Al principio el foco está en el comprador y en 5 talleres. Si el comprador conf
 
 | Plan | Para quién | Precio (a validar) | Qué incluye |
 |---|---|---|---|
-| **Gratis** | Comprador | $ 0 | Metabuscador, 1 búsqueda guardada con resumen diario de novedades, comparación de precio, fallas típicas, pedir inspecciones (se paga cada una) |
-| **Plus** | Comprador | $ 5.000 / mes | Búsquedas guardadas sin límite, alertas al instante, historial de precio de cada aviso y 10 % de descuento en las inspecciones |
+| **Comprador** | Comprador | $ 0 | Sin plan pago (decidido el 14/11): metabuscador, búsquedas guardadas con avisos de novedades, comparación de precio, fallas típicas, pedir inspecciones (se paga cada una) |
+| **Vendedor sin suscripción** | Vendedor | $ 0 | Publicar es gratis y sin límite |
+| **Vendedor con suscripción** | Vendedor | A definir (parámetro) | Prioridad de sus publicaciones y precio sugerido con tiempo estimado de venta |
 | **Taller adherido** | Mecánico | $ 0 | Recibe pedidos, cobra por AutoCar y aparece en el ranking |
 | **Taller Pro** | Mecánico | $ 15.000 / mes | Agenda, panel de clientes y pedidos de presupuesto (fase 2). **No cambia la posición en el ranking.** |
 
@@ -141,11 +147,11 @@ Supuestos para el arranque en Mercedes y Luján. Hay que validarlos:
 | | Por mes |
 |---|---|
 | Costos fijos: servidor y base pagos, dominio, Mercado Pago, publicidad local mínima | ≈ $ 600.000 |
-| Ingreso propio por inspección (sin contar el fondo) | $ 20.000 |
-| **Inspecciones para cubrir los costos** | **≈ 30** |
+| Neto por inspección (sin el fondo ni la comisión de Mercado Pago) | ~$ 13.200 |
+| **Inspecciones para cubrir los costos** | **≈ 46** |
 | Capacidad con 5 talleres haciendo 2 por semana cada uno | ≈ 40 |
 
-Con los 5 talleres iniciales ya se pueden cubrir los costos. Para crecer: más talleres por ciudad, la comisión por arreglos (fase 2) y el plan Plus.
+Con los 5 talleres iniciales casi se cubren los costos: hace falta un taller más o que cada uno haga 3 por semana. Para crecer: más talleres por ciudad, la comisión por arreglos (idea A) y la suscripción del vendedor.
 
 ## Cómo crece
 
@@ -159,8 +165,8 @@ Con los 5 talleres iniciales ya se pueden cubrir los costos. Para crecer: más t
 
 | Fase | Qué incluye |
 |---|---|
-| **1. Lanzamiento** (lo que mostramos el 30/11) | Inspección por link con mecánico elegido por el comprador, informe firmado, reclamo y ranking. Metabuscador con el botón "Mandale un mecánico" y alertas. 5 talleres de Mercedes y Luján |
-| **2. Crecimiento** | **Fallas típicas por modelo** (idea B): se juntan de internet, las confirman los mecánicos y después las miden las inspecciones. **Costo total con 3 presupuestos** (idea A): el mecánico que revisó no presupuesta lo que encontró. Informe para vender. Plan Plus |
+| **1. Lanzamiento** (lo que mostramos el 30/11) | Inspección por link con mecánico elegido por el comprador, informe firmado con patente e historial del auto, reclamo, fondo de garantía y ranking. Metabuscador con el botón "Mandale un mecánico" y alertas. **Fallas típicas por modelo** (idea B) y **costo total con 3 presupuestos** (idea A), con datos de prueba. 5 talleres de Mercedes y Luján |
+| **2. Crecimiento** | Las ideas A y B con datos reales (fallas medidas en muchas inspecciones, presupuestos de toda la red). Cobro real con Mercado Pago y pagos al mecánico. Informe para vender y copia del informe al que compró el auto. Suscripción del vendedor |
 | **3. Escala** | Más ciudades, datos agregados para aseguradoras y financieras, financiación con socios |
 
 ## Qué cambió respecto de la v3
