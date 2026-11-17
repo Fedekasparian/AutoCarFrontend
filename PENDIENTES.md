@@ -129,6 +129,10 @@ Lo que pidió el profe el 13/11 ("variables y controles"). Todas las decisiones 
 - [x] ~~Explorar dejaba la última fila con 1 auto y 3 huecos~~ (17/11, back #69/#70): 12 autos por página en vez de 9 (12 se divide por 2, 3 y 4 columnas).
 - [x] ~~Explicar la etiqueta de precio del metabuscador~~ (17/11, front #105/#106): abajo del precio, chico, "11 % más que 23 autos parecidos (año y km)", y al pasar el mouse contra qué se compara. Ordenar por precio no mira año ni km; la etiqueta sí.
 - [x] ~~Kavak en prod~~ (17/11): 1.255 autos cargados desde la PC. El primer intento cortó con un 429 de Firestore; ahora los commits se reintentan solos (back #71/#72).
+- [x] ~~Favoritos no se notaban en el detalle~~ (17/11, front #109/#110): aviso flotante al guardar o sacar y atajo "Ver mis favoritos".
+- [x] ~~El metabuscador decía "2 novedades" sin decir cuáles~~ (17/11, front #111/#112): arriba de los resultados, "Novedades desde tu última visita" con tipo, auto, sitio y cuánto bajó, y la pastilla en la fila.
+- [x] ~~Encabezados de seguridad en el front~~ (17/11, front #113): CSP, X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy y COOP. Probado sin bloqueos en 18 páginas. Todo lo de seguridad en [`AutoCarBackend/docs/seguridad.md`](https://github.com/MateoPonti/AutoCarBackend/blob/main/docs/seguridad.md).
+- [ ] Seguridad que falta (detalle en ese documento): verificar email al registrarse, recuperar contraseña, protección de ramas en GitHub.
 - [ ] Foto obligatoria al marcar una falla y auditoría al azar en el ranking.
 - [x] ~~Revisar el guion de la demo~~: reescrito el 17/11 para la URL pública, con auto vendido, costo total, fallas típicas, fondo y parámetros.
 - [ ] **Ensayar la demo** con el guion nuevo: primero en dev, el día de la defensa en producción.
