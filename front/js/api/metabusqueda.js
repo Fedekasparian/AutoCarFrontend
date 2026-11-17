@@ -19,6 +19,10 @@ export const reporte = (busquedaId, filtros) => get(`/api/meta-busquedas/${id(bu
 // → null (204)
 export const eliminar = (busquedaId) => del(`/api/meta-busquedas/${id(busquedaId)}`);
 
+// Avisos sin ver de todas las búsquedas → {avisos: [{busqueda_id, auto_id, tipo: nuevo|bajo|reservado|retirado,
+// precio_anterior, precio_actual, fecha, marca, modelo, version, anio, fuente}]}, el más nuevo primero
+export const avisosSinVer = () => get('/api/meta-busquedas/avisos', { sin_ver: 1 });
+
 // Marca como vistos los avisos de esa búsqueda → null (204)
 export const marcarVistos = (busquedaId) => post(`/api/meta-busquedas/${id(busquedaId)}/avisos/vistos`);
 
