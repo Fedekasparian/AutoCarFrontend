@@ -231,11 +231,11 @@ export function costoTotal(i) {
         el('ul', { class: 'pila', role: 'list' }, ...porItem(a.codigo).map((p) => filaPresupuesto(p, a.mejor)))));
     return [
         el('ul', { class: 'costo-total pila', role: 'list' }, ...arreglos),
-        filasDatos([
+        el('dl', { class: 'datos' }, ...filasDatos([
             c.precio_publicado !== null ? ['Precio del aviso', formato.precio(c.precio_publicado)] : null,
             ['Arreglos', formato.precio(c.arreglos)],
             c.total !== null ? ['Costo total', el('strong', {}, formato.precio(c.total))] : null,
-        ]),
+        ])),
         c.completo ? null : el('p', { class: 'campo__ayuda' },
             'Algún arreglo todavía no tiene presupuesto: el total suma lo que ya respondieron los talleres.'),
         el('p', { class: 'campo__ayuda' },

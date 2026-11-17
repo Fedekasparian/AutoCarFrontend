@@ -77,6 +77,7 @@ test('recorrido de la demo: pedir, aceptar, firmar, reclamar y resolver', async 
         await comprador.locator('#datos-auto summary').click();
         await comprador.fill('#titulo', titulo);
         await comprador.fill('#localidad', 'Luján');
+        await comprador.fill('#precio_publicado', '9000000'); // con el precio del aviso, el informe arma el costo total
         // Marca y modelo del catálogo: le llegan al mecánico ya elegidos (los puede corregir)
         await comprador.selectOption('#marca', 'Volkswagen');
         await comprador.selectOption('#modelo', 'Gol Trend');
@@ -204,6 +205,7 @@ test('recorrido de la demo: pedir, aceptar, firmar, reclamar y resolver', async 
         await comprador.reload();
         await expect(comprador.locator('#costo-lista')).toContainText('El más barato');
         await expect(comprador.locator('#costo-lista')).toContainText('Costo total');
+        await expect(comprador.locator('#costo-lista')).toContainText('9.085.000'); // $ 9.000.000 del aviso + $ 85.000
     });
 
     await test.step('otro usuario no puede ver la inspección', async () => {
