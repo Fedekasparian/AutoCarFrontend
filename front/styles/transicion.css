@@ -1,0 +1,3 @@
+/* Transición suave entre páginas (la carga js/tema.js solo en Chromium). Va en un archivo y no en un <style>
+   creado por JS porque la Content-Security-Policy (vercel.json) no permite estilos en línea. */
+@media (prefers-reduced-motion: no-preference){ @view-transition{ navigation: auto; } }
