@@ -29,6 +29,7 @@ export const ESTADOS = {
     cancelada: 'Cancelada',
     firmada: 'Firmada',
     no_realizada: 'No se pudo hacer',
+    caida: 'Se cayó: el auto se vendió',
 };
 export const FUENTES = {
     mercadolibre: 'MercadoLibre',
@@ -158,8 +159,10 @@ export function validarInforme({ items, conclusion: concl, resumen = '' }, compl
 }
 
 // Lo que se manda al back: sólo los ítems con resultado (mientras no firma puede guardar a medias).
-export function cuerpoInforme({ items, conclusion: concl, resumen = '', patente = '' }) {
+export function cuerpoInforme({ items, conclusion: concl, resumen = '', patente = '', marca = '', modelo = '' }) {
     return {
+        marca: marca || null,
+        modelo: modelo || null,
         items: items
             .filter((i) => i.resultado)
             .map(({ codigo, resultado: res, nota = '' }) => ({ codigo, resultado: res, nota: nota.trim() })),
@@ -168,6 +171,19 @@ export function cuerpoInforme({ items, conclusion: concl, resumen = '', patente 
         patente: patente.trim(),
     };
 }
+
+// Crédito del comprador cuando el auto se vendió (ver AutoVendido en el back)
+export const CREDITOS = {
+    auto_vendido: 'el auto se vendió antes de la firma',
+    cupon: 'el auto se vendió enseguida después de la firma, con el turno confirmado',
+};
+
+// Idea A: los ítems que se arreglan en un taller (kilometraje e identificación se revisan, pero no tienen arreglo)
+export const ARREGLABLES = ['carroceria', 'estructura', 'motor', 'transmision', 'frenos', 'suspension', 'neumaticos', 'electricidad'];
+
+// Idea B: de dónde sale cada falla típica y en qué estado quedó con los votos de los mecánicos
+export const ORIGENES_FALLA = { internet: 'De internet', mecanicos: 'De los mecánicos', medido: 'Medido en inspecciones' };
+export const ESTADOS_FALLA = { confirmada: 'Confirmada', sin_confirmar: 'Sin confirmar', descartada: 'Descartada' };
 
 // Alcance de la inspección (N3): qué se considera "que se veía". Se muestra antes de pagar y al reclamar.
 // "Cubre" sale del checklist; lo demás queda escrito acá y en modelo-de-negocio/PLAN.md (sección 7).

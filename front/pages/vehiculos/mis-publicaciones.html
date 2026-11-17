@@ -40,6 +40,14 @@
 
     <a class="boton boton--bloque" href="publicar.html">Publicar vehículo</a>
 
+    <!-- Turnos de inspección de mis autos para confirmar (auto vendido: si vendés antes, el turno se cae solo).
+         Lo arma js/paginas/mis-publicaciones.js; se ve solo si hay alguno. -->
+    <section class="recuadro pila" id="turnos" aria-labelledby="turnos-titulo" hidden>
+      <h2 id="turnos-titulo" class="titulo-seccion">Turnos de inspección</h2>
+      <p class="campo__ayuda">Un comprador pidió que un mecánico de AutoCar revise tu auto. Confirmá el turno: no sabés quién es hasta la cita, así nadie elige al mecánico. Si vendés el auto antes, el turno se cae solo.</p>
+      <ul class="lista-filas" id="turnos-lista" role="list"></ul>
+    </section>
+
     <!-- Pestañas por estado con la cantidad de cada una (las arma js/paginas/mis-publicaciones.js) -->
     <div class="pestanas-estado" id="pestanas" role="group" aria-label="Ver publicaciones por estado" hidden></div>
 

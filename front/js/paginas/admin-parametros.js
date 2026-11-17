@@ -2,6 +2,9 @@
 // compensación, días para reclamar y precio de la inspección. GET y PUT /api/admin/parametros.
 // Los campos salen de la base: si se agrega un parámetro, aparece solo. El back valida los límites otra vez.
 import * as api from '../api/parametros.js';
+import * as inspecciones from '../api/inspecciones.js';
+import * as insp from '../servicios/inspecciones.js';
+import * as marcas from '../servicios/marcas.js';
 import * as formato from '../servicios/formato.js';
 import * as formularios from '../servicios/formularios.js';
 import * as sesion from '../servicios/sesion.js';
@@ -12,7 +15,7 @@ const campos = document.getElementById('campos');
 const listaCambios = document.getElementById('cambios');
 const aviso = document.getElementById('aviso');
 
-const UNIDADES = { porcentaje: '%', pesos: '$', dias: 'días', veces: 'veces el precio' };
+const UNIDADES = { porcentaje: '%', pesos: '$', dias: 'días', veces: 'veces', horas: 'horas' };
 let actuales = {}; // clave → valor que tiene hoy, para mandar solo lo que cambió
 
 // Un valor con su unidad: "23 %", "$100.000", "15 días"
@@ -72,7 +75,23 @@ formularios.alEnviar(form, async (datos) => {
     aviso.scrollIntoView();
 });
 
+// ---------- Fallas típicas de internet (idea B) ----------
+
+const formFalla = document.getElementById('form-falla');
+formFalla.elements.item_codigo.append(...insp.CHECKLIST.map((c) => el('option', { value: c.codigo }, c.nombre)));
+
+formularios.alEnviar(formFalla, async (datos) => {
+    const r = await inspecciones.cargarFallaInternet(datos);
+    formFalla.reset();
+    formFalla.elements.modelo.disabled = true;
+    const d = r.fallas_tipicas;
+    aviso.textContent = `Cargamos la falla. El ${d.marca} ${d.modelo} tiene ${d.fallas.length} fallas típicas; los mecánicos ya la pueden votar.`;
+    aviso.hidden = false;
+    aviso.scrollIntoView();
+});
+
 async function iniciar() {
+    marcas.conectar(formFalla.elements.marca, formFalla.elements.modelo).catch(() => {});
     try {
         mostrar(await api.todos());
     } catch (error) {

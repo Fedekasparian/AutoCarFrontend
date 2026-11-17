@@ -91,6 +91,30 @@
         <div class="pila" id="anteriores" aria-live="polite"></div>
       </fieldset>
 
+      <!-- Marca y modelo del catálogo (idea B): obligatorios para firmar. Los selects los llena js/servicios/marcas.js
+           y las fallas típicas del modelo, con el voto del mecánico, js/servicios/fallas.js. -->
+      <fieldset class="pila" aria-describedby="modelo-ayuda">
+        <legend class="campo__etiqueta"><strong>Marca y modelo</strong></legend>
+        <p class="campo__ayuda" id="modelo-ayuda">Elegilos de la lista. Sin los dos no se puede firmar: con ellos se miden las fallas típicas de cada modelo.</p>
+        <div class="campos-fila">
+          <div class="campo">
+            <label class="campo__etiqueta" for="marca">Marca</label>
+            <select class="campo__input" id="marca" name="marca" aria-describedby="marca-error"><option value="">Elegí</option></select>
+            <span class="campo__error" id="marca-error"></span>
+          </div>
+          <div class="campo">
+            <label class="campo__etiqueta" for="modelo">Modelo</label>
+            <select class="campo__input" id="modelo" name="modelo" aria-describedby="modelo-error" disabled><option value="">Elegí</option></select>
+            <span class="campo__error" id="modelo-error"></span>
+          </div>
+        </div>
+        <section class="pila" id="fallas" aria-labelledby="fallas-titulo" aria-live="polite" hidden>
+          <h3 id="fallas-titulo">Fallas típicas de este modelo</h3>
+          <p class="campo__ayuda">Mirá estos puntos con más atención. Votá si la viste o si no es típica: con los votos de los mecánicos cada falla se confirma o se descarta.</p>
+          <div class="pila" id="fallas-lista"></div>
+        </section>
+      </fieldset>
+
       <div class="pila" id="items"></div>
 
       <fieldset class="pila">

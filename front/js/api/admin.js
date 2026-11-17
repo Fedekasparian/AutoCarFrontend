@@ -46,3 +46,8 @@ export const resolverSolicitudTaller = (id, resolucion) =>
     patch(`/api/admin/solicitudes-taller/${encodeURIComponent(id)}`, resolucion);
 
 export const metricas = () => get('/api/admin/metricas');
+
+// Fondo de garantía (solo paga reclamos; pago simulado) → {fondo: {saldo, aportes, franquicias, devoluciones,
+//  compensaciones, firmadas, reclamos, supuesto: {aporte_por_inspeccion, costo_reclamo, inspecciones_por_reclamo},
+//  movimientos: [{tipo: aporte|devolucion|compensacion|franquicia, fecha, monto, inspeccion_id, titulo}]}}
+export const fondo = () => get('/api/admin/fondo');

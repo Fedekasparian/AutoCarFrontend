@@ -3,7 +3,7 @@
 Lista viva de lo que falta. Cuando alguien toma un ítem, pone su nombre; cuando lo termina, lo tacha (`~~así~~`) o lo borra con el PR que lo resuelve.
 El plan completo del enfoque del mecánico está en [`modelo-de-negocio/PLAN.md`](modelo-de-negocio/PLAN.md).
 
-Última actualización: 17/11/2026. Las decisiones están en [`ideas-14-11-2026/decisiones-14-11-2026.md`](ideas-14-11-2026/decisiones-14-11-2026.md) y el plan en [`modelo-de-negocio/PLAN.md`](modelo-de-negocio/PLAN.md); los tres dicen lo mismo.
+Última actualización: 17/11/2026 (tarde). Las decisiones están en [`ideas-14-11-2026/decisiones-14-11-2026.md`](ideas-14-11-2026/decisiones-14-11-2026.md) y el plan en [`modelo-de-negocio/PLAN.md`](modelo-de-negocio/PLAN.md); los tres dicen lo mismo.
 
 ## Pedido de la cátedra para la entrega final (mapa de capas del 10/11)
 
@@ -11,11 +11,11 @@ En orden, de adentro hacia afuera. Las ideas A y B se piden **las dos** (puntos 
 
 - [x] ~~**1. Circuito usable en producción**~~: talleres aprobados e inspecciones en Neon main (11/11). Falta que el ranking tenga historia (ver "Datos y scraper").
 - [x] ~~**2. Los dos invariantes**~~: un solo pedido en curso por comprador y aviso, y moderación con el estado leído (back, migración `020`).
-- [ ] **3. Idea A, costo total del auto** (se hace, decidido el 17/11): 3 presupuestos por cada arreglo que marca el informe y bloque "Costo total". Reglas: el taller que inspeccionó nunca recibe el pedido; el total suma el presupuesto vigente más barato de cada ítem. Con datos de prueba alcanza.
-- [ ] **4. Idea B, fallas típicas por modelo** (se hace, decidido el 17/11): cada falla con su origen (internet, mecánicos, medido), el voto del mecánico que cambia su estado y la inspección que actualiza el porcentaje; no se muestra con menos de 20. Misma clave de modelo que el comparador.
+- [x] ~~**3. Idea A, costo total del auto**~~ (17/11, back migración `025`): al firmar, cada arreglo del informe se le pide a 3 talleres de la red (nunca al que inspeccionó, primero los de su localidad); el taller responde en Mi taller y el informe muestra el costo total (aviso + el presupuesto vigente más barato de cada arreglo).
+- [x] ~~**4. Idea B, fallas típicas por modelo**~~ (17/11, back migración `026`): la inspección guarda marca y modelo (obligatorios para firmar, misma clave que el comparador); fallas con origen internet (las carga el admin en Parámetros, con la fuente) o mecánicos (las propone uno en el checklist); el voto de los mecánicos las confirma o descarta; el porcentaje medido sale de las inspecciones y no se muestra con menos de 20. Se ven en el auto, en el informe y en el checklist.
 - [x] ~~**5. Una integración real andando**~~: la corrida diaria del scraper en GitHub Actions (workflow `Scraper`, todos los días a las 06:00 de Argentina desde `main`) anda sola desde el 12/11 y carga el Firestore de producción. Las que fallaron fueron el 09/11 y el 11/11.
 - [x] ~~**6. Metabuscador adentro o afuera**~~: **queda**. Autos cargados en prod, "Mandale un mecánico" en cada resultado y aviso de cambio de precio (nuevos, bajaron y retirados en los resultados; avisos sin ver en las búsquedas guardadas). El aviso es dentro del sitio, no por mail.
-- [ ] **7. Fondo de garantía** (se hace, decidido el 17/11): saldo que suma con cada inspección, del que salen las compensaciones, con el descuento al mecánico.
+- [x] ~~**7. Fondo de garantía**~~ (17/11, back migración `024`): saldo con aportes de cada inspección y franquicias; salen devolución y compensación de cada reclamo que procede; el mecánico paga una franquicia del 40 %. Se ve arriba de Reclamos, con el supuesto de la cuenta.
 - [x] ~~**8. Maquetas afuera y `PLAN.md` al día**~~: maquetas sacadas el 14/11; `PLAN.md`, el README del modelo de negocio y las decisiones puestos al día el 17/11 (A y B dejaron de ser "fase 2").
 
 ## Hecho el 10/11 (ya en `main` desde el 11/11)
@@ -112,15 +112,16 @@ Lo que pidió el profe el 13/11 ("variables y controles"). Todas las decisiones 
 
 ### Falta para el 18/11
 
-- [ ] **Auto vendido**: turno que confirma el vendedor y se cae si el aviso pasa a pausado o vendido; si el mecánico ya fue, se firma igual y el comprador original recibe un crédito del 30 %; cupón solo con turno confirmado y aviso vendido dentro de las 48 h.
-- [ ] **Fondo de garantía con saldo** y franquicia del mecánico (40 % de lo que cobró). Franquicia y crédito como parámetros.
+- [x] ~~**Auto vendido**~~ (17/11, back migración `024`): turno que confirma el vendedor y se cae si el aviso pasa a pausado o vendido; si el mecánico ya fue, se firma igual y el comprador original recibe un crédito del 30 %; cupón solo con turno confirmado y aviso vendido dentro de las 48 h.
+- [x] ~~**Fondo de garantía con saldo** y franquicia del mecánico (40 % de lo que cobró)~~. Franquicia, crédito y horas del cupón son parámetros.
+- [ ] **Correr `024`, `025` y `026` en Neon dev** antes de mergear los PR del back, y en Neon main en el próximo pase.
 - [x] ~~**Corregir el doc de ideas**~~ (17/11): la carpeta `ideas-14-11-2026/` entró a `dev` y `PLAN.md`, el README del modelo de negocio, el guion y este archivo dicen lo mismo. La rama `docs/ideas-14-11-2026` se borró.
 - **Pagos al mecánico** (a los 10 y a los 15 días): **pasan al final** (17/11), junto con la decisión de usar o no Mercado Pago.
 - [x] **Pase a main** (14/11 noche): `021` y `022` corridas en Neon main y dev → main mergeado en los dos repos (back #54, front #83).
 
 ### Del 21/11 al 30/11
 
-- [ ] Idea A (costo total con 3 presupuestos) e idea B (fallas típicas por modelo), con datos de prueba.
+- [ ] Datos de prueba de las ideas A y B: presupuestos respondidos y fallas típicas (de internet, con fuente) en 3 o 4 modelos, y 20 inspecciones firmadas de un modelo para que se vea el porcentaje medido.
 - [ ] Foto obligatoria al marcar una falla y auditoría al azar en el ranking.
 - [ ] Revisar el guion de la demo (`modelo-de-negocio/guion-demo.md`, es del 09/11) y ensayarla sobre la URL pública.
 - [ ] Recomendar autos según "¿Para qué buscás el auto?" (las publicaciones no tienen tipo de auto).

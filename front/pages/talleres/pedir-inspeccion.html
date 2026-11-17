@@ -54,6 +54,20 @@
         </div>
         <details class="pila" id="datos-auto">
           <summary>Datos del auto (opcional, ayudan al mecánico)</summary>
+          <!-- Marca y modelo del catálogo: con ellos se ven las fallas típicas del modelo. Los llena js/servicios/marcas.js;
+               si el auto es de AutoCar salen de la publicación y no se muestran. -->
+          <div class="campos-fila" id="marca-modelo">
+            <div class="campo">
+              <label class="campo__etiqueta" for="marca">Marca</label>
+              <select class="campo__input" id="marca" name="marca" aria-describedby="marca-error"><option value="">No sé</option></select>
+              <span class="campo__error" id="marca-error"></span>
+            </div>
+            <div class="campo">
+              <label class="campo__etiqueta" for="modelo">Modelo</label>
+              <select class="campo__input" id="modelo" name="modelo" aria-describedby="modelo-error" disabled><option value="">No sé</option></select>
+              <span class="campo__error" id="modelo-error"></span>
+            </div>
+          </div>
           <div class="campo">
             <label class="campo__etiqueta" for="titulo">Marca, modelo y versión</label>
             <input class="campo__input" id="titulo" name="titulo" maxlength="150" placeholder="Volkswagen Gol Trend 1.6" aria-describedby="titulo-error">
