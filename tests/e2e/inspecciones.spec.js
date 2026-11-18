@@ -193,7 +193,8 @@ test('recorrido de la demo: pedir, aceptar, firmar, reclamar y resolver', async 
         for (const n of [1, 2, 3, 4]) {
             await ingresar(otro, { email: `mecanico${n}@demo.autocar.com.ar`, password: MECANICO.password });
             await otro.goto(pagina('pages/talleres/taller.html'));
-            const fila = otro.locator('#presupuestos-lista li', { hasText: titulo });
+            // El arreglo de la carrocería (la falla de frenos también se pide, pero esta prueba responde uno solo)
+            const fila = otro.locator('#presupuestos-lista li', { hasText: titulo }).filter({ hasText: 'Rayón' });
             await otro.locator('#presupuestos-estado, #presupuestos-lista li').first().waitFor();
             if (await fila.count()) {
                 await fila.getByRole('button', { name: 'Presupuestar' }).click();
