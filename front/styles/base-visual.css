@@ -1459,11 +1459,41 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 /* Parámetros: la fórmula de "para vos" como grilla perfil × criterio */
 .formula__tabla{ min-width: 560px; }
 .formula__tabla th[scope="row"]{ font-weight: 600; white-space: nowrap; }
-.formula__criterio{ cursor: help; text-decoration: underline dotted; text-underline-offset: 3px; }
-.formula__ayuda{ margin: 0; padding: 10px 12px; border-left: 3px solid var(--marca-linea); border-radius: 8px; background: var(--marca-tenue); font-size: 14px; }
+/* Un color por criterio: el mismo en la grilla, la ayuda y las barras de cada perfil */
+:root{ --criterio-precio: #1f9e8f; --criterio-km: #3b5bdb; --criterio-dias: #d97706; --criterio-anio: #9b4dca; }
+:root[data-modo="oscuro"]{ --criterio-precio: #3cc2b2; --criterio-km: #7d97f7; --criterio-dias: #f0a23c; --criterio-anio: #c08ae6; }
+.criterio-punto{ display: inline-block; flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--color); }
+.criterio-punto--precio{ --color: var(--criterio-precio); }
+.criterio-punto--km{ --color: var(--criterio-km); }
+.criterio-punto--dias{ --color: var(--criterio-dias); }
+.criterio-punto--anio{ --color: var(--criterio-anio); }
+.formula__criterio{ cursor: help; white-space: nowrap; }
+.formula__criterio .criterio-punto{ margin-right: 6px; }
+.formula__tabla td, .formula__tabla th{ transition: background var(--dur-media) var(--curva-suave); }
+.formula__tabla[data-activo="precio"] [data-criterio="precio"],
+.formula__tabla[data-activo="km"] [data-criterio="km"],
+.formula__tabla[data-activo="dias"] [data-criterio="dias"],
+.formula__tabla[data-activo="anio"] [data-criterio="anio"]{ background: var(--marca-tenue); }
+.formula__ayuda{ display: grid; gap: 4px; min-height: 92px; padding: 14px 16px; border: 1px solid var(--marca-linea); border-radius: 12px; background: var(--marca-blanco); font-size: 15px; line-height: 1.5; }
+.formula__ayuda p{ margin: 0; }
+.formula__ayuda-vacia{ align-self: center; color: var(--marca-gris); }
+.formula__ayuda-titulo{ display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 16px; }
 .formula__peso{ width: 84px; min-height: 40px; text-align: center; }
 /* Parámetros: cómo se calcula "Recomendados" y el ranking de los mecánicos */
 .formula__explicacion{ display: grid; gap: 8px; padding: 12px 16px; border: 1px solid var(--marca-linea); border-radius: 12px; background: var(--marca-blanco); font-size: 14px; }
 .formula__explicacion summary{ font-weight: 600; cursor: pointer; }
 .formula__explicacion ul, .formula__explicacion p{ margin: 0; }
-.formula__cuenta{ padding: 8px 12px; border-radius: 8px; background: var(--marca-tenue); font-family: ui-monospace, monospace; font-size: 13px; overflow-wrap: anywhere; }
+.formula__cuenta{ margin: 0; padding: 10px 14px; border-left: 3px solid var(--marca-acento); border-radius: 8px; background: var(--marca-tenue); font-size: 15px; line-height: 1.5; overflow-wrap: anywhere; }
+.formula__cuenta--general{ font-size: 16px; }
+/* Parámetros: una tarjeta por tipo de usuario con su reparto de pesos */
+.perfiles-pesos{ display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 14px; margin: 0; padding: 0; list-style: none; }
+.perfil-pesos{ display: grid; align-content: start; gap: 12px; padding: 16px 18px; border: 1px solid var(--marca-linea); border-radius: 14px; background: var(--marca-blanco); }
+.perfil-pesos__cabeza{ display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.perfil-pesos__nombre{ margin: 0; font-size: 17px; }
+.perfil-pesos__prioriza{ padding: 3px 10px; border-radius: 999px; background: var(--marca-tenue); font-size: 13px; font-weight: 600; }
+.perfil-pesos__barra{ display: flex; gap: 3px; height: 12px; }
+.perfil-pesos__tramo{ width: var(--parte); border-radius: 4px; background: var(--color); }
+.perfil-pesos__lista{ display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 15px; }
+.perfil-pesos__item{ display: grid; grid-template-columns: auto 1fr auto 64px; align-items: center; gap: 8px; }
+.perfil-pesos__peso{ color: var(--marca-gris); font-size: 13px; text-align: right; }
+.perfil-pesos__nada{ margin: 0; color: var(--marca-gris); font-size: 14px; }
