@@ -12,6 +12,7 @@ import * as vistas from '../servicios/vistas.js';
 
 import { ruta } from '../servicios/rutas.js';
 import { boton } from '../servicios/acciones.js';
+import * as eventos from '../api/eventos.js';
 
 const id = new URLSearchParams(window.location.search).get('id');
 const estado = document.getElementById('estado');
@@ -66,7 +67,9 @@ function mostrar(v) {
     if (v.estado === 'disponible' && sesion.compraYVende()) {
         const aviso = ruta(`vehiculo.html?id=${v.id}`);
         // Marca y modelo solo para mostrar qué mecánicos ya revisaron uno igual
-        const pedido = new URLSearchParams({ url: aviso, marca: v.marca, modelo: v.modelo });
+        // origen: para las estadísticas del admin (vio la publicación → pagó la inspección)
+        const pedido = new URLSearchParams({ url: aviso, marca: v.marca, modelo: v.modelo, origen: 'publicacion' });
+        eventos.registrar('mostrado', 'publicacion', aviso);
         $('vehiculo-mecanico').href = ruta(`pedir-inspeccion.html?${pedido}`);
         $('vehiculo-mecanico').hidden = false;
         $('vehiculo-mecanico-ayuda').hidden = false;

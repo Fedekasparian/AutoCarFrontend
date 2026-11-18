@@ -11,6 +11,7 @@ import * as sesion from '../servicios/sesion.js';
 import * as vistas from '../servicios/vistas.js';
 import { bloqueAlcance, filasDatos } from '../servicios/informe.js';
 import { ruta } from '../servicios/rutas.js';
+import * as eventos from '../api/eventos.js';
 
 const { el } = vistas;
 const params = new URLSearchParams(window.location.search);
@@ -213,6 +214,7 @@ form.addEventListener('submit', async (evento) => {
             // Solo si se saben los dos (si el auto es de AutoCar, salen de la publicación)
             marca: marca && modelo ? marca : null,
             modelo: marca && modelo ? modelo : null,
+            origen: params.get('origen') || null, // de dónde tocó "Mandale un mecánico" (estadísticas)
         });
         window.location.assign(ruta(`mis-inspecciones.html?nueva=${inspeccion.id}`));
     } catch (error) {
@@ -243,6 +245,8 @@ if (sesion.requerirLogin()) {
         });
         precargar();
         cargarMecanicos();
+        // Estadísticas: llegó tocando "Mandale un mecánico" desde una recomendación
+        if (params.get('origen')) eventos.registrar('tocado', params.get('origen'), params.get('url'));
         // Auto de AutoCar: todos los datos salen de la publicación (el back no acepta otros), no se muestra el bloque.
         // Marca y modelo: solo se piden si no se saben (los del metabuscador llegan en el link)
         if (insp.fuenteDeUrl(campoUrl.value, window.location.hostname) === 'autocar') {
