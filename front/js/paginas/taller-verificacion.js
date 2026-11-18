@@ -213,10 +213,14 @@ async function cargarFallas() {
 }
 form.elements.modelo.addEventListener('change', cargarFallas);
 
+// El botón cambia al toque (conVoto) y el voto se guarda por detrás; si falla, vuelve como estaba
 async function votar(falla, confirma) {
+    const antes = modeloFallas;
+    mostrarFallas(fallas.conVoto(antes, falla.id, confirma));
     try {
         mostrarFallas((await api.votarFalla(falla.id, confirma)).fallas_tipicas);
     } catch (error) {
+        mostrarFallas(antes);
         avisar(error.message);
     }
 }
