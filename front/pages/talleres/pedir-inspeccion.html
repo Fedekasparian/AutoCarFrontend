@@ -108,6 +108,15 @@
             <option value="">Todas</option>
           </select>
         </div>
+        <!-- Solo si se sabe la marca del auto (lo muestra js/paginas/pedir-inspeccion.js). Especialidad = cómo le fue
+             revisando ese modelo (o la marca): cuenta los reclamos que procedieron, no solo cuántos revisó. -->
+        <fieldset class="campo orden" id="orden-mecanicos" hidden>
+          <legend class="campo__etiqueta">Ordenar por</legend>
+          <div class="orden__opciones">
+            <label class="orden__opcion"><input type="radio" name="orden_mecanicos" value="especialidad" checked><span>Especialidad en este auto</span></label>
+            <label class="orden__opcion"><input type="radio" name="orden_mecanicos" value="ranking"><span>Ranking general</span></label>
+          </div>
+        </fieldset>
         <p class="campo__ayuda">El ranking sale de las inspecciones firmadas y de los reclamos que procedieron. Nadie paga para subir.</p>
         <fieldset class="opciones" id="mecanicos" aria-describedby="mecanico_id-error">
           <legend class="solo-lector">Elegí un mecánico</legend>

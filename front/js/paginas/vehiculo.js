@@ -65,7 +65,9 @@ function mostrar(v) {
     // "Mandale un mecánico": el link de esta publicación ya lleva el id, el back completa los datos del auto
     if (v.estado === 'disponible' && sesion.compraYVende()) {
         const aviso = ruta(`vehiculo.html?id=${v.id}`);
-        $('vehiculo-mecanico').href = ruta(`pedir-inspeccion.html?url=${encodeURIComponent(aviso)}`);
+        // Marca y modelo solo para mostrar qué mecánicos ya revisaron uno igual
+        const pedido = new URLSearchParams({ url: aviso, marca: v.marca, modelo: v.modelo });
+        $('vehiculo-mecanico').href = ruta(`pedir-inspeccion.html?${pedido}`);
         $('vehiculo-mecanico').hidden = false;
         $('vehiculo-mecanico-ayuda').hidden = false;
     }

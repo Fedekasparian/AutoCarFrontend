@@ -64,25 +64,54 @@ campoUrl.addEventListener('input', describirUrl);
 
 // ---------- El mecánico ----------
 
+// Marca y modelo del auto: los que eligió en la lista; si no eligió, los que llegaron en el link
+function elAuto() {
+    const marca = form.elements.marca.value || params.get('marca') || '';
+    const modelo = form.elements.marca.value ? form.elements.modelo.value : params.get('modelo') || '';
+    return { marca, modelo };
+}
+
+const ordenMecanicos = document.getElementById('orden-mecanicos');
+
+// La especialidad en este auto (la calcula el back, cuenta los reclamos que procedieron):
+// verde si le fue bien con ese modelo, gris si con otros de la marca, naranja si le fue mal
+function experiencia(m) {
+    const e = m.especialidad;
+    if (!e) return null;
+    const { marca, modelo } = elAuto();
+    const cuales = e.en === 'modelo' ? `${marca} ${modelo}` : `${marca} de otros modelos`;
+    const reclamos = e.reclamos === 0 ? 'sin reclamos'
+        : `${e.reclamos} con reclamo que procedió`;
+    const tono = !e.buena ? 'etiqueta--caro' : e.en === 'modelo' ? 'etiqueta--buen_precio' : '';
+    return el('span', { class: `etiqueta ${tono}`.trim() }, `Revisó ${e.revisados} ${cuales} · ${reclamos}`);
+}
+
 function opcionMecanico(m) {
     const idOpcion = `mecanico-${m.id}`;
     const radio = el('input', { type: 'radio', name: 'mecanico_id', id: idOpcion, value: m.id });
     radio.addEventListener('change', mostrarDesglose);
+    const yaReviso = experiencia(m);
     return el('label', { for: idOpcion },
         radio,
         el('span', { class: 'fila__cuerpo' },
             el('span', { class: 'fila__titulo' }, m.taller), el('br'),
             el('span', { class: 'fila__meta' }, `${m.mecanico} · ${m.direccion}, ${m.localidad}`), el('br'),
-            el('span', { class: 'fila__meta' }, insp.puntaje(m))),
+            el('span', { class: 'fila__meta' }, insp.puntaje(m)),
+            yaReviso ? el('br') : null, yaReviso),
         el('strong', {}, formato.precio(m.precio_inspeccion)));
 }
 
 async function cargarMecanicos() {
+    mecanicoPedido ??= elegido()?.id ?? null; // al reordenar, sigue marcado el que ya había elegido
     estadoMecanicos.replaceChildren(vistas.cargando());
     lista.replaceChildren(el('legend', { class: 'solo-lector' }, 'Elegí un mecánico'));
     document.getElementById('resumen').hidden = true;
     try {
-        const r = await api.mecanicos(filtro.value);
+        const { marca, modelo } = elAuto();
+        // "Ordenar por" solo tiene sentido si se sabe qué auto es
+        ordenMecanicos.hidden = !marca;
+        const orden = form.elements.orden_mecanicos.value;
+        const r = await api.mecanicos(filtro.value, marca, modelo, marca ? orden : '');
         mecanicos = r.items;
         if (filtro.options.length === 1) {
             filtro.append(...r.localidades.map((l) => el('option', { value: l }, l)));
@@ -98,6 +127,10 @@ async function cargarMecanicos() {
 }
 
 filtro.addEventListener('change', cargarMecanicos);
+// Si cambia el modelo del auto, cambia quiénes ya revisaron uno igual
+form.elements.marca.addEventListener('change', cargarMecanicos);
+form.elements.modelo.addEventListener('change', cargarMecanicos);
+ordenMecanicos.addEventListener('change', cargarMecanicos);
 
 // Llega con ?mecanico=N desde el ranking (talleres.html): se marca sólo la primera vez.
 let mecanicoPedido = Number(params.get('mecanico')) || null;

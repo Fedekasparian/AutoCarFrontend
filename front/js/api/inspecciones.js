@@ -19,8 +19,9 @@ const id = (n) => encodeURIComponent(n);
 // ---------- Público y comprador ----------
 
 // Ranking de la red → {items: [{id, mecanico, taller, direccion, localidad, precio_inspeccion, desglose,
-// firmadas, reclamos_procedentes, puntaje, nuevo}], localidades}
-export const mecanicos = (localidad) => get('/api/mecanicos', { localidad });
+// firmadas, reclamos_procedentes, puntaje, nuevo, revisados?, especialidad?: {en, revisados, reclamos, puntaje, buena}}],
+// localidades, orden}. Con la marca del auto se ordena por especialidad, salvo orden = 'ranking'.
+export const mecanicos = (localidad, marca, modelo, orden) => get('/api/mecanicos', { localidad, marca, modelo, orden });
 
 // {url, mecanico_id, titulo?, anio?, kilometraje?, precio_publicado?, localidad?, marca?, modelo?} → {inspeccion} (201)
 export const pedir = (pedido) => post('/api/inspecciones', pedido);
