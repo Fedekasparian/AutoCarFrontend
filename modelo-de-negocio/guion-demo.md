@@ -1,6 +1,6 @@
 # N4 · Guion de la demo (defensa del 30/11)
 
-**Actualizado el 17/11/2026.** Unos 9 minutos. Se hace sobre la **URL pública** (https://autocar-zeta.vercel.app), como pidió la cátedra, con las cuentas de prueba de producción. Hay que ensayarla al menos dos veces: una el día anterior contra **dev** (el preview de Vercel de la rama `dev`) y otra esa mañana.
+**Actualizado el 17/11/2026 (noche).** Unos 9 minutos. Se hace sobre la **URL pública** (https://autocar-zeta.vercel.app), como pidió la cátedra, con las cuentas de prueba de producción. Hay que ensayarla al menos dos veces: una el día anterior contra **dev** (el preview de Vercel de la rama `dev`) y otra esa mañana.
 
 **Quién hace qué:** uno maneja la computadora y otro habla. Cada ventana es una persona distinta: comprador, vendedor, mecánico y admin. Cambiar de persona entre ellas ayuda a que se entienda que son cuatro roles.
 
@@ -49,12 +49,14 @@ Para el presupuesto (paso 6) la ventana 3 cambia a otro taller: `mecanica.gomez@
 - **Patente:** escribir `AD006DM` y salir del campo: aparece **el historial del auto** (otra inspección de la misma patente, con sus km y lo que encontró). Sacar la **foto de la chapa**.
 - **Marca y modelo** ya vienen de la publicación. Abajo aparecen las **fallas típicas del modelo**: votar una ("La vi") o **proponer una falla típica**. El ítem del checklist donde se ve queda marcado.
 - Checklist: todo OK salvo **Carrocería → Observado** ("Rayón en la puerta trasera"). Conclusión **Con reparos**.
+- **Foto obligatoria de una falla** (si hay tiempo): marcar **Frenos → Falla** ("Disco delantero rayado") y tocar Firmar: no deja, pide la foto. Tocar **Sacale una foto** y subir `foto-de-prueba-falla.jpg` (está en la carpeta de la presentación). En "observado" la foto es opcional.
 - **Firmar informe → Firmar.**
-> "Firma con su nombre y desde acá no se puede editar. Guardamos una huella del informe: si alguien tocara una coma, nos daríamos cuenta. Sin patente, foto de la chapa, marca y modelo no se puede firmar."
+> "Firma con su nombre y desde acá no se puede editar. Guardamos una huella del informe: si alguien tocara una coma, nos daríamos cuenta. Sin patente, foto de la chapa, foto de cada falla, marca y modelo no se puede firmar."
 
 ### 5. El comprador ve el informe (1 min) · ventana 1
 - **Mis inspecciones → la inspección:** el informe firmado, el **historial de este auto** (con el aviso "Ojo con los km" si el aviso dice menos km que antes), las **fallas típicas del modelo** y los **trámites** a pedir antes de pagar.
-- **Costo total del auto:** la carrocería observada ya se les pidió a otros talleres de la red. Todavía dice "Esperando respuesta".
+- Si hubo una falla, su foto aparece debajo del ítem (tocándola se abre grande).
+- **Costo total del auto:** la carrocería observada ya se les pidió a otros talleres de la red. Todavía dice "Esperando respuesta". Para mostrar uno ya completo, abrir otra inspección firmada de Lucía (por ejemplo, el Fiat Argo: precio + $ 269.000 de arreglos).
 > "El que revisó nunca presupuesta lo que encontró: separamos al que revisa del que arregla."
 
 ### 6. Otro taller presupuesta (45 s) · ventana 3

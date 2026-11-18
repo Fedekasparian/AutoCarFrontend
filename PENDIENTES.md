@@ -3,7 +3,7 @@
 Lista viva de lo que falta. Cuando alguien toma un ítem, pone su nombre; cuando lo termina, lo tacha (`~~así~~`) o lo borra con el PR que lo resuelve.
 El plan completo del enfoque del mecánico está en [`modelo-de-negocio/PLAN.md`](modelo-de-negocio/PLAN.md).
 
-Última actualización: 17/11/2026 (noche). Las decisiones están en [`ideas-14-11-2026/decisiones-14-11-2026.md`](ideas-14-11-2026/decisiones-14-11-2026.md) y el plan en [`modelo-de-negocio/PLAN.md`](modelo-de-negocio/PLAN.md); los tres dicen lo mismo.
+Última actualización: 17/11/2026 (noche, foto de cada falla y presupuestos de prueba). Las decisiones están en [`ideas-14-11-2026/decisiones-14-11-2026.md`](ideas-14-11-2026/decisiones-14-11-2026.md) y el plan en [`modelo-de-negocio/PLAN.md`](modelo-de-negocio/PLAN.md); los tres dicen lo mismo.
 
 ## Pedido de la cátedra para la entrega final (mapa de capas del 10/11)
 
@@ -124,7 +124,7 @@ Lo que pidió el profe el 13/11 ("variables y controles"). Todas las decisiones 
 ### Del 21/11 al 30/11
 
 - [x] ~~Datos de prueba de la idea B en producción~~ (17/11): 24 inspecciones firmadas del Gol Trend y 20 del Onix (con resultados variados, notas, las tres conclusiones y huellas válidas), 7 fallas de internet con fuente (4 Gol Trend, 3 Onix) y 4 propuestas de mecánicos con votos (2 confirmadas, 1 sin confirmar, 1 descartada). En prod se ve el medido: Gol Trend suspensión 50 % y motor 42 %; Onix frenos 35 %. Los links de los avisos de esas inspecciones son inventados y no abren. **Dev** sigue con los datos de las E2E (carrocería 100 % y propuestas "E2E pintura…").
-- [ ] Datos de prueba de la idea A: presupuestos respondidos (las 42 inspecciones de prueba no tienen presupuestos).
+- [x] ~~Datos de prueba de la idea A~~ (17/11): en producción, las 44 firmadas con arreglos tienen presupuestos (168 respondidos, vigentes 15 días, y 84 rechazados, así la bandeja de pendientes de los talleres queda limpia para la demo). El costo total sale completo.
 - [x] ~~Producción presentable~~ (17/11): se borraron los usuarios de prueba (Admin Test, Usuario Postman ×2 y dos cuentas duplicadas), el auto de Postman y uno sin fotos; "Vendedor demo" pasó a `gustavo.ledesma@autocar.test`; hay una moderadora (`paula.correa@autocar.test`) y todas las `@autocar.test` tienen la misma contraseña (en los apuntes). Quedan 20 autos públicos, todos con foto.
 - [x] ~~Explorar dejaba la última fila con 1 auto y 3 huecos~~ (17/11, back #69/#70): 12 autos por página en vez de 9 (12 se divide por 2, 3 y 4 columnas).
 - [x] ~~Explicar la etiqueta de precio del metabuscador~~ (17/11, front #105/#106): abajo del precio, chico, "11 % más que 23 autos parecidos (año y km)", y al pasar el mouse contra qué se compara. Ordenar por precio no mira año ni km; la etiqueta sí.
@@ -133,7 +133,8 @@ Lo que pidió el profe el 13/11 ("variables y controles"). Todas las decisiones 
 - [x] ~~El metabuscador decía "2 novedades" sin decir cuáles~~ (17/11, front #111/#112): arriba de los resultados, "Novedades desde tu última visita" con tipo, auto, sitio y cuánto bajó, y la pastilla en la fila.
 - [x] ~~Encabezados de seguridad en el front~~ (17/11, front #113): CSP, X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy y COOP. Probado sin bloqueos en 18 páginas. Todo lo de seguridad en [`AutoCarBackend/docs/seguridad.md`](https://github.com/MateoPonti/AutoCarBackend/blob/main/docs/seguridad.md).
 - [ ] Seguridad que falta (detalle en ese documento): verificar email al registrarse, recuperar contraseña, protección de ramas en GitHub.
-- [ ] Foto obligatoria al marcar una falla y auditoría al azar en el ranking.
+- [x] ~~Foto obligatoria al marcar una falla~~ (17/11, back #77/#78 y migración `027`, front #115/#117): si un ítem tiene "falla", sin foto no se firma (en "observado" es opcional); el comprador la ve en el informe. E2E de inspecciones ampliada. La `027` está corrida en Neon dev y main; la próxima migración es la `028`.
+- [ ] Auditoría al azar en el ranking.
 - [x] ~~Revisar el guion de la demo~~: reescrito el 17/11 para la URL pública, con auto vendido, costo total, fallas típicas, fondo y parámetros.
 - [ ] **Ensayar la demo** con el guion nuevo: primero en dev, el día de la defensa en producción.
 - [ ] Recomendar autos según "¿Para qué buscás el auto?" (las publicaciones no tienen tipo de auto).
