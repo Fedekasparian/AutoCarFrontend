@@ -64,33 +64,57 @@ function formula(pesos) {
         }), el('span', { class: 'campo__error', id: `${p.clave}-error` }));
     };
     const { minimo, maximo } = pesos[0];
-    const ayuda = el('div', { class: 'formula__ayuda', 'aria-live': 'polite' },
-        el('p', { class: 'formula__ayuda-vacia' }, 'Pasá el mouse por una columna (o tocá un casillero) para ver qué mide y qué pasa si le subís el peso.'));
     const tabla = el('table', { class: 'tabla formula__tabla' },
         el('thead', {}, el('tr', {}, el('th', {}, 'Perfil'), ...Object.entries(CRITERIOS).map(([criterio, c]) =>
             el('th', { class: 'formula__criterio', 'data-criterio': criterio, tabindex: 0 }, punto(criterio), c)))),
         el('tbody', {}, ...Object.entries(PERFILES).map(([perfil, nombre]) => el('tr', {},
             el('th', { scope: 'row' }, nombre), ...Object.keys(CRITERIOS).map((criterio) => celda(perfil, criterio))))));
-    const explicar = (evento) => {
-        const criterio = evento.target.closest('[data-criterio]')?.dataset.criterio;
-        if (!criterio) return;
-        tabla.dataset.activo = criterio; // resalta la columna (CSS)
-        ayuda.replaceChildren(
-            el('p', { class: 'formula__ayuda-titulo' }, punto(criterio), CRITERIOS[criterio]),
-            el('p', {}, el('strong', {}, 'Qué mide: '), AYUDA_CRITERIOS[criterio].mide),
-            el('p', {}, el('strong', {}, 'Con más peso: '), AYUDA_CRITERIOS[criterio].mas));
-    };
-    tabla.addEventListener('mouseover', explicar);
-    tabla.addEventListener('focusin', explicar);
     return el('section', { class: 'pila formula', 'aria-labelledby': 'formula-titulo' },
         el('h2', { id: 'formula-titulo' }, 'Fórmula de "Recomendados"'),
         el('p', { class: 'campo__ayuda' }, `Cuánto pesa cada cosa al ordenar el metabuscador según para qué busca el auto cada comprador: de ${minimo} (no cuenta) a ${maximo} (lo que más importa). Mirá en Estadísticas → Recomendaciones si "Recomendados" convierte y ajustalo acá.`),
         el('p', { class: 'formula__cuenta formula__cuenta--general' },
             el('strong', {}, 'Puntaje'), ' = (peso precio × precio + peso km × km + peso días × días + peso año × año) ÷ suma de los pesos'),
         comoSeCalcula(),
-        el('div', { class: 'tabla-desplazable' }, tabla),
-        ayuda);
+        el('p', { class: 'campo__ayuda' }, 'Pasá el mouse por el nombre de una columna (o tocá un casillero) para ver qué mide.'),
+        el('div', { class: 'tabla-desplazable' }, tabla));
 }
+
+// Cartelito que aparece al lado de lo que tiene data-criterio (columnas de la grilla y renglones de las tarjetas):
+// qué mide ese criterio y qué pasa si le subís el peso. Uno solo para toda la página, con position: fixed para que
+// la tabla desplazable no lo corte.
+const cartel = el('div', { class: 'cartel-criterio', id: 'cartel-criterio', role: 'tooltip', hidden: true });
+document.body.append(cartel);
+
+function mostrarCartel(evento) {
+    const objetivo = evento.target.closest('[data-criterio]');
+    if (!objetivo) return;
+    const criterio = objetivo.dataset.criterio;
+    cartel.replaceChildren(
+        el('p', { class: 'cartel-criterio__titulo' }, punto(criterio), CRITERIOS[criterio]),
+        el('p', {}, el('strong', {}, 'Qué mide: '), AYUDA_CRITERIOS[criterio].mide),
+        el('p', {}, el('strong', {}, 'Con más peso: '), AYUDA_CRITERIOS[criterio].mas));
+    cartel.hidden = false;
+    // Abajo de lo que señalaste; si no entra en la pantalla, arriba
+    const caja = objetivo.getBoundingClientRect();
+    const arriba = caja.bottom + 8 + cartel.offsetHeight > window.innerHeight;
+    cartel.style.top = `${arriba ? caja.top - cartel.offsetHeight - 8 : caja.bottom + 8}px`;
+    cartel.style.left = `${Math.max(8, Math.min(caja.left, window.innerWidth - cartel.offsetWidth - 8))}px`;
+    const tabla = objetivo.closest('.formula__tabla');
+    if (tabla) tabla.dataset.activo = criterio; // resalta la columna (CSS)
+}
+
+function ocultarCartel(evento) {
+    const objetivo = evento.target.closest('[data-criterio]');
+    if (!objetivo || objetivo.contains(evento.relatedTarget)) return;
+    cartel.hidden = true;
+    delete objetivo.closest('.formula__tabla')?.dataset.activo;
+}
+
+document.addEventListener('mouseover', mostrarCartel);
+document.addEventListener('focusin', mostrarCartel);
+document.addEventListener('mouseout', ocultarCartel);
+document.addEventListener('focusout', ocultarCartel);
+window.addEventListener('scroll', () => { cartel.hidden = true; }, { passive: true });
 
 // Cómo sale el puntaje de cada auto (MetaBusqueda\ParaVos del back). Los topes son fijos; los pesos, los de la grilla.
 function comoSeCalcula() {
@@ -151,7 +175,7 @@ function rankingAutos(pesos) {
             el('div', { class: 'perfil-pesos__cabeza' }, titulo,
                 el('span', { class: 'perfil-pesos__prioriza' }, `Prioriza ${CRITERIOS[conPeso[0].criterio].toLowerCase()}`)),
             el('div', { class: 'perfil-pesos__barra', 'aria-hidden': 'true' }, ...tramos),
-            el('ul', { class: 'perfil-pesos__lista' }, ...conPeso.map((p) => el('li', { class: 'perfil-pesos__item' },
+            el('ul', { class: 'perfil-pesos__lista' }, ...conPeso.map((p) => el('li', { class: 'perfil-pesos__item', 'data-criterio': p.criterio, tabindex: 0 },
                 punto(p.criterio), el('span', {}, CRITERIOS[p.criterio]),
                 el('strong', {}, `${Math.round((p.peso / suma) * 100)} %`),
                 el('span', { class: 'perfil-pesos__peso' }, `peso ${numero(p.peso)}`)))),
