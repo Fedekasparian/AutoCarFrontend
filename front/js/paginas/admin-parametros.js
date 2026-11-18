@@ -39,6 +39,13 @@ function campoDe(p) {
 // La fórmula de "Recomendados" (parámetros peso_<perfil>_<criterio>): una grilla perfil × criterio en vez de 16 campos
 const PERFILES = { personal: 'Uso personal', familia: 'Familia', trabajo: 'Trabajo', aplicacion: 'Aplicación (Uber, Cabify)' };
 const CRITERIOS = { precio: 'Precio', km: 'Kilómetros', dias: 'Días publicado', anio: 'Año' };
+// Lo que se ve al pasar el mouse por cada columna de la grilla: qué mide y qué pasa si le subís el peso
+const AYUDA_CRITERIOS = {
+    precio: 'Compara el precio del auto con el de autos parecidos. Más peso: suben los autos más baratos que el resto.',
+    km: 'Compara los kilómetros del auto con los típicos de autos parecidos. Más peso: suben los autos con menos km.',
+    dias: 'Cuántos días lleva publicado desde que lo vimos por primera vez. Más peso: suben los avisos viejos (más margen para negociar).',
+    anio: 'Compara el año del auto con el año típico de la búsqueda. Más peso: suben los autos más nuevos.',
+};
 const esPeso = (p) => p.clave.startsWith('peso_');
 
 function formula(pesos) {
@@ -50,16 +57,17 @@ function formula(pesos) {
         return el('td', {}, el('input', {
             class: 'campo__input formula__peso', id: p.clave, name: p.clave, type: 'number', required: true,
             min: p.minimo, max: p.maximo, step: 'any', inputmode: 'decimal', value: Number(p.valor.toFixed(2)),
-            'aria-label': `${PERFILES[perfil]}: peso de ${CRITERIOS[criterio].toLowerCase()}`, 'aria-describedby': `${p.clave}-error`,
+            title: AYUDA_CRITERIOS[criterio], 'aria-label': `${PERFILES[perfil]}: peso de ${CRITERIOS[criterio].toLowerCase()}`, 'aria-describedby': `${p.clave}-error`,
         }), el('span', { class: 'campo__error', id: `${p.clave}-error` }));
     };
     const { minimo, maximo } = pesos[0];
     return el('section', { class: 'pila formula', 'aria-labelledby': 'formula-titulo' },
         el('h2', { id: 'formula-titulo' }, 'Fórmula de "Recomendados"'),
         el('p', { class: 'campo__ayuda' }, `Cuánto pesa cada cosa al ordenar el metabuscador según para qué busca el auto cada comprador: de ${minimo} (no cuenta) a ${maximo} (lo que más importa). Mirá en Estadísticas → Recomendaciones si "Recomendados" convierte y ajustalo acá.`),
+        el('p', { class: 'formula__cuenta' }, 'Puntaje = (peso precio × precio + peso km × km + peso días × días + peso año × año) ÷ suma de los pesos'),
         comoSeCalcula(),
         el('div', { class: 'tabla-desplazable' }, el('table', { class: 'tabla formula__tabla' },
-            el('thead', {}, el('tr', {}, el('th', {}, 'Perfil'), ...Object.values(CRITERIOS).map((c) => el('th', {}, c)))),
+            el('thead', {}, el('tr', {}, el('th', {}, 'Perfil'), ...Object.entries(CRITERIOS).map(([criterio, c]) => el('th', { class: 'formula__criterio', title: AYUDA_CRITERIOS[criterio] }, c)))),
             el('tbody', {}, ...Object.entries(PERFILES).map(([perfil, nombre]) => el('tr', {},
                 el('th', { scope: 'row' }, nombre), ...Object.keys(CRITERIOS).map((criterio) => celda(perfil, criterio))))))));
 }
@@ -74,7 +82,6 @@ function comoSeCalcula() {
             el('li', {}, el('strong', {}, 'Kilómetros: '), '(km típicos de los parecidos − km del auto) ÷ km típicos ÷ 0,5. La mitad de km (o menos) suma 1.'),
             el('li', {}, el('strong', {}, 'Días publicado: '), 'días desde que apareció ÷ 60. Con 60 días o más suma 1 (hay margen para negociar).'),
             el('li', {}, el('strong', {}, 'Año: '), '(año del auto − año típico de la búsqueda) ÷ 5. 5 años más nuevo suma 1; 5 más viejo resta 1.')),
-        el('p', { class: 'formula__cuenta' }, 'Puntaje = (peso precio × precio + peso km × km + peso días × días + peso año × año) ÷ suma de los pesos'),
         el('p', {}, 'Da entre −1 y 1. "Recomendado" ordena de mayor a menor y el motivo que ve el comprador son las dos cosas que más suman. Ejemplo para "Familia" (2, 3, 1, 1): un auto 10 % más barato (0,5), con 25 % menos km (0,5), 30 días publicado (0,5) y del año típico (0) da (2×0,5 + 3×0,5 + 1×0,5 + 1×0) ÷ 7 = 0,43.'),
         el('p', {}, 'Si un perfil tiene todos los pesos en 0, sus autos no llevan puntaje y se ordenan por la diferencia con el precio típico.'));
 }
@@ -112,10 +119,12 @@ function rankingAutos(pesos) {
         if (!suma) return el('li', {}, el('strong', {}, `${nombre}: `), 'todos los pesos en 0, se ordena por la diferencia con el precio típico.');
         const ordenadas = partes.filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
         const sinPeso = partes.filter(([, v]) => !v).map(([t]) => t.toLowerCase());
+        const cuenta = `Puntaje = (${partes.filter(([, v]) => v > 0).map(([t, v]) => `${Number(v.toFixed(2))} × ${t.toLowerCase()}`).join(' + ')}) ÷ ${Number(suma.toFixed(2))}`;
         return el('li', {}, el('strong', {}, `${nombre}: `),
             ordenadas.map(([t, v]) => `${t.toLowerCase()} ${Math.round((v / suma) * 100)} % (peso ${Number(v.toFixed(2))})`).join(' · '),
             sinPeso.length ? `. No cuenta: ${sinPeso.join(', ')}.` : '.',
-            el('span', { class: 'campo__ayuda' }, ` Prioriza ${ordenadas[0][0].toLowerCase()}.`));
+            el('span', { class: 'campo__ayuda' }, ` Prioriza ${ordenadas[0][0].toLowerCase()}.`),
+            el('p', { class: 'formula__cuenta' }, cuenta));
     });
     caja.replaceChildren(
         el('h2', { id: 'ranking-autos-titulo' }, 'Cómo se arma el ranking de autos recomendados'),
