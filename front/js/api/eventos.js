@@ -27,6 +27,15 @@ function mandar() {
     }
 }
 
+// Lo manda en el momento, sin juntar ni descartar repetidos, y espera como mucho `demora` ms: sirve cuando la página
+// se va a recargar enseguida (por ejemplo, al cambiar el orden del metabuscador). Nunca falla.
+// tipo 'orden': eligió un orden en los resultados del metabuscador (ref = recomendado | precio | km | nuevos)
+export function registrarYa(tipo, origen, ref = null, demora = 700) {
+    if (sesion.usuario()?.rol !== 'usuario') return Promise.resolve();
+    const envio = post('/api/eventos', { eventos: [{ tipo, origen, ref }] }).catch(() => {});
+    return Promise.race([envio, new Promise((listo) => { setTimeout(listo, demora); })]);
+}
+
 // tipo: 'mostrado' (la recomendación estuvo en pantalla) o 'tocado' (tocó "Mandale un mecánico" ahí)
 export function registrar(tipo, origen, ref = null) {
     if (sesion.usuario()?.rol !== 'usuario') return;
