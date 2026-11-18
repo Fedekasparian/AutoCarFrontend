@@ -218,6 +218,44 @@ function tablaEmbudo(origenes) {
     ];
 }
 
+// El informe de plata del período, como un estado de resultados chico: ganancia (la comisión completa de AutoCar,
+// con la parte del fondo), pérdida (lo que costaron los reclamos que procedieron, neto de franquicias) y la neta.
+// Si el back todavía no manda estos números, el informe queda oculto.
+function informePlata(actual, anterior, textoPeriodo) {
+    const caja = document.getElementById('informe-plata');
+    caja.hidden = actual.neta === undefined;
+    if (caja.hidden) return;
+    const { ingresos, perdida, neta } = actual;
+    const cuando = `los últimos ${textoPeriodo}`;
+    document.getElementById('t-informe').textContent = `Informe de ${cuando}`;
+
+    const reclamos = actual.reclamos_procedieron === 1
+        ? 'el reclamo que procedió costó'
+        : `los ${n(actual.reclamos_procedieron)} reclamos que procedieron costaron`;
+    const cuantoCostaron = perdida ? `y ${reclamos} ${pesos(perdida)}` : 'y no hubo reclamos que procedieran';
+    const resultado = neta >= 0
+        ? `Ganancia neta: ${pesos(neta)}.`
+        : `AutoCar perdió ${pesos(-neta)}: los reclamos costaron más que las comisiones.`;
+    document.getElementById('informe-frase').textContent =
+        `En ${cuando} AutoCar ganó ${pesos(ingresos)} en comisiones ${cuantoCostaron}. ${resultado}`;
+
+    const fila = (nombre, detalle, monto, clase, extra = null) => el('div', { class: `informe-plata__fila ${clase}` },
+        el('dt', {}, nombre, detalle ? el('span', { class: 'informe-plata__detalle' }, detalle) : null),
+        el('dd', {}, el('span', {}, monto), extra));
+    llenar('informe-cuenta',
+        fila('Ganancia', 'Comisión de AutoCar de las inspecciones firmadas, con la parte del fondo y menos los créditos usados',
+            `+ ${pesos(ingresos)}`, 'informe-plata__fila--ganancia'),
+        fila('Pérdida', 'Reclamos que procedieron: devolución + compensación − franquicia del mecánico',
+            `− ${pesos(perdida)}`, 'informe-plata__fila--perdida'),
+        fila('Ganancia neta', ingresos ? `Margen: ${porcentaje(neta, ingresos)} % de la ganancia` : null,
+            `${neta < 0 ? '− ' : ''}${pesos(Math.abs(neta))}`,
+            `informe-plata__fila--neta${neta < 0 ? ' informe-plata__fila--negativa' : ''}`,
+            variacion(neta, anterior.neta)));
+    document.getElementById('informe-notas').textContent =
+        `Por cobrar: ${pesos(actual.por_cobrar)} de inspecciones firmadas que todavía están en el plazo de reclamo (se cuentan cuando pasa). `
+        + 'La comisión de Mercado Pago no está descontada: el pago es simulado.';
+}
+
 // ---------- Pestañas y período (los botones se arman acá, no en el HTML) ----------
 
 function boton(texto, activo, alTocar) {
@@ -271,23 +309,33 @@ function mostrar(m) {
     llenar('kpis',
         tarjeta(actual.pagaron, `Pagaron la inspección ("compró") en ${textoPeriodo}`, n, { anterior: anterior.pagaron }),
         tarjeta(emb.vieron ? `${conversion} %` : '—', 'De los que vieron una recomendación, pagaron la inspección'),
-        tarjeta(actual.ganancia, `Ganancia de AutoCar en ${textoPeriodo}`, pesos, { anterior: anterior.ganancia }),
+        actual.neta === undefined
+            ? tarjeta(actual.ganancia, `Ganancia de AutoCar en ${textoPeriodo}`, pesos, { anterior: anterior.ganancia })
+            : tarjeta(actual.neta, `Ganancia neta en ${textoPeriodo}`, pesos, { anterior: anterior.neta }),
         tarjeta(actual.nuevos_usuarios, `Usuarios nuevos en ${textoPeriodo}`, n, { anterior: anterior.nuevos_usuarios }),
         tarjeta(actual.reclamos, `Pagado por reclamos en ${textoPeriodo}`, pesos, { anterior: anterior.reclamos, menosEsMejor: true }));
     llenar('grafico-pagaron', tendencia(m.serie, { clave: 'pagaron', nombre: 'Inspecciones pagadas', clase: 'tendencia--1' }));
     llenar('grafico-nuevos', tendencia(m.serie, { clave: 'nuevos_usuarios', nombre: 'Usuarios nuevos', clase: 'tendencia--2' }));
 
-    // Plata
+    // Plata: arriba el informe (ganancia − pérdida = neta) y después el detalle
+    informePlata(actual, anterior, textoPeriodo);
+    const conInforme = actual.neta !== undefined;
     llenar('kpis-plata',
-        tarjeta(actual.ganancia, 'Ganancia de AutoCar', pesos, { anterior: anterior.ganancia }),
+        conInforme
+            ? tarjeta(actual.por_cobrar, 'Por cobrar (en el plazo de reclamo)', pesos)
+            : tarjeta(actual.ganancia, 'Ganancia de AutoCar', pesos, { anterior: anterior.ganancia }),
         tarjeta(actual.facturado, `Facturado (${n(actual.firmadas)} firmadas)`, pesos, { anterior: anterior.facturado }),
-        tarjeta(actual.reclamos, 'Pagado por reclamos (fondo, neto de franquicias)', pesos, { anterior: anterior.reclamos, menosEsMejor: true }),
+        conInforme
+            ? tarjeta(actual.reclamos_procedieron, 'Reclamos que procedieron', n, { anterior: anterior.reclamos_procedieron, menosEsMejor: true })
+            : tarjeta(actual.reclamos, 'Pagado por reclamos (fondo, neto de franquicias)', pesos, { anterior: anterior.reclamos, menosEsMejor: true }),
         tarjeta(actual.compradores, 'Compradores que pagaron', n, { anterior: anterior.compradores }));
-    llenar('grafico-ganancia', tendencia(m.serie, { clave: 'ganancia', nombre: 'Ganancia de AutoCar', formatear: pesos, clase: 'tendencia--2' }));
-    llenar('grafico-reclamos', tendencia(m.serie, { clave: 'reclamos', nombre: 'Pagado por reclamos', formatear: pesos, clase: 'tendencia--perdida' }));
+    llenar('grafico-ganancia', tendencia(m.serie, conInforme
+        ? { clave: 'ingresos', nombre: 'Ganancia (comisiones)', formatear: pesos, clase: 'tendencia--2' }
+        : { clave: 'ganancia', nombre: 'Ganancia de AutoCar', formatear: pesos, clase: 'tendencia--2' }));
+    llenar('grafico-reclamos', tendencia(m.serie, { clave: 'reclamos', nombre: 'Pérdida por reclamos', formatear: pesos, clase: 'tendencia--perdida' }));
     const g = m.ganancias;
     llenar('tarjetas-ganancias',
-        tarjeta(g.autocar, 'Ganancia de AutoCar', pesos),
+        tarjeta(g.autocar, 'Para AutoCar (sin la parte del fondo)', pesos),
         tarjeta(g.facturado, `Facturado (${n(g.inspecciones?.firmada || 0)} firmadas)`, pesos),
         tarjeta(g.mecanicos, 'Pagado a mecánicos', pesos),
         tarjeta(g.fondo.disponible, `Fondo de garantía (usado ${pesos(g.fondo.usado)})`, pesos),
