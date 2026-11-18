@@ -135,7 +135,11 @@ async function salir() {
     sesion.cerrar();
     window.location.assign(ruta('index.html'));
 }
-document.querySelector('.cuenta-resumen').append(boton('Salir', salir, 'boton boton--secundario boton--bloque', 'salir'));
+// Modo claro / oscuro (la lógica está en tema.js). En escritorio también está en la barra; en celular, solo acá.
+const textoModo = () => (window.modoAutoCar?.actual() === 'oscuro' ? 'Pasar a modo claro' : 'Pasar a modo oscuro');
+const botonModo = boton(textoModo(), () => window.modoAutoCar?.cambiar(), 'boton boton--secundario boton--bloque', 'cambiar-modo');
+document.addEventListener('autocar:modo', () => { botonModo.textContent = textoModo(); });
+document.querySelector('.cuenta-resumen').append(botonModo, boton('Salir', salir, 'boton boton--secundario boton--bloque', 'salir'));
 
 if (sesion.requerirLogin()) {
     if (sesion.compraYVende()) contar();

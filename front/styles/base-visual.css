@@ -4,7 +4,7 @@
    2. Variables de movimiento y de sombras, para que todo se mueva y se eleve igual.
    3. Transiciones entre páginas (View Transitions API; si el navegador no la tiene, carga como siempre).
    4. Micro-interacciones comunes: botones, campos, fichas, enlaces.
-   5. Modo oscuro según el sistema operativo (prefers-color-scheme), sobre las mismas variables. */
+   5. Modo oscuro con <html data-modo="oscuro"> (lo pone js/tema.js: el del sistema o el que eligió), sobre las mismas variables. */
 
 /* ---------- 1 y 2. Variables ---------- */
 :root{
@@ -127,45 +127,44 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 ::selection{ background: rgb(105 230 216 / .45); color: inherit; }
 
 /* ---------- 5. Modo oscuro ---------- */
-@media (prefers-color-scheme: dark){
-    :root, :root[data-tema]{
-        color-scheme: dark;
-        --marca-tinta: #e6eef1;
-        --marca-papel: #0b111d;
-        --marca-blanco: #131c2c;
-        --marca-tenue: #1b2638;
-        --marca-linea: #2a374b;
-        --marca-gris: #a3b4c2;
-        --marca-acento: #69e6d8;
-        --marca-hover: #8aeee3;
-        --marca-error: #ff8f94;
-        --marca-exito: #74d6a4;
-        --marca-aviso: #f0c36a;
-        --color-placeholder: #8292a3;
-        --color-borde: #5d6e82;
-        --color-principal-oscuro: #ffffff;
-        --color-error: var(--marca-error);
+/* js/tema.js pone data-modo="oscuro" en <html> si el sistema está en oscuro o si el usuario lo eligió con el botón */
+:root[data-modo="oscuro"]{
+    color-scheme: dark;
+    --marca-tinta: #e6eef1;
+    --marca-papel: #0b111d;
+    --marca-blanco: #131c2c;
+    --marca-tenue: #1b2638;
+    --marca-linea: #2a374b;
+    --marca-gris: #a3b4c2;
+    --marca-acento: #69e6d8;
+    --marca-hover: #8aeee3;
+    --marca-error: #ff8f94;
+    --marca-exito: #74d6a4;
+    --marca-aviso: #f0c36a;
+    --color-placeholder: #8292a3;
+    --color-borde: #5d6e82;
+    --color-principal-oscuro: #ffffff;
+    --color-error: var(--marca-error);
 
-        --panel-oscuro: #16223a;
-        --sombra-1: 0 1px 2px rgb(0 0 0 / .4);
-        --sombra-2: 0 12px 28px -10px rgb(0 0 0 / .6), 0 2px 6px rgb(0 0 0 / .3);
-        --sombra-3: 0 28px 64px -16px rgb(0 0 0 / .75);
-    }
-    /* Paneles de marca: siguen oscuros con letra blanca */
-    .hero, .acceso-relato, .portada-auto__escena{ background: var(--panel-oscuro); color: var(--sobre-panel); }
-    .acceso-relato .acceso-relato__titulo{ color: var(--sobre-panel); }
-    .hero__busqueda input{ color: #131b2d; }
-    /* Lo que va sobre el aqua lleva letra oscura */
-    .conversacion-panel .chat__mensaje--mio{ color: var(--sobre-acento); }
-    .perfil-foto__editar, .perfil-foto button{ color: var(--marca-blanco); }
-    /* Grises fijos que quedaban de los wireframes */
-    .pestanas__pestana, .landing-barra__enlaces a, .portada p, .pasos__texto, .campo__etiqueta{ color: var(--marca-gris); }
-    .plan-resumen{ background: var(--marca-blanco); }
-    .portada, .subir-fotos{ border-color: var(--marca-linea); }
-    .barra__icono{ color: var(--marca-tinta); }
-    img{ filter: brightness(.94); }
-    .marca__simbolo, .barra__marca{ filter: none; }
+    --panel-oscuro: #16223a;
+    --sombra-1: 0 1px 2px rgb(0 0 0 / .4);
+    --sombra-2: 0 12px 28px -10px rgb(0 0 0 / .6), 0 2px 6px rgb(0 0 0 / .3);
+    --sombra-3: 0 28px 64px -16px rgb(0 0 0 / .75);
 }
+/* Paneles de marca: siguen oscuros con letra blanca */
+:where(:root[data-modo="oscuro"]) .hero, :where(:root[data-modo="oscuro"]) .acceso-relato, :where(:root[data-modo="oscuro"]) .portada-auto__escena{ background: var(--panel-oscuro); color: var(--sobre-panel); }
+:where(:root[data-modo="oscuro"]) .acceso-relato .acceso-relato__titulo{ color: var(--sobre-panel); }
+:where(:root[data-modo="oscuro"]) .hero__busqueda input{ color: #131b2d; }
+/* Lo que va sobre el aqua lleva letra oscura */
+:where(:root[data-modo="oscuro"]) .conversacion-panel .chat__mensaje--mio{ color: var(--sobre-acento); }
+:where(:root[data-modo="oscuro"]) .perfil-foto__editar, :where(:root[data-modo="oscuro"]) .perfil-foto button{ color: var(--marca-blanco); }
+/* Grises fijos que quedaban de los wireframes */
+:where(:root[data-modo="oscuro"]) .pestanas__pestana, :where(:root[data-modo="oscuro"]) .landing-barra__enlaces a, :where(:root[data-modo="oscuro"]) .portada p, :where(:root[data-modo="oscuro"]) .pasos__texto, :where(:root[data-modo="oscuro"]) .campo__etiqueta{ color: var(--marca-gris); }
+:where(:root[data-modo="oscuro"]) .plan-resumen{ background: var(--marca-blanco); }
+:where(:root[data-modo="oscuro"]) .portada, :where(:root[data-modo="oscuro"]) .subir-fotos{ border-color: var(--marca-linea); }
+:where(:root[data-modo="oscuro"]) .barra__icono{ color: var(--marca-tinta); }
+:where(:root[data-modo="oscuro"]) img{ filter: brightness(.94); }
+:where(:root[data-modo="oscuro"]) .marca__simbolo, :where(:root[data-modo="oscuro"]) .barra__marca{ filter: none; }
 
 /* ---------- Movimiento reducido ---------- */
 @media (prefers-reduced-motion: reduce){
@@ -234,9 +233,7 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
     .con-barra .barra__enlace:active .barra__icono{ transform: scale(.88); }
     @keyframes pildora-entra{ from{ transform: scaleX(.4); opacity: .3; } }
 }
-@media (prefers-color-scheme: dark){
-    .con-barra .barra__enlace[aria-current=page]{ color: var(--marca-tinta); }
-}
+:where(:root[data-modo="oscuro"]) .con-barra .barra__enlace[aria-current=page]{ color: var(--marca-tinta); }
 @media (prefers-reduced-motion: reduce){
     .barra__pildora{ transition: none; }
 }
@@ -356,10 +353,8 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
     .vista-buscar .grilla-vehiculos{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
-@media (prefers-color-scheme: dark){
-    .ficha-favorito{ background: rgb(19 27 45 / .78); color: #fff; }
-    .ficha-favorito:hover{ background: rgb(19 27 45 / .92); }
-}
+:where(:root[data-modo="oscuro"]) .ficha-favorito{ background: rgb(19 27 45 / .78); color: #fff; }
+:where(:root[data-modo="oscuro"]) .ficha-favorito:hover{ background: rgb(19 27 45 / .92); }
 @media (prefers-reduced-motion: reduce){
     .grilla-vehiculos--entra > li, .ficha--saliendo, .chip-filtro, .ficha-favorito--late svg{ animation: none; }
     .ficha-esqueleto__imagen, .ficha-esqueleto__linea{ animation: none; }
@@ -502,12 +497,10 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
     .barra-accion__texto span{ overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: var(--marca-gris); }
 }
 
-@media (prefers-color-scheme: dark){
-    .galeria__boton{ background: rgb(19 27 45 / .78); color: #fff; }
-    .galeria__boton:hover{ background: rgb(19 27 45 / .95); }
-    .etiqueta--buen_precio, .rango__ahorro{ background: #12392a; color: #8ee6b4; }
-    .etiqueta--caro{ background: #47200f; color: #ffb795; }
-}
+:where(:root[data-modo="oscuro"]) .galeria__boton{ background: rgb(19 27 45 / .78); color: #fff; }
+:where(:root[data-modo="oscuro"]) .galeria__boton:hover{ background: rgb(19 27 45 / .95); }
+:where(:root[data-modo="oscuro"]) .etiqueta--buen_precio, :where(:root[data-modo="oscuro"]) .rango__ahorro{ background: #12392a; color: #8ee6b4; }
+:where(:root[data-modo="oscuro"]) .etiqueta--caro{ background: #47200f; color: #ffb795; }
 @media (prefers-reduced-motion: reduce){
     .rango__franja, .rango__este, .visor[open]{ animation: none; }
     .vista-vehiculo .galeria__principal:hover .galeria__imagen{ transform: none; }
@@ -635,10 +628,8 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 }
 @keyframes subiendo{ from{ left: -40%; } to{ left: 100%; } }
 
-@media (prefers-color-scheme: dark){
-    .campo--ok > .campo__input{ border-color: #4cc38a; }
-    .pasos__marca{ background: var(--marca-papel); }
-}
+:where(:root[data-modo="oscuro"]) .campo--ok > .campo__input{ border-color: #4cc38a; }
+:where(:root[data-modo="oscuro"]) .pasos__marca{ background: var(--marca-papel); }
 @media (prefers-reduced-motion: reduce){
     .paso--adelante, .paso--atras, .vista-publicar .fotos-previa li{ animation: none; }
     .subiendo__barra::after{ animation-duration: 3s; }
@@ -733,13 +724,11 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 /* Confirmación de venta */
 #confirmar-vendida h2::before{ content: "🎉 "; }
 
-@media (prefers-color-scheme: dark){
-    .vista-mis-publicaciones{
-        --estado-sin-terminar: #f6ad55; --estado-revision: #63b3ed; --estado-rechazada: #fc8181;
-        --estado-publicada: #68d391; --estado-vendida: #a0aec0;
-    }
-    .etiqueta-estado{ background: color-mix(in srgb, var(--estado) 16%, transparent); }
+:where(:root[data-modo="oscuro"]) .vista-mis-publicaciones{
+    --estado-sin-terminar: #f6ad55; --estado-revision: #63b3ed; --estado-rechazada: #fc8181;
+    --estado-publicada: #68d391; --estado-vendida: #a0aec0;
 }
+:where(:root[data-modo="oscuro"]) .etiqueta-estado{ background: color-mix(in srgb, var(--estado) 16%, transparent); }
 @media (prefers-reduced-motion: reduce){
     .lista-filas--entra > li, .avance__barra, .vacio--ilustrado::before, .etiqueta-estado--revision::before{ animation: none; }
     .vista-mis-publicaciones .publicacion:hover{ transform: none; }
@@ -882,11 +871,9 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 }
 .resumen-busqueda[hidden]{ display: none; }
 
-@media (prefers-color-scheme: dark){
-    .sitio{ color: #fff; background: color-mix(in srgb, var(--color-sitio, var(--sitio-otro)) 26%, transparent); }
-    .novedades__cifra--nuevos strong{ color: #68d391; }
-    .novedades__cifra--bajaron strong{ color: #63b3ed; }
-}
+:where(:root[data-modo="oscuro"]) .sitio{ color: #fff; background: color-mix(in srgb, var(--color-sitio, var(--sitio-otro)) 26%, transparent); }
+:where(:root[data-modo="oscuro"]) .novedades__cifra--nuevos strong{ color: #68d391; }
+:where(:root[data-modo="oscuro"]) .novedades__cifra--bajaron strong{ color: #63b3ed; }
 @media (prefers-reduced-motion: reduce){
     .sitios__franja, .destacado, .resumen-busqueda, .busqueda-guardada__novedades::before{ animation: none; }
 }
@@ -1012,7 +999,7 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
    10. Inspecciones y talleres
    ===================================================================== */
 :root{ --ok: #1f6b45; --observado: #86560c; --falla: #a32626; }
-@media (prefers-color-scheme: dark){ :root, :root[data-tema]{ --ok: #68d391; --observado: #f6ad55; --falla: #fc8181; } }
+:root[data-modo="oscuro"]{ --ok: #68d391; --observado: #f6ad55; --falla: #fc8181; }
 
 /* Etiquetas de resultado y de estado del pedido */
 .resultado--ok{ --tono: var(--ok); }
@@ -1026,7 +1013,7 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .etiqueta-insp--firmada{ --tono: var(--ok); }
 .etiqueta-insp--rechazada, .etiqueta-insp--no_realizada{ --tono: var(--falla); }
 .etiqueta-insp--cancelada, .etiqueta-insp--caida{ --tono: var(--marca-gris); }
-@media (prefers-color-scheme: dark){ .etiqueta-insp--pedida{ --tono: #63b3ed; } .etiqueta-insp--aceptada{ --tono: #b794f4; } }
+:where(:root[data-modo="oscuro"]) .etiqueta-insp--pedida{ --tono: #63b3ed; } :where(:root[data-modo="oscuro"]) .etiqueta-insp--aceptada{ --tono: #b794f4; }
 
 /* El informe como un documento: hoja blanca, conclusión grande, ítems con color y el sello de la firma */
 .informe-documento{
@@ -1160,11 +1147,11 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .resumen-admin span{ font-size: 13px; color: var(--marca-gris); }
 .resumen-admin__alerta::before{ background: #d97706 !important; }
 .resumen-admin__alerta strong{ color: #b45309; }
-@media (prefers-color-scheme: dark){ .resumen-admin__alerta strong{ color: #f6ad55; } }
+:where(:root[data-modo="oscuro"]) .resumen-admin__alerta strong{ color: #f6ad55; }
 
 /* Gráficos de barras horizontales (una sola serie: un solo color, el número escrito al lado) */
 :root{ --serie-1: #1f9e8f; --serie-2: #3b5bdb; --serie-3: #d97706; }
-@media (prefers-color-scheme: dark){ :root, :root[data-tema]{ --serie-1: #25a092; --serie-2: #6d8cf5; --serie-3: #cc7f22; } }
+:root[data-modo="oscuro"]{ --serie-1: #25a092; --serie-2: #6d8cf5; --serie-3: #cc7f22; }
 .grafico{ margin: 0; padding: 18px 20px; border: 1px solid var(--marca-linea); border-radius: 16px; background: var(--marca-blanco); }
 .grafico[hidden]{ display: none; }
 .grafico__titulo{ margin-bottom: 14px; font-weight: 700; color: var(--marca-tinta); }
@@ -1314,3 +1301,20 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 /* La foto en el informe firmado, debajo del ítem */
 .item-informe__foto{ display: block; margin: 6px 0 0 46px; width: max-content; }
 .item-informe__foto img{ display: block; width: 120px; height: 90px; object-fit: cover; border-radius: 8px; border: 1px solid var(--marca-linea); }
+
+/* ---------- Botón de modo claro / oscuro (lo agrega js/navegacion.js) ---------- */
+.boton-modo{
+    display: inline-grid; place-items: center; flex: none;
+    width: 40px; height: 40px; padding: 0;
+    border: 1px solid var(--marca-linea); border-radius: 999px;
+    background: var(--marca-blanco); color: var(--marca-tinta);
+    cursor: pointer;
+    transition: background-color var(--dur-rapida) var(--curva-suave), transform var(--dur-rapida) var(--curva-suave);
+}
+.boton-modo:hover{ background: var(--marca-tenue); }
+.boton-modo:active{ transform: scale(.92); }
+/* En celular la barra es de pestañas abajo: ahí el botón está en Cuenta */
+@media (max-width: 1023px){
+    .barra .boton-modo{ display: none; }
+}
+.barra .boton-modo{ position: relative; z-index: 1; }
