@@ -26,7 +26,7 @@
         admin: [['Moderar', 'admin/admin-moderar.html'], ['Usuarios', 'admin/admin-usuarios.html'],
             ['Estadísticas', 'admin/admin-metricas.html'],
             ['Panel', 'admin/admin.html', ['admin/admin-talleres.html', 'admin/admin-soporte.html', 'admin/admin-reclamos.html',
-                'admin/admin-parametros.html', 'admin/admin-vehiculos.html', 'talleres/verificacion.html']]],
+                'admin/admin-parametros.html', 'admin/admin-fallas.html', 'admin/admin-vehiculos.html', 'talleres/verificacion.html']]],
         mecanico: [EXPLORAR, ['Mi taller', 'talleres/taller.html', ['talleres/taller-verificacion.html']]],
     }[rol];
     const aqui = window.location.pathname;
