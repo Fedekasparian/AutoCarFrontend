@@ -44,6 +44,9 @@ function acciones(a) {
     if (a.km !== null) pedido.set('km', a.km);
     if (a.precio !== null && a.moneda === 'ARS') pedido.set('precio', a.precio);
     if (a.ubicacion) pedido.set('localidad', a.ubicacion);
+    // Para mostrar qué mecánicos ya revisaron uno igual (no se manda en el pedido: ahí vale lo que elija en la lista)
+    pedido.set('marca', a.marca);
+    pedido.set('modelo', a.modelo);
     return [
         el('a', { class: 'boton-link', href: a.url, target: '_blank', rel: 'noopener noreferrer' }, `Ver en ${insp.fuente(a.fuente)}`),
         el('a', { class: 'boton boton--chico', href: ruta(`pedir-inspeccion.html?${pedido}`) }, 'Mandale un mecánico'),
