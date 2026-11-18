@@ -1,7 +1,7 @@
 // F9: el recorrido de la demo de inspecciones, de punta a punta y con tres navegadores a la vez
 // (comprador, mecánico y admin), como se muestra el 30/11:
 //   ranking → pedir → aceptar → checklist y firma → informe → reclamo → resolución.
-// Además: marca y modelo (obligatorios para firmar), una falla típica que propone el mecánico (idea B) y el costo total
+// Además: foto obligatoria de cada falla, marca y modelo (obligatorios para firmar), una falla típica que propone el mecánico (idea B) y el costo total
 // con el presupuesto de otro taller de la red (idea A).
 // Escribe datos: corre contra dev o local, nunca contra producción.
 //
@@ -109,18 +109,25 @@ test('recorrido de la demo: pedir, aceptar, firmar, reclamar y resolver', async 
         await mecanico.goto(pagina(`pages/talleres/taller-verificacion.html?id=${id}`));
         await expect(mecanico.locator('#informe')).toBeVisible();
         for (const codigo of CODIGOS) {
-            const valor = codigo === 'carroceria' ? 'observado' : 'ok';
+            let valor = 'ok';
+            if (codigo === 'carroceria') valor = 'observado';
+            if (codigo === 'frenos') valor = 'falla';
             await mecanico.click(`label[for="resultado-${codigo}-${valor}"]`);
         }
         await mecanico.fill('#nota-carroceria', 'Rayón en la puerta trasera izquierda');
+        await mecanico.fill('#nota-frenos', 'Disco delantero rayado');
         await mecanico.click('label[for="conclusion-con_reparos"]');
         await mecanico.fill('#resumen', 'Auto en buen estado general. Revisar el rayón antes de cerrar el precio.');
         await expect(mecanico.locator('#progreso-texto')).toHaveText('10 de 10');
 
-        // Sin la patente y la foto de la chapa no deja firmar
+        // Sin la patente, la foto de la chapa y la foto de la falla no deja firmar
         await mecanico.click('#informe button[type="submit"]');
         await expect(mecanico.locator('#patente-error')).not.toBeEmpty();
         await expect(mecanico.locator('#patente_foto-error')).not.toBeEmpty();
+        await expect(mecanico.locator('#foto-frenos-error')).not.toBeEmpty();
+        await expect(mecanico.locator('#foto-carroceria-error')).toBeEmpty(); // en "observado" la foto es opcional
+        await mecanico.setInputFiles('#foto-frenos', { name: 'frenos.png', mimeType: 'image/png', buffer: CHAPA });
+        await expect(mecanico.locator('#foto-frenos-estado')).toContainText('cargada');
         await mecanico.fill('#patente', patente.toLowerCase());
         // Al cargar la patente se guarda el borrador y aparece si el auto ya se revisó (esta patente es nueva)
         await mecanico.locator('#patente').blur();
@@ -163,6 +170,8 @@ test('recorrido de la demo: pedir, aceptar, firmar, reclamar y resolver', async 
         // Idea A: la carrocería observada se le pidió a otros talleres; idea B: la falla que propuso el mecánico
         await expect(comprador.locator('#costo')).toBeVisible();
         await expect(comprador.locator('#costo-lista')).toContainText('Carrocería');
+        // La falla trae la foto que sacó el mecánico
+        await expect(comprador.locator('.item-informe--falla .item-informe__foto img')).toHaveCount(1);
         await expect(comprador.locator('#costo-lista')).not.toContainText(MECANICO.taller); // el que revisó no presupuesta
         await expect(comprador.locator('#fallas')).toBeVisible();
         await expect(comprador.locator('#fallas-lista')).toContainText(falla);

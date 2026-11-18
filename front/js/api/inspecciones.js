@@ -11,7 +11,7 @@
 //  reclamo_hasta, puede_reclamar, patente, patente_foto (ruta de la foto de la chapa o null),
 //  turno_confirmado_at (el vendedor confirmó el turno), credito_usado, a_pagar, credito: null | {tipo, monto},
 //  marca, modelo, modelo_clave, presupuestos y costo_total (idea A, sólo firmada y en el detalle),
-//  items: [{codigo, resultado, nota}]}   (items sólo en el detalle)
+//  items: [{codigo, resultado, nota, foto (ruta de la foto del ítem o null)}]}   (items sólo en el detalle)
 import { get, post, put, patch } from './cliente.js';
 
 const id = (n) => encodeURIComponent(n);
@@ -64,12 +64,14 @@ export const noRealizada = (n, motivo) =>
 // Guarda el checklist (se puede a medias) mientras no esté firmada. {items, conclusion, resumen, patente, marca, modelo} → {inspeccion}
 export const guardarInforme = (n, informe) => put(`/api/mecanico/inspecciones/${id(n)}/informe`, informe);
 
-// Firma lo guardado: exige los 10 ítems, la conclusión, la patente con su foto y la marca y el modelo.
+// Firma lo guardado: exige los 10 ítems, la conclusión, la patente con su foto, una foto de cada falla y la marca y el modelo.
 // Después, cualquier cambio da 409. → {inspeccion}
 export const firmar = (n) => post(`/api/mecanico/inspecciones/${id(n)}/firma`, {});
 
 // Foto de la chapa. formulario: FormData con el campo "foto". → {inspeccion}
 export const subirFotoPatente = (n, formulario) => post(`/api/mecanico/inspecciones/${id(n)}/patente-foto`, formulario);
+// Foto de un ítem del checklist (obligatoria para firmar si tiene falla). formulario: FormData con "codigo" y "foto". → {inspeccion}
+export const subirFotoItem = (n, formulario) => post(`/api/mecanico/inspecciones/${id(n)}/item-foto`, formulario);
 
 
 // ---------- "Adherí tu taller" ----------

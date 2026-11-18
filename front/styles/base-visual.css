@@ -1305,3 +1305,12 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .falla-tipica--descartada{ opacity: .6; border-left-color: var(--marca-linea); }
 .item-checklist--tipica{ border-left: 4px solid var(--observado); padding-left: 12px; }
 .item-checklist__tipica{ margin: 0; font-size: 13px; font-weight: 600; color: var(--observado); }
+/* Foto de un ítem del checklist (obligatoria en "falla"): miniatura + botón que abre la cámara */
+.item-checklist__foto{ display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.item-checklist__foto[hidden], .item-checklist__miniatura[hidden]{ display: none; }
+.item-checklist__miniatura{ width: 72px; height: 54px; object-fit: cover; border-radius: 8px; border: 1px solid var(--marca-linea); }
+.item-checklist__foto .campo__ayuda, .item-checklist__foto .campo__error{ flex-basis: 100%; }
+.item-checklist__foto label:has(+ input:focus-visible){ box-shadow: var(--anillo-foco); }
+/* La foto en el informe firmado, debajo del ítem */
+.item-informe__foto{ display: block; margin: 6px 0 0 46px; width: max-content; }
+.item-informe__foto img{ display: block; width: 120px; height: 90px; object-fit: cover; border-radius: 8px; border: 1px solid var(--marca-linea); }
