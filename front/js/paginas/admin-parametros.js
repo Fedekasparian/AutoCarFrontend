@@ -92,6 +92,29 @@ function rankingMecanicos() {
             el('li', {}, 'Al pedir una inspección de un auto, primero van los buenos en ese modelo, después los buenos en esa marca, después los que no revisaron ninguno y al final los que tuvieron reclamos en esos autos. "Bueno" = la misma cuenta, pero solo con las inspecciones de ese modelo (o de la marca), con 2,5 o más (hasta 1 reclamo cada 4 revisados).')));
 }
 
+// El ranking de autos recomendados de cada tipo de usuario: qué parte del puntaje es cada cosa con los pesos de hoy
+// (peso ÷ suma de los pesos de ese perfil). Se rearma cada vez que se guardan los parámetros.
+function rankingAutos(pesos) {
+    const valor = Object.fromEntries(pesos.map((p) => [p.clave, p.valor]));
+    const caja = document.getElementById('ranking-autos') ?? el('section', { class: 'pila', id: 'ranking-autos', 'aria-labelledby': 'ranking-autos-titulo' });
+    const perfiles = Object.entries(PERFILES).map(([perfil, nombre]) => {
+        const partes = Object.entries(CRITERIOS).map(([criterio, texto]) => [texto, valor[`peso_${perfil}_${criterio}`] ?? 0]);
+        const suma = partes.reduce((s, [, v]) => s + v, 0);
+        if (!suma) return el('li', {}, el('strong', {}, `${nombre}: `), 'todos los pesos en 0, se ordena por la diferencia con el precio típico.');
+        const ordenadas = partes.filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+        const sinPeso = partes.filter(([, v]) => !v).map(([t]) => t.toLowerCase());
+        return el('li', {}, el('strong', {}, `${nombre}: `),
+            ordenadas.map(([t, v]) => `${t.toLowerCase()} ${Math.round((v / suma) * 100)} % (peso ${Number(v.toFixed(2))})`).join(' · '),
+            sinPeso.length ? `. No cuenta: ${sinPeso.join(', ')}.` : '.',
+            el('span', { class: 'campo__ayuda' }, ` Prioriza ${ordenadas[0][0].toLowerCase()}.`));
+    });
+    caja.replaceChildren(
+        el('h2', { id: 'ranking-autos-titulo' }, 'Cómo se arma el ranking de autos recomendados'),
+        el('p', { class: 'campo__ayuda' }, 'En el metabuscador, "Recomendado" ordena los autos por el puntaje de la fórmula de arriba, con los pesos del tipo de usuario del comprador ("¿Para qué buscás el auto?"). Cada porcentaje es qué parte del puntaje decide esa cosa (su peso ÷ la suma de los pesos de ese perfil). Un comprador sin perfil ve los autos ordenados por la diferencia con el precio típico.'),
+        el('ul', {}, ...perfiles));
+    return caja;
+}
+
 function mostrar({ parametros, cambios }) {
     actuales = {};
     const unidades = {};
@@ -100,6 +123,7 @@ function mostrar({ parametros, cambios }) {
         unidades[p.clave] = p.unidad;
     });
     campos.replaceChildren(...parametros.filter((p) => !esPeso(p)).map(campoDe), formula(parametros.filter(esPeso)) ?? '');
+    if (parametros.some(esPeso)) form.after(rankingAutos(parametros.filter(esPeso)));
 
     const nombres = Object.fromEntries(parametros.map((p) => [p.clave, p.descripcion]));
     listaCambios.replaceChildren(...(cambios.length ? cambios.map((c) => el('li', { class: 'fila' },
@@ -129,7 +153,7 @@ formularios.alEnviar(form, async (datos) => {
 });
 
 async function iniciar() {
-    form.after(rankingMecanicos());
+    form.after(rankingMecanicos()); // el de autos (rankingAutos) queda entre el formulario y este
     try {
         mostrar(await api.todos());
     } catch (error) {
