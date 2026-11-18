@@ -39,17 +39,26 @@ function describirUrl() {
     else window.Validacion.limpiar(campoUrl);
 }
 
-// Datos que llegan en la URL desde el botón "Mandale un mecánico"
+// Datos que llegan en la URL desde el botón "Mandale un mecánico": son los del aviso y quedan fijos (solo
+// lectura). El comprador solo completa los que el aviso no trae.
 function precargar() {
     const mapa = { url: 'url', titulo: 'titulo', anio: 'anio', km: 'kilometraje', precio: 'precio_publicado', localidad: 'localidad' };
-    let conDatos = false;
+    let faltan = false;
     Object.entries(mapa).forEach(([param, campo]) => {
         const valor = params.get(param);
-        if (!valor) return;
-        form.elements[campo].value = valor;
-        if (campo !== 'url') conDatos = true;
+        if (campo === 'url') {
+            if (valor) form.elements.url.value = valor;
+            return;
+        }
+        if (valor) {
+            form.elements[campo].value = valor;
+            form.elements[campo].readOnly = true;
+        } else {
+            faltan = true;
+        }
     });
-    document.getElementById('datos-auto').open = conDatos;
+    // Abierto solo si falta algo para completar
+    document.getElementById('datos-auto').open = faltan;
     if (params.get('url')) {
         campoUrl.readOnly = true;
         const fuente = insp.fuenteDeUrl(campoUrl.value, window.location.hostname);
@@ -230,9 +239,11 @@ if (sesion.requerirLogin()) {
         });
         precargar();
         cargarMecanicos();
-        // Marca y modelo: solo se piden si no se saben (los de AutoCar salen de la publicación, los del
-        // metabuscador llegan en el link)
-        if (marcaDelAviso || insp.fuenteDeUrl(campoUrl.value, window.location.hostname) === 'autocar') {
+        // Auto de AutoCar: todos los datos salen de la publicación (el back no acepta otros), no se muestra el bloque.
+        // Marca y modelo: solo se piden si no se saben (los del metabuscador llegan en el link)
+        if (insp.fuenteDeUrl(campoUrl.value, window.location.hostname) === 'autocar') {
+            document.getElementById('datos-auto').hidden = true;
+        } else if (marcaDelAviso) {
             document.getElementById('marca-modelo').hidden = true;
         } else {
             marcas.conectar(form.elements.marca, form.elements.modelo, { textoVacio: 'No sé' }).catch(() => {
