@@ -15,13 +15,13 @@ const pesos = (v) => formato.precio(v);
 const porcentaje = (parte, total) => (total ? Math.round((parte / total) * 100) : 0);
 
 const PESTANAS = [['resumen', 'Resumen'], ['plata', 'Plata'], ['inspecciones', 'Inspecciones'], ['embudo', 'Recomendaciones'], ['metabuscador', 'Metabuscador'], ['usuarios', 'Usuarios'], ['plataforma', 'Publicaciones']];
-// "Ordenar por" del metabuscador y qué peso de la fórmula de "para vos" (Parámetros) tiene que ver con cada uno
+// "Ordenar por" del metabuscador y qué peso de la fórmula de "Recomendados" (Parámetros) tiene que ver con cada uno
 const ORDENES = { recomendado: 'Recomendado', precio: 'Menor precio', km: 'Menos km', nuevos: 'Más nuevos' };
 const PESO_DEL_ORDEN = { precio: 'el precio', km: 'los kilómetros', nuevos: 'el año' };
 const COLOR_CONCLUSION = { Recomendable: 'barras__barra--ok', 'Con reparos': 'barras__barra--observado', 'No recomendable': 'barras__barra--falla' };
 const PERIODOS = { 7: '7 días', 30: '30 días', 90: '3 meses' };
 const ORIGENES = {
-    para_vos: 'Autos "para vos" (según su perfil)',
+    para_vos: 'Recomendados (según su perfil)',
     destacado: 'Destacados del metabuscador',
     metabuscador: 'Resto de la lista del metabuscador',
     publicacion: 'Publicaciones de AutoCar',
@@ -32,6 +32,7 @@ let dias = Number(params.get('dias')) in PERIODOS ? Number(params.get('dias')) :
 let pestana = PESTANAS.some(([clave]) => `#${clave}` === window.location.hash) ? window.location.hash.slice(1) : 'resumen';
 // Plata: "todos" o un tipo de usuario (personal, familia, trabajo, aplicacion, sin_perfil). Se mantiene al cambiar el período.
 let segmento = 'todos';
+let segmentoEmbudo = 'todos'; // lo mismo en la tabla de Recomendaciones
 let ultimas = null; // las últimas métricas, para cambiar de segmento sin volver a pedirlas
 
 // ---------- Piezas ----------
@@ -210,19 +211,55 @@ function pasoEmbudo(nombre, valor, base, nota) {
         el('span', { class: 'embudo__valor' }, el('strong', {}, n(valor)), nota ? el('span', {}, nota) : null));
 }
 
+// La tabla de cada recomendación. Con datos por tipo de usuario suma tres columnas: de los que la vieron, cuántos
+// ordenaron la lista por precio, por km o por fecha de publicación ("Más nuevos"). Sirven para ajustar los pesos.
+const ORDENARON = [['precio', 'Ordenaron por precio'], ['km', 'Ordenaron por km'], ['nuevos', 'Ordenaron por fecha de publicación']];
 function tablaEmbudo(origenes) {
     const conversion = (o) => porcentaje(o.pagaron, o.vieron);
     const mejor = Math.max(...origenes.map(conversion));
+    const conOrden = origenes.some((o) => o.ordenaron);
     const celdas = (fila, etiqueta = 'td') => el('tr', {}, ...fila.map((c) => el(etiqueta, {}, c)));
+    const ordenaron = (o, clave) => {
+        const valor = o.ordenaron?.[clave] ?? 0;
+        return valor && o.vieron ? `${n(valor)} (${porcentaje(valor, o.vieron)} %)` : n(valor);
+    };
     return [
-        el('thead', {}, celdas(['Recomendación', 'Vieron', 'Tocaron "Mandale un mecánico"', 'Pagaron la inspección', 'Conversión (pagaron / vieron)', 'Con la inspección firmada'], 'th')),
+        el('thead', {}, celdas(['Recomendación', 'Vieron', 'Tocaron "Mandale un mecánico"', 'Pagaron la inspección', 'Conversión (pagaron / vieron)', 'Con la inspección firmada',
+            ...(conOrden ? ORDENARON.map(([, titulo]) => titulo) : [])], 'th')),
         el('tbody', {}, ...origenes.map((o) => {
             const tr = celdas([ORIGENES[o.origen] ?? o.origen, n(o.vieron), n(o.tocaron), n(o.pagaron),
-                o.vieron ? `${conversion(o)} %` : '—', n(o.firmadas)]);
+                o.vieron ? `${conversion(o)} %` : '—', n(o.firmadas), ...(conOrden ? ORDENARON.map(([clave]) => ordenaron(o, clave)) : [])]);
             if (mejor > 0 && conversion(o) === mejor) tr.classList.add('tabla-embudo__mejor');
             return tr;
         })),
     ];
+}
+
+// Recomendaciones: botones Todos / cada tipo de usuario y la tabla de ese segmento. En "Todos" las columnas de
+// "ordenaron" son la suma de los tipos de usuario (cada comprador tiene un solo tipo).
+function embudoPorPerfil(m) {
+    const pp = m.por_perfil;
+    document.getElementById('embudo-perfil').hidden = !pp;
+    if (!pp) {
+        llenar('tabla-embudo', ...tablaEmbudo(m.embudo.origenes));
+        return;
+    }
+    if (segmentoEmbudo !== 'todos' && !pp.embudo.some((f) => f.uso === segmentoEmbudo)) segmentoEmbudo = 'todos';
+    const opciones = [['todos', 'Todos'], ...Object.entries(pp.usos)];
+    llenar('segmento-embudo', ...opciones.map(([clave, texto]) => boton(texto, clave === segmentoEmbudo, () => {
+        segmentoEmbudo = clave;
+        embudoPorPerfil(ultimas);
+    })));
+    const fila = pp.embudo.find((f) => f.uso === segmentoEmbudo);
+    const origenes = fila ? fila.origenes : m.embudo.origenes.map((o) => ({
+        ...o,
+        ordenaron: Object.fromEntries(ORDENARON.map(([clave]) => [clave, pp.embudo.reduce((suma, f) =>
+            suma + (f.origenes.find((x) => x.origen === o.origen)?.ordenaron?.[clave] ?? 0), 0)])),
+    }));
+    document.getElementById('tabla-embudo-titulo').textContent = fila
+        ? `Qué recomendación funciona mejor · ${fila.nombre}`
+        : 'Qué recomendación funciona mejor';
+    llenar('tabla-embudo', ...tablaEmbudo(origenes));
 }
 
 // El informe de plata del período, como un estado de resultados chico: ganancia (la comisión completa de AutoCar,
@@ -307,24 +344,6 @@ function plataPorPerfil(m, textoPeriodo) {
     llenar('barras-plata-perfil', ...barras(pp.plata.map((f) => [f.nombre, Math.max(f.neta, 0)]), 'Todavía no hay ganancia neta en este período', {}, pesos));
 }
 
-// Recomendaciones: la conversión (pagaron / vieron) de cada recomendación para cada tipo de usuario
-function tablaEmbudoPorPerfil(embudo) {
-    const origenes = embudo[0]?.origenes.map((o) => o.origen) ?? [];
-    return [
-        el('thead', {}, celdas(['Tipo de usuario', ...origenes.map((o) => ORIGENES[o] ?? o), 'Funciona mejor'], 'th')),
-        el('tbody', {}, ...embudo.map((fila) => el('tr', {},
-            el('th', { scope: 'row' }, fila.nombre),
-            ...fila.origenes.map((o) => {
-                const td = el('td', { title: `${n(o.vieron)} vieron, ${n(o.tocaron)} tocaron, ${n(o.pagaron)} pagaron` },
-                    o.conversion === null ? '—' : `${String(o.conversion).replace('.', ',')} %`,
-                    o.vieron ? el('span', { class: 'tabla-perfil__detalle' }, `${n(o.pagaron)} de ${n(o.vieron)}`) : null);
-                if (o.origen === fila.mejor) td.classList.add('tabla-perfil__mejor');
-                return td;
-            }),
-            el('td', {}, fila.mejor ? (ORIGENES[fila.mejor] ?? fila.mejor) : 'Sin pagos todavía')))),
-    ];
-}
-
 // Gráfico: por cada tipo de usuario, dos barras (buscaron en el metabuscador y, de esos, pagaron la inspección),
 // con el largo relativo al grupo que más buscó. Primero el total. Cada barra lleva su número al lado.
 function buscaronYCompraron(mb) {
@@ -364,7 +383,7 @@ function tablaOrdenes(ordenes) {
     ];
 }
 
-// Qué cambiar: si un perfil ordena casi siempre por otra cosa que "Recomendado", la fórmula de "para vos" de ese perfil
+// Qué cambiar: si un perfil ordena casi siempre por otra cosa que "Recomendado", la fórmula de "Recomendados" de ese perfil
 // no le está mostrando lo que busca. Se sugiere subir ese peso en Parámetros (solo los perfiles tienen fórmula).
 function sugerenciasOrden(ordenes) {
     const items = ordenes.filter((f) => f.preferido && f.preferido !== 'recomendado' && f.uso !== 'sin_perfil').map((f) =>
@@ -373,7 +392,7 @@ function sugerenciasOrden(ordenes) {
             el('a', { href: 'admin-parametros.html' }, 'Parámetros'), '.'));
     return items.length
         ? items
-        : [el('li', { class: 'barras__vacio' }, 'Ningún perfil prefiere otro orden que "Recomendado": la fórmula de "para vos" parece acertar (o todavía no hay datos).')];
+        : [el('li', { class: 'barras__vacio' }, 'Ningún perfil prefiere otro orden que "Recomendado": la fórmula de "Recomendados" parece acertar (o todavía no hay datos).')];
 }
 
 // ---------- Pestañas y período (los botones se arman acá, no en el HTML) ----------
@@ -497,17 +516,15 @@ function mostrar(m) {
         pasoEmbudo('Tocaron "Mandale un mecánico"', emb.tocaron, emb.vieron, emb.vieron ? `${porcentaje(emb.tocaron, emb.vieron)} % de los que vieron` : null),
         pasoEmbudo('Pagaron la inspección ("compró")', emb.pagaron, emb.vieron, emb.vieron ? `${conversion} % de los que vieron` : null),
         pasoEmbudo('Ya tienen la inspección firmada', emb.firmadas, emb.vieron, null));
-    llenar('tabla-embudo', ...tablaEmbudo(m.embudo.origenes));
+    embudoPorPerfil(m);
     document.getElementById('sin-origen').textContent = m.embudo.sin_origen
         ? `Además, ${n(m.embudo.sin_origen)} inspecciones del período se pidieron sin dato de dónde venían (anteriores a que empezáramos a medirlo).`
         : '';
 
     // Por tipo de usuario: qué recomendación funciona mejor, quién busca y compra, y qué orden eligen
     const pp = m.por_perfil;
-    document.getElementById('embudo-perfil-figura').hidden = !pp;
     document.querySelector('[data-pestana-boton="metabuscador"]').hidden = !pp;
     if (pp) {
-        llenar('tabla-embudo-perfil', ...tablaEmbudoPorPerfil(pp.embudo));
         const mb = pp.metabuscador.total;
         llenar('kpis-metabuscador',
             tarjeta(mb.buscaron, `Buscaron en el metabuscador en ${textoPeriodo}`),
