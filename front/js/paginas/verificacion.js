@@ -15,12 +15,24 @@ import { boton, confirmacion } from '../servicios/acciones.js';
 const { proximoPaso } = informe;
 
 const { el } = vistas;
-const id = new URLSearchParams(window.location.search).get('id');
+const params = new URLSearchParams(window.location.search);
+const id = params.get('id');
 const $ = (nombre) => document.getElementById(nombre);
 const PAGOS = {
     retenido: 'Retenido hasta que el mecánico firme',
     liberado: 'Pagado al mecánico',
     reembolsado: 'Te lo devolvimos',
+};
+// Con Mercado Pago (cobro), el pago se muestra según el cobro
+const COBROS = {
+    pendiente: 'Falta pagar con Mercado Pago',
+    pagado: 'Pagado con Mercado Pago',
+    cancelado: 'Sin pagar (se canceló)',
+    devuelto: 'Te lo devolvimos por Mercado Pago',
+};
+const VUELTA = {
+    pagado: 'Listo, pagaste la inspección. Ahora el mecánico la acepta y te da un turno.',
+    pendiente: 'Todavía no vemos el pago. Si pagaste, puede tardar unos minutos: recargá la página. Si no, tocá "Pagar con Mercado Pago".',
 };
 
 let inspeccion = null;
@@ -51,12 +63,15 @@ function mostrarResumen(i) {
         ['Inspección', formato.precio(i.precio)],
         i.credito_usado > 0 ? ['Crédito usado', `−${formato.precio(i.credito_usado)} (pagaste ${formato.precio(i.a_pagar)})`] : null,
         i.credito ? ['Crédito a tu favor', `${formato.precio(i.credito.monto)}: ${insp.CREDITOS[i.credito.tipo] || ''}. Se descuenta solo en tu próxima inspección.`] : null,
-        ['Pago', PAGOS[i.pago] || i.pago],
+        ['Pago', i.cobro ? COBROS[i.cobro.estado] || i.cobro.estado : PAGOS[i.pago] || i.pago],
         ['Pedida el', formato.fecha(i.created_at)],
     ]));
     // Sólo el comprador cancela, y mientras el mecánico no la aceptó
     if (i.estado === 'pedida' && soyComprador()) $('resumen').append(botonCancelar);
     else botonCancelar.remove();
+    // Con Mercado Pago: mientras no pagó, el mecánico no la ve para aceptar
+    if (i.estado === 'pedida' && i.cobro?.estado === 'pendiente' && soyComprador()) $('resumen').append(botonPagar);
+    else botonPagar.remove();
     $('resumen').hidden = false;
 }
 
@@ -169,6 +184,25 @@ const pedirCancelar = confirmacion({
 // Se agrega al final del recuadro "Estado" en mostrarResumen
 const botonCancelar = boton('Cancelar la inspección', () => pedirCancelar(), 'boton boton--secundario', 'cancelar');
 
+// ---------- Pagar (Mercado Pago) ----------
+
+const botonPagar = boton('Pagar con Mercado Pago', async (evento) => {
+    const yo = evento.currentTarget; // después del await, currentTarget ya no está
+    yo.disabled = true;
+    try {
+        const { cobro, inspeccion: actual } = await api.pagar(id);
+        if (cobro?.checkout_url) {
+            window.location.assign(cobro.checkout_url);
+            return;
+        }
+        inspeccion = actual;
+        mostrarTodo(inspeccion);
+    } catch (error) {
+        avisar(error.message);
+    }
+    yo.disabled = false;
+}, 'boton', 'pagar');
+
 // ---------- Inicio ----------
 
 function mostrarTodo(i) {
@@ -189,9 +223,13 @@ async function iniciar() {
     }
     $('estado').replaceChildren(vistas.cargando());
     try {
-        inspeccion = (await api.detalle(id)).inspeccion;
+        // Volvió de Mercado Pago: se le pregunta al back cómo quedó el pago (y se saca ?pago= de la dirección)
+        const volvio = params.get('pago') === 'vuelta';
+        inspeccion = (volvio ? await api.estadoPago(id) : await api.detalle(id)).inspeccion;
+        if (volvio) window.history.replaceState(null, '', `?id=${encodeURIComponent(id)}`);
         $('estado').replaceChildren();
         mostrarTodo(inspeccion);
+        if (volvio && inspeccion.cobro) avisar(VUELTA[inspeccion.cobro.estado] || '');
     } catch (error) {
         if (error.status === 401) {
             sesion.requerirLogin();

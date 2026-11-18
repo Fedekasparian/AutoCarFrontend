@@ -11,6 +11,7 @@
 //  reclamo_hasta, puede_reclamar, patente, patente_foto (ruta de la foto de la chapa o null),
 //  turno_confirmado_at (el vendedor confirmó el turno), credito_usado, a_pagar, credito: null | {tipo, monto},
 //  marca, modelo, modelo_clave, presupuestos y costo_total (idea A, sólo firmada y en el detalle),
+//  cobro: null | {estado: pendiente|pagado|cancelado|devuelto, monto, checkout_url, pagado_at} (Mercado Pago; al pedir y en el detalle),
 //  items: [{codigo, resultado, nota, foto (ruta de la foto del ítem o null)}]}   (items sólo en el detalle)
 import { get, post, put, patch } from './cliente.js';
 
@@ -31,6 +32,12 @@ export const mias = () => get('/api/mis-inspecciones');
 
 // Sólo antes de que el mecánico la acepte. → {inspeccion}
 export const cancelar = (n) => post(`/api/inspecciones/${id(n)}/cancelar`, {});
+
+// Mercado Pago: el link para pagar (si venció, el back arma otro). → {inspeccion, cobro}
+export const pagar = (n) => post(`/api/inspecciones/${id(n)}/pago`, {});
+
+// Al volver de Mercado Pago: el back le pregunta cómo quedó el pago. → {inspeccion, cobro}
+export const estadoPago = (n) => post(`/api/inspecciones/${id(n)}/pago/estado`, {});
 
 // Una vez, dentro de los días de reclamo de la inspección (dias_reclamo). {descripcion, item_codigo?} → {inspeccion} (201)
 export const reclamar = (n, reclamo) => post(`/api/inspecciones/${id(n)}/reclamo`, reclamo);
