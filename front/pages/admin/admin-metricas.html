@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Estadísticas · Administración - AutoCar</title>
-  <meta name="description" content="Estadísticas de AutoCar: plata, recomendaciones, usuarios y publicaciones.">
+  <meta name="description" content="Estadísticas de AutoCar: plata, inspecciones, recomendaciones, usuarios y publicaciones.">
   <link rel="stylesheet" href="../../styles/estilos.css">
   <script src="../../js/tema.js"></script><script src="../../js/barra-admin.js" defer></script><script src="../../js/navegacion.js" defer></script><link rel="stylesheet" href="../../styles/componentes.css">
   <link rel="stylesheet" href="../../styles/pantallas.css">
@@ -43,18 +43,35 @@
       <section class="metricas-panel pila" id="p-resumen" data-pestana="resumen" aria-labelledby="t-resumen">
         <h2 class="solo-lector" id="t-resumen">Resumen</h2>
         <ul class="resumen-admin" role="list" id="kpis"></ul>
-        <figure class="grafico"><figcaption class="grafico__titulo">Inspecciones pagadas y usuarios nuevos</figcaption><div id="grafico-actividad"></div></figure>
+        <div class="graficos-fila">
+          <figure class="grafico"><figcaption class="solo-lector">Inspecciones pagadas en el tiempo</figcaption><div id="grafico-pagaron"></div></figure>
+          <figure class="grafico"><figcaption class="solo-lector">Usuarios nuevos en el tiempo</figcaption><div id="grafico-nuevos"></div></figure>
+        </div>
         <p class="campo__ayuda">"Compró" = <strong>pagó la inspección</strong>. No sabemos si después compró el auto en otro sitio: lo que medimos es el pago de la inspección, que es donde gana AutoCar. Las flechas comparan con el período anterior del mismo largo.</p>
       </section>
 
       <section class="metricas-panel pila" id="p-plata" data-pestana="plata" aria-labelledby="t-plata" hidden>
         <h2 class="solo-lector" id="t-plata">Plata</h2>
         <ul class="resumen-admin" role="list" id="kpis-plata"></ul>
-        <figure class="grafico"><figcaption class="grafico__titulo">Ganancia de AutoCar y lo que se pagó por reclamos</figcaption><div id="grafico-plata"></div></figure>
+        <div class="graficos-fila">
+          <figure class="grafico"><figcaption class="solo-lector">Ganancia de AutoCar en el tiempo</figcaption><div id="grafico-ganancia"></div></figure>
+          <figure class="grafico"><figcaption class="solo-lector">Pagado por reclamos en el tiempo</figcaption><div id="grafico-reclamos"></div></figure>
+        </div>
         <h3 class="titulo-seccion">Desde el principio</h3>
         <ul class="resumen-admin" role="list" id="tarjetas-ganancias"></ul>
         <figure class="grafico" id="reparto-figura" hidden><figcaption class="grafico__titulo">Cómo se reparte lo facturado</figcaption><div id="reparto"></div></figure>
         <p class="campo__ayuda" id="ganancias"></p>
+      </section>
+
+      <section class="metricas-panel pila" id="p-inspecciones" data-pestana="inspecciones" aria-labelledby="t-inspecciones" hidden>
+        <h2 class="solo-lector" id="t-inspecciones">Inspecciones</h2>
+        <p class="campo__ayuda">Las inspecciones pedidas en el período: cuántas se firmaron, cuánto se tarda y cuántas terminan en reclamo.</p>
+        <ul class="resumen-admin" role="list" id="kpis-inspecciones"></ul>
+        <div class="graficos-fila">
+          <figure class="grafico"><figcaption class="grafico__titulo">En qué quedaron las pedidas</figcaption><ul class="barras" id="barras-inspecciones" role="list"></ul></figure>
+          <figure class="grafico"><figcaption class="grafico__titulo">Qué concluyó el mecánico</figcaption><ul class="barras" id="barras-conclusiones" role="list"></ul></figure>
+        </div>
+        <figure class="grafico"><figcaption class="grafico__titulo">Talleres que más firmaron</figcaption><div class="tabla-desplazable"><table class="tabla tabla-embudo" id="tabla-mecanicos"></table></div></figure>
       </section>
 
       <section class="metricas-panel pila" id="p-embudo" data-pestana="embudo" aria-labelledby="t-embudo" hidden>
@@ -68,7 +85,7 @@
       <section class="metricas-panel pila" id="p-usuarios" data-pestana="usuarios" aria-labelledby="t-usuarios" hidden>
         <h2 class="solo-lector" id="t-usuarios">Usuarios</h2>
         <ul class="resumen-admin" role="list" id="tarjetas-usuarios"></ul>
-        <figure class="grafico"><figcaption class="grafico__titulo">Usuarios nuevos</figcaption><div id="grafico-usuarios"></div></figure>
+        <figure class="grafico"><figcaption class="solo-lector">Usuarios nuevos en el tiempo</figcaption><div id="grafico-usuarios"></div></figure>
         <div class="graficos-fila">
           <figure class="grafico"><figcaption class="grafico__titulo">Para qué buscan el auto</figcaption><ul class="barras" id="barras-usos" role="list"></ul></figure>
           <figure class="grafico"><figcaption class="grafico__titulo">Usuarios por rol</figcaption><ul class="barras" id="barras-roles" role="list"></ul></figure>

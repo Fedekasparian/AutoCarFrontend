@@ -1,8 +1,9 @@
 // Estadísticas de la app (permiso metricas.ver): GET /api/admin/metricas?dias=7|30|90, todo sacado de la base.
-// Ordenadas en pestañas (Resumen, Plata, Recomendaciones, Usuarios, Publicaciones) con un período que vale para
+// Ordenadas en pestañas (Resumen, Plata, Inspecciones, Recomendaciones, Usuarios, Publicaciones) con un período que vale para
 // todas. "Compró" = pagó la inspección. La pestaña y el período quedan en la URL (#plata, ?dias=90).
 import * as admin from '../api/admin.js';
 import * as formato from '../servicios/formato.js';
+import { CONCLUSIONES, ESTADOS as ESTADOS_INSPECCION } from '../servicios/inspecciones.js';
 import * as sesion from '../servicios/sesion.js';
 import * as vistas from '../servicios/vistas.js';
 
@@ -12,7 +13,8 @@ const n = (valor) => numero.format(valor);
 const pesos = (v) => formato.precio(v);
 const porcentaje = (parte, total) => (total ? Math.round((parte / total) * 100) : 0);
 
-const PESTANAS = [['resumen', 'Resumen'], ['plata', 'Plata'], ['embudo', 'Recomendaciones'], ['usuarios', 'Usuarios'], ['plataforma', 'Publicaciones']];
+const PESTANAS = [['resumen', 'Resumen'], ['plata', 'Plata'], ['inspecciones', 'Inspecciones'], ['embudo', 'Recomendaciones'], ['usuarios', 'Usuarios'], ['plataforma', 'Publicaciones']];
+const COLOR_CONCLUSION = { Recomendable: 'barras__barra--ok', 'Con reparos': 'barras__barra--observado', 'No recomendable': 'barras__barra--falla' };
 const PERIODOS = { 7: '7 días', 30: '30 días', 90: '3 meses' };
 const ORIGENES = {
     para_vos: 'Autos "para vos" (según su perfil)',
@@ -49,17 +51,21 @@ function tarjeta(valor, texto, formatear = n, comparar = {}) {
         numeroNodo, el('span', {}, texto), variacion(valor, comparar.anterior, comparar.menosEsMejor));
 }
 
-// Barras horizontales de una sola serie: el largo es la cantidad y el número va escrito al lado
-// (cada barra es un <li> con su texto, así se lee igual sin ver el gráfico)
-function barras(pares, vacio = 'Todavía no hay datos') {
-    if (!pares.length) return [el('li', { class: 'barras__vacio' }, vacio)];
-    const maximo = Math.max(...pares.map(([, v]) => v), 1);
-    return pares.map(([nombre, valor], i) => {
-        const barra = el('span', { class: 'barras__barra', 'aria-hidden': 'true' });
+// Barras horizontales de una sola serie, de mayor a menor: el largo es la cantidad y al lado va el número y qué
+// parte del total es (cada barra es un <li> con su texto, así se lee igual sin ver el gráfico).
+// clases: {nombre: 'barras__barra--ok'} para pintar una fila con el color de su estado
+function barras(pares, vacio = 'Todavía no hay datos', clases = {}) {
+    const filas = pares.filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+    if (!filas.length) return [el('li', { class: 'barras__vacio' }, vacio)];
+    const maximo = Math.max(...filas.map(([, v]) => v), 1);
+    const total = filas.reduce((s, [, v]) => s + v, 0);
+    return filas.map(([nombre, valor], i) => {
+        const barra = el('span', { class: `barras__barra ${clases[nombre] ?? ''}`, 'aria-hidden': 'true' });
         barra.style.setProperty('--largo', `${(valor / maximo) * 100}%`);
         barra.style.setProperty('--n', String(i));
-        return el('li', { class: 'barras__fila', title: `${nombre}: ${n(valor)}` },
-            el('span', { class: 'barras__nombre' }, nombre), barra, el('span', { class: 'barras__valor' }, n(valor)));
+        return el('li', { class: 'barras__fila', title: `${nombre}: ${n(valor)} (${porcentaje(valor, total)} %)` },
+            el('span', { class: 'barras__nombre' }, nombre), barra,
+            el('span', { class: 'barras__valor' }, n(valor), el('span', { class: 'barras__parte' }, `${porcentaje(valor, total)} %`)));
     });
 }
 
@@ -69,34 +75,90 @@ function fechaCorta(fecha, unidad) {
     return `${unidad === 'semana' ? 'sem. ' : ''}${dia}/${mes}`;
 }
 
-// Columnas en el tiempo: una por día o semana y, dentro, una barra por serie. Arriba el máximo, abajo algunas
-// fechas. Cada columna tiene el detalle en texto (title y para lectores de pantalla).
-// series: [{clave, nombre, clase, formatear}]
-function columnas(serie, series) {
+// Números redondos para el eje: tres pasos iguales de 1, 2, 2,5, 3, 4, 5, 6, 8 o 10 × 10^n (y nunca menos de 1, así las
+// cantidades no muestran decimales). Devuelve el tope: 7 → 9 (0, 3, 6, 9); $ 1,2 M → $ 1,2 M (0, 400 mil, ...)
+function ejeRedondo(maximo) {
+    if (maximo <= 0) return 3;
+    const potencia = 10 ** Math.floor(Math.log10(maximo / 3));
+    const paso = [1, 2, 2.5, 3, 4, 5, 6, 8, 10].find((x) => x * potencia >= maximo / 3 && Number.isInteger(x * potencia)) * potencia;
+    return Math.max(paso, 1) * 3;
+}
+
+// Montos cortos para el eje: "$ 1,2 M", "$ 350 mil"
+const compacto = new Intl.NumberFormat('es-AR', { notation: 'compact', maximumFractionDigits: 1 });
+const pesosCorto = (v) => `$ ${compacto.format(v)}`;
+
+function svg(etiqueta, atributos = {}) {
+    const nodo = document.createElementNS('http://www.w3.org/2000/svg', etiqueta);
+    Object.entries(atributos).forEach(([nombre, valor]) => nodo.setAttribute(nombre, valor));
+    return nodo;
+}
+
+// Tendencia de UN solo número en el tiempo (nunca dos escalas en el mismo gráfico): arriba el total del período
+// y el promedio, en el medio la línea con su área y el eje con números redondos, abajo algunas fechas.
+// Al pasar el mouse (o tocar) muestra el valor de ese día o semana. Para lectores de pantalla va una tabla oculta.
+// opciones: {clave, nombre, formatear, clase ('tendencia--1' | 'tendencia--2' | 'tendencia--perdida')}
+function tendencia(serie, { clave, nombre, formatear = n, clase = 'tendencia--1' }) {
     const { puntos, unidad } = serie;
-    const total = puntos.reduce((s, p) => s + series.reduce((t, x) => t + Math.abs(p[x.clave]), 0), 0);
-    if (!total) return [el('p', { class: 'barras__vacio' }, 'No hubo movimiento en este período.')];
-    const maximos = series.map((x) => Math.max(...puntos.map((p) => p[x.clave]), 1));
-    // Las series en pesos comparten escala entre sí, y las cantidades entre sí
-    const escala = (x, i) => Math.max(...series.filter((y) => (y.formatear === pesos) === (x.formatear === pesos))
-        .map((y) => maximos[series.indexOf(y)]), maximos[i]);
-    const etiquetaCada = Math.max(1, Math.ceil(puntos.length / 7));
-    const grupos = puntos.map((p, i) => {
-        const detalle = `${fechaCorta(p.fecha, unidad)}: ${series.map((x) => `${x.nombre} ${(x.formatear || n)(p[x.clave])}`).join(', ')}`;
-        return el('li', { class: 'columnas__grupo', title: detalle },
-            el('span', { class: 'columnas__barras', 'aria-hidden': 'true' }, ...series.map((x, j) => {
-                const barra = el('span', { class: `columnas__barra ${x.clase}` });
-                barra.style.setProperty('--alto', `${(p[x.clave] / escala(x, j)) * 100}%`);
-                barra.style.setProperty('--n', String(i));
-                return barra;
-            })),
-            el('span', { class: 'columnas__fecha', 'aria-hidden': 'true' }, i % etiquetaCada === 0 || i === puntos.length - 1 ? fechaCorta(p.fecha, unidad) : ''),
-            el('span', { class: 'solo-lector' }, detalle));
-    });
-    const leyenda = el('ul', { class: 'columnas__leyenda', role: 'list' }, ...series.map((x, i) =>
-        el('li', {}, el('span', { class: `columnas__muestra ${x.clase}`, 'aria-hidden': 'true' }),
-            `${x.nombre} (máx. ${(x.formatear || n)(maximos[i])} por ${unidad === 'semana' ? 'semana' : 'día'})`)));
-    return [leyenda, el('ol', { class: 'columnas', role: 'list' }, ...grupos)];
+    const valores = puntos.map((p) => p[clave]);
+    const total = valores.reduce((s, v) => s + v, 0);
+    const porUnidad = unidad === 'semana' ? 'semana' : 'día';
+    const cabeza = el('div', { class: 'tendencia__cabeza' },
+        el('span', { class: 'tendencia__nombre' }, nombre),
+        el('strong', { class: 'tendencia__total' }, formatear(total)),
+        el('span', { class: 'tendencia__promedio' }, `en el período · promedio ${formatear(Math.round(total / (puntos.length || 1)))} por ${porUnidad}`));
+    if (!total) return el('div', { class: `tendencia ${clase}` }, cabeza, el('p', { class: 'barras__vacio' }, 'No hubo movimiento en este período.'));
+
+    const tope = ejeRedondo(Math.max(...valores));
+    const corto = formatear === pesos ? pesosCorto : n;
+    const ultimo = Math.max(puntos.length - 1, 1);
+    const x = (i) => (i / ultimo) * 100;
+    const y = (v) => 100 - (v / tope) * 100;
+    const linea = valores.map((v, i) => `${i ? 'L' : 'M'}${x(i)},${y(v)}`).join(' ');
+    const dibujo = svg('svg', { class: 'tendencia__dibujo', viewBox: '0 0 100 100', preserveAspectRatio: 'none', 'aria-hidden': 'true' });
+    [0, 1, 2, 3].forEach((k) => dibujo.append(svg('line', { class: 'tendencia__guia', x1: 0, x2: 100, y1: k * 33.333, y2: k * 33.333, 'vector-effect': 'non-scaling-stroke' })));
+    dibujo.append(
+        svg('path', { class: 'tendencia__area', d: `${linea} L100,100 L0,100 Z` }),
+        svg('path', { class: 'tendencia__linea', d: linea, 'vector-effect': 'non-scaling-stroke' }));
+
+    // Eje: 0, 1/3, 2/3 y el tope, en números redondos
+    const eje = el('div', { class: 'tendencia__eje', 'aria-hidden': 'true' }, ...[3, 2, 1, 0].map((k) => {
+        const marca = el('span', {}, corto((tope / 3) * k));
+        marca.style.top = `${100 - k * 33.333}%`;
+        return marca;
+    }));
+    const cadaCuanto = Math.max(1, Math.ceil(puntos.length / 6));
+    const fechas = el('div', { class: 'tendencia__fechas', 'aria-hidden': 'true' }, ...puntos.map((p, i) => {
+        if (i % cadaCuanto !== 0 && i !== puntos.length - 1) return null;
+        if (i !== puntos.length - 1 && puntos.length - 1 - i < cadaCuanto / 2) return null; // que no se pise con la última
+        const f = el('span', {}, fechaCorta(p.fecha, unidad));
+        f.style.left = `${x(i)}%`;
+        return f;
+    }));
+
+    // Lo que aparece al pasar el mouse: la línea vertical, el punto y el cartel con el valor
+    const guia = el('span', { class: 'tendencia__cursor', hidden: true });
+    const punto = el('span', { class: 'tendencia__punto', hidden: true });
+    const cartel = el('span', { class: 'tendencia__cartel', hidden: true });
+    const lienzo = el('div', { class: 'tendencia__lienzo' }, dibujo, guia, punto, cartel);
+    const marcar = (evento) => {
+        const caja = lienzo.getBoundingClientRect();
+        const i = Math.round(((evento.clientX - caja.left) / caja.width) * ultimo);
+        const p = puntos[Math.min(Math.max(i, 0), puntos.length - 1)];
+        const indice = puntos.indexOf(p);
+        [guia, punto, cartel].forEach((nodo) => { nodo.hidden = false; nodo.style.left = `${x(indice)}%`; });
+        punto.style.top = `${y(p[clave])}%`;
+        cartel.classList.toggle('tendencia__cartel--izquierda', x(indice) > 60);
+        cartel.replaceChildren(el('span', {}, `${unidad === 'semana' ? 'Semana del ' : ''}${fechaCorta(p.fecha, 'dia')}`), el('strong', {}, formatear(p[clave])));
+    };
+    lienzo.addEventListener('pointermove', marcar);
+    lienzo.addEventListener('pointerdown', marcar);
+    lienzo.addEventListener('pointerleave', () => [guia, punto, cartel].forEach((nodo) => { nodo.hidden = true; }));
+
+    const tabla = el('table', { class: 'solo-lector' },
+        el('caption', {}, `${nombre} por ${porUnidad}`),
+        el('tbody', {}, ...puntos.map((p) => el('tr', {}, el('th', { scope: 'row' }, fechaCorta(p.fecha, unidad)), el('td', {}, formatear(p[clave]))))));
+    return el('div', { class: `tendencia ${clase}` }, cabeza, el('div', { class: 'tendencia__cuerpo' }, eje, lienzo, fechas), tabla);
 }
 
 function llenar(id, ...hijos) {
@@ -212,10 +274,8 @@ function mostrar(m) {
         tarjeta(actual.ganancia, `Ganancia de AutoCar en ${textoPeriodo}`, pesos, { anterior: anterior.ganancia }),
         tarjeta(actual.nuevos_usuarios, `Usuarios nuevos en ${textoPeriodo}`, n, { anterior: anterior.nuevos_usuarios }),
         tarjeta(actual.reclamos, `Pagado por reclamos en ${textoPeriodo}`, pesos, { anterior: anterior.reclamos, menosEsMejor: true }));
-    llenar('grafico-actividad', ...columnas(m.serie, [
-        { clave: 'pagaron', nombre: 'Pagaron la inspección', clase: 'serie--1' },
-        { clave: 'nuevos_usuarios', nombre: 'Usuarios nuevos', clase: 'serie--2' },
-    ]));
+    llenar('grafico-pagaron', tendencia(m.serie, { clave: 'pagaron', nombre: 'Inspecciones pagadas', clase: 'tendencia--1' }));
+    llenar('grafico-nuevos', tendencia(m.serie, { clave: 'nuevos_usuarios', nombre: 'Usuarios nuevos', clase: 'tendencia--2' }));
 
     // Plata
     llenar('kpis-plata',
@@ -223,10 +283,8 @@ function mostrar(m) {
         tarjeta(actual.facturado, `Facturado (${n(actual.firmadas)} firmadas)`, pesos, { anterior: anterior.facturado }),
         tarjeta(actual.reclamos, 'Pagado por reclamos (fondo, neto de franquicias)', pesos, { anterior: anterior.reclamos, menosEsMejor: true }),
         tarjeta(actual.compradores, 'Compradores que pagaron', n, { anterior: anterior.compradores }));
-    llenar('grafico-plata', ...columnas(m.serie, [
-        { clave: 'ganancia', nombre: 'Ganancia de AutoCar', clase: 'serie--2', formatear: pesos },
-        { clave: 'reclamos', nombre: 'Pagado por reclamos', clase: 'serie--perdida', formatear: pesos },
-    ]));
+    llenar('grafico-ganancia', tendencia(m.serie, { clave: 'ganancia', nombre: 'Ganancia de AutoCar', formatear: pesos, clase: 'tendencia--2' }));
+    llenar('grafico-reclamos', tendencia(m.serie, { clave: 'reclamos', nombre: 'Pagado por reclamos', formatear: pesos, clase: 'tendencia--perdida' }));
     const g = m.ganancias;
     llenar('tarjetas-ganancias',
         tarjeta(g.autocar, 'Ganancia de AutoCar', pesos),
@@ -240,6 +298,30 @@ function mostrar(m) {
     document.getElementById('reparto-figura').hidden = !grafico;
     if (grafico) llenar('reparto', ...grafico);
     document.getElementById('ganancias').textContent = g.aclaracion;
+
+    // Inspecciones del período: si el servicio anda (tiempos, reclamos, quién firma), no solo cuánto se vende
+    const ins = m.inspecciones;
+    if (ins) {
+        const firmadas = ins.por_estado.firmada || 0;
+        const rec = ins.reclamos;
+        const sinResolver = tarjeta(rec.sin_resolver, 'Reclamos sin resolver');
+        sinResolver.classList.toggle('resumen-admin__alerta', rec.sin_resolver > 0);
+        const demora = ins.horas_hasta_firma === null ? '—' : (ins.horas_hasta_firma < 1 ? 'menos de 1 h' : horas(ins.horas_hasta_firma));
+        llenar('kpis-inspecciones',
+            tarjeta(ins.pedidas, `Pedidas en ${textoPeriodo}`),
+            tarjeta(firmadas, `Firmadas (${porcentaje(firmadas, ins.pedidas)} % de las pedidas)`),
+            tarjeta(demora, 'De pagar a tener el informe (mediana)'),
+            tarjeta(ins.precio_promedio, 'Precio promedio', pesos),
+            tarjeta(firmadas ? `${porcentaje(rec.abiertos_en_periodo, firmadas)} %` : '—', `Con reclamo (${n(rec.abiertos_en_periodo)} reclamos, ${n(rec.proceden)} procedieron)`),
+            sinResolver);
+        llenar('barras-inspecciones', ...barras(Object.entries(ins.por_estado).map(([estado, cantidad]) => [ESTADOS_INSPECCION[estado] ?? estado, cantidad]), 'No se pidieron inspecciones en este período'));
+        llenar('barras-conclusiones', ...barras(Object.entries(ins.conclusiones).map(([c, cantidad]) => [CONCLUSIONES[c] ?? c, cantidad]), 'No se firmó ninguna en este período', COLOR_CONCLUSION));
+        const filasMecanicos = ins.top_mecanicos.map((x) => el('tr', {}, el('td', {}, x.nombre), el('td', {}, n(x.firmadas)),
+            el('td', {}, x.reclamos ? n(x.reclamos) : '—'), el('td', {}, pesos(x.cobrado))));
+        llenar('tabla-mecanicos',
+            el('thead', {}, el('tr', {}, ...['Taller', 'Firmadas', 'Reclamos que procedieron', 'Cobrado'].map((t) => el('th', {}, t)))),
+            el('tbody', {}, ...(filasMecanicos.length ? filasMecanicos : [el('tr', {}, el('td', { colspan: '4' }, 'Ningún mecánico firmó en este período.'))])));
+    }
 
     // Recomendaciones
     llenar('embudo-total',
@@ -261,7 +343,7 @@ function mostrar(m) {
         tarjeta(u.con_actividad_30d, 'Con actividad (30 días)'),
         tarjeta(r.recurrentes, `Volvieron a pagar una inspección (${porcentaje(r.recurrentes, r.compradores)} % de ${n(r.compradores)} compradores)`),
         tarjeta(u.bajas, 'Dados de baja'));
-    llenar('grafico-usuarios', ...columnas(m.serie, [{ clave: 'nuevos_usuarios', nombre: 'Usuarios nuevos', clase: 'serie--2' }]));
+    llenar('grafico-usuarios', tendencia(m.serie, { clave: 'nuevos_usuarios', nombre: 'Usuarios nuevos', clase: 'tendencia--2' }));
     llenar('barras-usos', ...barras(Object.entries(m.compradores_por_uso || {})));
     llenar('barras-roles', ...barras(Object.entries(u.por_rol).map(([rol, cantidad]) => [formato.rol(rol), cantidad])));
 
