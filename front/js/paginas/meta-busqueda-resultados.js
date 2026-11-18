@@ -126,10 +126,12 @@ function mostrarAvisos(items) {
     caja.hidden = false;
 }
 
-function fila(a, i) {
+// extra: una línea más abajo del precio (en la lista de novedades, cuánto salía antes). Esa lista no lleva id
+// en la fila: el id es del auto en el listado de abajo ("Ver en la lista" lleva ahí).
+function fila(a, i, extra = null) {
     const datos = [a.km !== null ? formato.km(a.km) : null, a.ubicacion].filter(Boolean).join(' · ');
     const aviso = avisos.find((v) => v.auto_id === a.id); // el más nuevo primero
-    const li = el('li', { class: 'fila resultado', id: idFila(a.id) },
+    const li = el('li', extra ? { class: 'fila resultado' } : { class: 'fila resultado', id: idFila(a.id) },
         el('span', { class: 'fila__cuerpo' },
             el('span', { class: 'resultado__arriba' }, sitio(a.fuente),
                 aviso && !(aviso.tipo === 'reservado' && a.reservado) ? el('span', { class: `novedad__tipo novedad--${aviso.tipo}` }, TIPOS_AVISO[aviso.tipo] ?? aviso.tipo) : null,
@@ -138,6 +140,7 @@ function fila(a, i) {
                 a.version ? el('span', { class: 'suave' }, ` · ${a.version}`) : null),
             el('span', { class: 'fila__meta' }, datos),
             el('span', { class: 'resultado__precio' }, el('strong', {}, precio(a)), ' ', etiquetaPrecio(a), precioOriginal(a), comparacion(a)),
+            extra,
             a.para_vos ? el('span', { class: 'resultado__para-vos' }, a.para_vos.motivo) : null),
         el('span', { class: 'fila__acciones' }, ...acciones(a, a.para_vos ? 'para_vos' : 'metabuscador')));
     li.style.setProperty('--n', String(i));
@@ -168,12 +171,57 @@ function mostrarSitios(referencia) {
     caja.hidden = false;
 }
 
+// "Nuevos" y "bajaron de precio" se pueden tocar y muestran cuáles son (vienen en novedades.items del reporte).
+// "Ya no están" es solo la cifra: esos autos ya no se pueden ver ni inspeccionar.
+const DETALLE_NOVEDAD = {
+    nuevos: { tipo: 'nuevo', titulo: 'Autos nuevos desde la corrida anterior' },
+    bajaron: { tipo: 'bajo', titulo: 'Autos que bajaron de precio' },
+};
+let novedadAbierta = null;
+
+// Cuánto salía antes, en la misma moneda del aviso
+function precioAnterior(c) {
+    if (!c.precio_anterior || !c.precio_actual) return null;
+    const pct = Math.round((1 - c.precio_actual / c.precio_anterior) * 100);
+    const antes = c.auto.moneda === 'USD' ? `US$ ${dolares.format(c.precio_anterior)}` : formato.precio(c.precio_anterior);
+    return el('span', { class: 'resultado__antes' }, `Antes ${antes} · bajó un ${pct} %`);
+}
+
+function mostrarDetalleNovedad(n, clave) {
+    const caja = $('novedades-detalle');
+    novedadAbierta = novedadAbierta === clave ? null : clave; // tocar la misma cifra otra vez la cierra
+    $('novedades-cifras').querySelectorAll('button').forEach((b) => {
+        b.setAttribute('aria-expanded', String(b.dataset.novedad === novedadAbierta));
+    });
+    if (!novedadAbierta) { caja.hidden = true; return; }
+    const { tipo, titulo } = DETALLE_NOVEDAD[novedadAbierta];
+    const cambios = n.items.filter((c) => c.tipo === tipo);
+    // Los que más bajaron primero; los nuevos, del más barato al más caro
+    if (tipo === 'bajo') cambios.sort((a, b) => (a.precio_actual / a.precio_anterior) - (b.precio_actual / b.precio_anterior));
+    else cambios.sort((a, b) => (a.auto.precio ?? Infinity) - (b.auto.precio ?? Infinity));
+    $('novedades-detalle-titulo').textContent = `${titulo} (${cambios.length})`;
+    $('novedades-detalle-lista').replaceChildren(...cambios.map((c, i) =>
+        fila(c.auto, i, tipo === 'bajo' ? precioAnterior(c) : el('span', { class: 'resultado__antes' }, 'Nuevo en esta corrida'))));
+    caja.hidden = false;
+}
+
 function mostrarNovedades(n) {
     const caja = $('novedades-cifras');
     if (!n?.disponible) { caja.hidden = true; return; }
     caja.replaceChildren(...[['nuevos', n.nuevos, 'nuevos'], ['bajaron', n.bajaron, 'bajaron de precio'], ['retirados', n.retirados, 'ya no están']]
-        .map(([clase, valor, texto]) => el('li', { class: `novedades__cifra novedades__cifra--${clase}` },
-            el('strong', {}, String(valor)), el('span', {}, texto))));
+        .map(([clase, valor, texto]) => {
+            const contenido = [el('strong', {}, String(valor)), el('span', {}, texto)];
+            const li = el('li', { class: `novedades__cifra novedades__cifra--${clase}` });
+            if (DETALLE_NOVEDAD[clase] && valor > 0 && Array.isArray(n.items)) {
+                const b = el('button', { class: 'novedades__boton', type: 'button', 'data-novedad': clase,
+                    'aria-expanded': 'false', 'aria-controls': 'novedades-detalle' }, ...contenido);
+                b.addEventListener('click', () => mostrarDetalleNovedad(n, clase));
+                li.append(b);
+            } else {
+                li.append(...contenido);
+            }
+            return li;
+        }));
     caja.hidden = false;
 }
 
@@ -219,7 +267,7 @@ function mostrar(r) {
     $('resumen').hidden = false;
 
     const res = r.resultados;
-    $('resultados').replaceChildren(...res.items.map(fila));
+    $('resultados').replaceChildren(...res.items.map((a, i) => fila(a, i)));
     mostrarAvisos(res.items);
     $('resultados').classList.add('lista-filas--entra');
     $('estado').replaceChildren(res.items.length ? '' : vistas.aviso('No hay autos con estos filtros.',
