@@ -64,11 +64,13 @@ campoUrl.addEventListener('input', describirUrl);
 
 // ---------- El mecánico ----------
 
-// Marca y modelo del auto: los que eligió en la lista; si no eligió, los que llegaron en el link
+// Marca y modelo del auto: si llegaron en el link (aviso del metabuscador) son esos y no se piden;
+// si no, los que eligió en la lista
+const marcaDelAviso = params.get('marca') && params.get('modelo')
+    ? { marca: params.get('marca'), modelo: params.get('modelo') }
+    : null;
 function elAuto() {
-    const marca = form.elements.marca.value || params.get('marca') || '';
-    const modelo = form.elements.marca.value ? form.elements.modelo.value : params.get('modelo') || '';
-    return { marca, modelo };
+    return marcaDelAviso ?? { marca: form.elements.marca.value, modelo: form.elements.modelo.value };
 }
 
 const ordenMecanicos = document.getElementById('orden-mecanicos');
@@ -182,6 +184,7 @@ form.addEventListener('submit', async (evento) => {
     if (!okCampos || !m) return;
 
     const datos = formularios.datosDe(form);
+    const { marca, modelo } = elAuto();
     const boton = form.querySelector('[type="submit"]');
     boton.disabled = true;
     boton.textContent = 'Enviando…';
@@ -194,9 +197,9 @@ form.addEventListener('submit', async (evento) => {
             kilometraje: numeroONulo(datos.kilometraje),
             precio_publicado: numeroONulo(datos.precio_publicado),
             localidad: datos.localidad || null,
-            // Solo si eligió los dos (si el auto es de AutoCar, salen de la publicación)
-            marca: datos.marca && datos.modelo ? datos.marca : null,
-            modelo: datos.marca && datos.modelo ? datos.modelo : null,
+            // Solo si se saben los dos (si el auto es de AutoCar, salen de la publicación)
+            marca: marca && modelo ? marca : null,
+            modelo: marca && modelo ? modelo : null,
         });
         window.location.assign(ruta(`mis-inspecciones.html?nueva=${inspeccion.id}`));
     } catch (error) {
@@ -227,8 +230,9 @@ if (sesion.requerirLogin()) {
         });
         precargar();
         cargarMecanicos();
-        // Marca y modelo: solo para avisos de otros sitios (los de AutoCar ya los tienen)
-        if (insp.fuenteDeUrl(campoUrl.value, window.location.hostname) === 'autocar') {
+        // Marca y modelo: solo se piden si no se saben (los de AutoCar salen de la publicación, los del
+        // metabuscador llegan en el link)
+        if (marcaDelAviso || insp.fuenteDeUrl(campoUrl.value, window.location.hostname) === 'autocar') {
             document.getElementById('marca-modelo').hidden = true;
         } else {
             marcas.conectar(form.elements.marca, form.elements.modelo, { textoVacio: 'No sé' }).catch(() => {

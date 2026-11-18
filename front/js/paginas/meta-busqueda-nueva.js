@@ -85,7 +85,10 @@ let ultimoPedido = 0;
 function pedirConteo(d) {
     clearTimeout(espera);
     const criterios = Object.fromEntries(Object.entries(d).filter(([, v]) => v !== ''));
+    // Mientras cuenta no queda a la vista el número anterior (parecía el resultado y después cambiaba)
+    cuenta.replaceChildren(vistas.el('span', {}, 'Contando autos…'));
     cuenta.classList.add('conteo--cargando');
+    cuenta.hidden = false;
     espera = setTimeout(async () => {
         const numero = ++ultimoPedido;
         try {
@@ -93,10 +96,11 @@ function pedirConteo(d) {
             if (numero !== ultimoPedido) return;
             const sitios = Object.entries(porFuente).filter(([, n]) => n > 0)
                 .map(([fuente, n]) => `${insp.fuente(fuente)} ${n}`).join(' · ');
+            // Sin autos no hay sitios que listar (replaceChildren escribiría "null" si se le pasa null)
             cuenta.replaceChildren(
                 vistas.el('strong', { class: 'conteo__numero' }, miles.format(autos)),
                 vistas.el('span', {}, autos === 1 ? ' auto coincide hoy' : ' autos coinciden hoy'),
-                sitios ? vistas.el('span', { class: 'conteo__sitios' }, sitios) : null);
+                ...(sitios ? [vistas.el('span', { class: 'conteo__sitios' }, sitios)] : []));
             cuenta.classList.toggle('conteo--cero', autos === 0);
             cuenta.classList.remove('conteo--cargando');
             cuenta.hidden = false;
