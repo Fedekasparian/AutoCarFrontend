@@ -95,11 +95,15 @@
         <h2 class="solo-lector" id="t-embudo">Recomendaciones</h2>
         <p class="campo__ayuda">De los compradores que vieron una recomendación, cuántos tocaron "Mandale un mecánico" y cuántos <strong>pagaron la inspección</strong> ("compró").</p>
         <figure class="grafico"><figcaption class="grafico__titulo">Embudo de todas las recomendaciones</figcaption><ol class="embudo" id="embudo-total"></ol></figure>
-        <figure class="grafico"><figcaption class="grafico__titulo">Qué recomendación funciona mejor</figcaption><div class="tabla-desplazable"><table class="tabla tabla-embudo" id="tabla-embudo"></table></div></figure>
-        <figure class="grafico" id="embudo-perfil-figura" hidden>
-          <figcaption class="grafico__titulo">Qué recomendación funciona mejor por tipo de usuario</figcaption>
-          <div class="tabla-desplazable"><table class="tabla tabla-embudo tabla-perfil" id="tabla-embudo-perfil"></table></div>
-          <p class="campo__ayuda">Cada celda es la conversión: de los compradores de ese tipo que vieron la recomendación, qué parte pagó la inspección desde ahí. Resaltada, la que mejor funciona para ese tipo de usuario.</p>
+        <figure class="grafico">
+          <figcaption class="grafico__titulo" id="tabla-embudo-titulo">Qué recomendación funciona mejor</figcaption>
+          <!-- Todos o un tipo de usuario ("¿Para qué buscás el auto?"): la misma tabla con los compradores de ese tipo -->
+          <div class="segmento-plata" id="embudo-perfil" hidden>
+            <span class="metricas-periodo__etiqueta" id="t-segmento-embudo">Tipo de usuario</span>
+            <div class="pestanas-estado" role="group" aria-labelledby="t-segmento-embudo" id="segmento-embudo"></div>
+          </div>
+          <div class="tabla-desplazable"><table class="tabla tabla-embudo" id="tabla-embudo"></table></div>
+          <p class="campo__ayuda">Conversión = de los compradores que vieron esa recomendación, qué parte pagó la inspección desde ahí. Resaltada, la que mejor funciona. "Sin perfil": no contestó "¿Para qué buscás el auto?". Si para un tipo de usuario "Recomendados" convierte menos que el resto, cambiá sus pesos en <a href="admin-parametros.html">Parámetros</a>.</p>
         </figure>
         <p class="campo__ayuda" id="sin-origen"></p>
       </section>
@@ -120,7 +124,7 @@
         <figure class="grafico">
           <figcaption class="grafico__titulo">Cómo ordenan los resultados, por tipo de usuario</figcaption>
           <div class="tabla-desplazable"><table class="tabla tabla-embudo tabla-perfil" id="tabla-ordenes"></table></div>
-          <p class="campo__ayuda">Compradores distintos que eligieron cada opción de "Ordenar por" (y qué parte de los de ese tipo que eligieron un orden). Si un perfil casi nunca usa "Recomendado", la fórmula de "para vos" de ese perfil no le muestra lo que busca.</p>
+          <p class="campo__ayuda">Compradores distintos que eligieron cada opción de "Ordenar por" (y qué parte de los de ese tipo que eligieron un orden). Si un perfil casi nunca usa "Recomendado", la fórmula de "Recomendados" de ese perfil no le muestra lo que busca.</p>
         </figure>
         <article class="recuadro">
           <h3 class="informe-plata__titulo">Qué parámetros cambiar</h3>

@@ -1460,3 +1460,8 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .formula__tabla{ min-width: 560px; }
 .formula__tabla th[scope="row"]{ font-weight: 600; white-space: nowrap; }
 .formula__peso{ width: 84px; min-height: 40px; text-align: center; }
+/* Parámetros: cómo se calcula "Recomendados" y el ranking de los mecánicos */
+.formula__explicacion{ display: grid; gap: 8px; padding: 12px 16px; border: 1px solid var(--marca-linea); border-radius: 12px; background: var(--marca-blanco); font-size: 14px; }
+.formula__explicacion summary{ font-weight: 600; cursor: pointer; }
+.formula__explicacion ul, .formula__explicacion p{ margin: 0; }
+.formula__cuenta{ padding: 8px 12px; border-radius: 8px; background: var(--marca-tenue); font-family: ui-monospace, monospace; font-size: 13px; overflow-wrap: anywhere; }
