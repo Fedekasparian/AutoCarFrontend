@@ -73,6 +73,44 @@
         });
     }
 
+    // 1.c Botón de modo claro / oscuro (la lógica está en tema.js). Va al final de la barra en escritorio y de la
+    //     cabecera de las páginas públicas; en celular, con la barra de pestañas abajo, está en Cuenta.
+    const ns = 'http://www.w3.org/2000/svg';
+    const ICONOS = {
+        // Luna para pasar a oscuro, sol para pasar a claro
+        claro: ['M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z'],
+        oscuro: ['M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4',
+            'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z'],
+    };
+    function botonModo() {
+        const boton = document.createElement('button');
+        boton.type = 'button';
+        boton.className = 'boton-modo';
+        const pintar = () => {
+            const modo = window.modoAutoCar?.actual() ?? 'claro';
+            const texto = modo === 'oscuro' ? 'Pasar a modo claro' : 'Pasar a modo oscuro';
+            boton.setAttribute('aria-label', texto);
+            boton.title = texto;
+            const svg = document.createElementNS(ns, 'svg');
+            Object.entries({ width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor',
+                'stroke-width': 1.8, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' })
+                .forEach(([k, v]) => svg.setAttribute(k, v));
+            ICONOS[modo].forEach((d) => {
+                const path = document.createElementNS(ns, 'path');
+                path.setAttribute('d', d);
+                svg.append(path);
+            });
+            boton.replaceChildren(svg);
+        };
+        pintar();
+        boton.addEventListener('click', () => window.modoAutoCar?.cambiar());
+        document.addEventListener('autocar:modo', pintar);
+        return boton;
+    }
+    if (window.modoAutoCar) {
+        document.querySelectorAll('.barra, .marca-nav').forEach((lugar) => lugar.append(botonModo()));
+    }
+
     // 2. Píldora que se desliza entre los links de la barra (solo escritorio: en celular la barra es de pestañas)
     const lista = document.querySelector('.barra__lista');
     if (!lista) return;

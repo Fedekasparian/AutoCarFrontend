@@ -181,7 +181,7 @@ function rango(c) {
             el('span', {}, formato.precio(desde)),
             el('span', {}, `Típico ${formato.precio(mediana)}`),
             el('span', {}, formato.precio(hasta))),
-        c.ahorro > 0 ? el('p', { class: 'rango__ahorro' }, `${formato.precio(c.ahorro)} menos que el precio típico`) : null);
+        ...(c.ahorro > 0 ? [el('p', { class: 'rango__ahorro' }, `${formato.precio(c.ahorro)} menos que el precio típico`)] : []));
     $('comparacion-rango').hidden = false;
 }
 
