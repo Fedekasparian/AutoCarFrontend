@@ -133,7 +133,8 @@ function reparto(g) {
 // Embudo: cada paso con su barra (largo relativo a los que vieron) y el porcentaje
 function pasoEmbudo(nombre, valor, base, nota) {
     const barra = el('span', { class: 'embudo__barra', 'aria-hidden': 'true' });
-    barra.style.setProperty('--largo', `${base ? Math.max((valor / base) * 100, 2) : 2}%`);
+    // Entre 2 % (que se vea aunque sea 0) y 100 % (nunca más ancha que el recuadro)
+    barra.style.setProperty('--largo', `${base ? Math.min(Math.max((valor / base) * 100, 2), 100) : 2}%`);
     return el('li', { class: 'embudo__paso' },
         el('span', { class: 'embudo__nombre' }, nombre),
         barra,
@@ -145,7 +146,7 @@ function tablaEmbudo(origenes) {
     const mejor = Math.max(...origenes.map(conversion));
     const celdas = (fila, etiqueta = 'td') => el('tr', {}, ...fila.map((c) => el(etiqueta, {}, c)));
     return [
-        el('thead', {}, celdas(['Recomendación', 'Vieron', 'Tocaron "Mandale un mecánico"', 'Pagaron la inspección', 'Conversión (pagaron / vieron)', 'Firmadas'], 'th')),
+        el('thead', {}, celdas(['Recomendación', 'Vieron', 'Tocaron "Mandale un mecánico"', 'Pagaron la inspección', 'Conversión (pagaron / vieron)', 'Con la inspección firmada'], 'th')),
         el('tbody', {}, ...origenes.map((o) => {
             const tr = celdas([ORIGENES[o.origen] ?? o.origen, n(o.vieron), n(o.tocaron), n(o.pagaron),
                 o.vieron ? `${conversion(o)} %` : '—', n(o.firmadas)]);
@@ -245,7 +246,7 @@ function mostrar(m) {
         pasoEmbudo('Vieron una recomendación', emb.vieron, emb.vieron, 'compradores'),
         pasoEmbudo('Tocaron "Mandale un mecánico"', emb.tocaron, emb.vieron, emb.vieron ? `${porcentaje(emb.tocaron, emb.vieron)} % de los que vieron` : null),
         pasoEmbudo('Pagaron la inspección ("compró")', emb.pagaron, emb.vieron, emb.vieron ? `${conversion} % de los que vieron` : null),
-        pasoEmbudo('Inspección firmada', emb.firmadas, emb.vieron, null));
+        pasoEmbudo('Ya tienen la inspección firmada', emb.firmadas, emb.vieron, null));
     llenar('tabla-embudo', ...tablaEmbudo(m.embudo.origenes));
     document.getElementById('sin-origen').textContent = m.embudo.sin_origen
         ? `Además, ${n(m.embudo.sin_origen)} inspecciones del período se pidieron sin dato de dónde venían (anteriores a que empezáramos a medirlo).`
