@@ -464,6 +464,7 @@ function mostrar(m) {
             ? tarjeta(actual.por_cobrar, 'Por cobrar (en el plazo de reclamo)', pesos)
             : tarjeta(actual.ganancia, 'Ganancia de AutoCar', pesos, { anterior: anterior.ganancia }),
         tarjeta(actual.facturado, `Facturado (${n(actual.firmadas)} firmadas)`, pesos, { anterior: anterior.facturado }),
+        tarjeta(actual.mecanicos ?? 0, 'Pagado a mecánicos', pesos, { anterior: anterior.mecanicos ?? 0 }),
         conInforme
             ? tarjeta(actual.reclamos_procedieron, 'Reclamos que procedieron', n, { anterior: anterior.reclamos_procedieron, menosEsMejor: true })
             : tarjeta(actual.reclamos, 'Pagado por reclamos (fondo, neto de franquicias)', pesos, { anterior: anterior.reclamos, menosEsMejor: true }),
