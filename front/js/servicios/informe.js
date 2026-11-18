@@ -24,8 +24,16 @@ export function listaItems(inspeccion) {
                 el('span', { class: 'fila__cuerpo' },
                     el('span', { class: 'fila__titulo' }, c.nombre),
                     el('span', { class: 'fila__meta' }, item.nota || c.detalle)),
-                el('span', { class: `etiqueta resultado resultado--${r}` }, insp.resultado(item.resultado || '—'))));
+                el('span', { class: `etiqueta resultado resultado--${r}` }, insp.resultado(item.resultado || '—'))),
+            fotoItem(c, item));
     }));
+}
+
+// La foto que sacó el mecánico de lo que vio (obligatoria en las fallas); toca y se abre grande
+function fotoItem(c, item) {
+    if (!item.foto) return null;
+    return el('a', { class: 'item-informe__foto', href: API_URL + item.foto, target: '_blank', rel: 'noopener' },
+        el('img', { src: API_URL + item.foto, alt: `Foto de ${c.nombre}`, loading: 'lazy' }));
 }
 
 // "8 OK · 1 observado · 1 falla" con una barra de tres colores proporcional
