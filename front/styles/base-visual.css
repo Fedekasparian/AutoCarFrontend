@@ -1334,6 +1334,24 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .tendencia{ --color: var(--serie-1); display: grid; gap: 14px; }
 .tendencia--2{ --color: var(--serie-2); }
 .tendencia--perdida{ --color: var(--falla); }
+
+/* Informe de plata del admin: ganancia − pérdida = neta, como un estado de resultados chico */
+.informe-plata{ display: grid; gap: 12px; padding: 20px !important; border: 1px solid var(--marca-linea) !important; border-radius: 16px !important; background: var(--marca-blanco) !important; box-shadow: var(--sombra-1); }
+.informe-plata__titulo{ margin: 0; font-family: var(--fuente-titulos); font-size: 18px; color: var(--marca-tinta); }
+.informe-plata__frase{ margin: 0; font-size: 15px; line-height: 1.5; color: var(--marca-tinta); }
+.informe-plata__cuenta{ display: grid; margin: 0; }
+.informe-plata__fila{ display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 16px; padding: 10px 0; border-bottom: 1px solid var(--marca-linea); }
+.informe-plata__fila dt{ display: grid; gap: 2px; font-weight: 600; color: var(--marca-tinta); }
+.informe-plata__detalle{ font-size: 12px; font-weight: 400; color: var(--marca-gris); }
+.informe-plata__fila dd{ display: grid; justify-items: end; gap: 2px; margin: 0 0 0 auto; font-family: var(--fuente-titulos); font-size: 20px; font-variant-numeric: tabular-nums; color: var(--marca-tinta); }
+.informe-plata__fila--ganancia dd{ color: var(--ok); }
+.informe-plata__fila--perdida dd{ color: var(--falla); }
+.informe-plata__fila--neta{ border-top: 2px solid var(--marca-tinta); border-bottom: 0; }
+.informe-plata__fila--neta dd{ font-size: 26px; font-weight: 700; }
+.informe-plata__fila--negativa dd{ color: var(--falla); }
+.informe-plata .variacion{ font-family: inherit; font-size: 12px; font-weight: 600; color: var(--marca-gris); }
+.informe-plata .variacion--buena{ color: var(--ok); }
+.informe-plata .variacion--mala{ color: var(--falla); }
 .tendencia__cabeza{ display: grid; gap: 2px; }
 .tendencia__nombre{ font-weight: 700; color: var(--marca-tinta); }
 .tendencia__total{ font-family: "Sora", sans-serif; font-size: 28px; line-height: 1.15; color: var(--marca-tinta); font-variant-numeric: tabular-nums; }

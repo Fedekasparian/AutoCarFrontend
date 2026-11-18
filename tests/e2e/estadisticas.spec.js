@@ -47,8 +47,14 @@ test('el admin recorre las estadísticas y ve la fórmula de para vos', async ({
         await expect(page).toHaveURL(/dias=90#embudo$/);
         await expect(page.getByRole('button', { name: '3 meses' })).toHaveAttribute('aria-pressed', 'true');
         await page.getByRole('button', { name: 'Plata' }).click();
-        await expect(page.locator('#grafico-ganancia .tendencia__nombre')).toHaveText('Ganancia de AutoCar');
+        await expect(page.locator('#grafico-ganancia .tendencia__nombre')).toHaveText('Ganancia (comisiones)');
         await expect(page.locator('#grafico-reclamos')).not.toBeEmpty();
+        // El informe: ganancia − pérdida = ganancia neta, con la frase que lo resume
+        await expect(page.locator('#informe-plata')).toBeVisible();
+        await expect(page.locator('#t-informe')).toHaveText('Informe de los últimos 3 meses');
+        await expect(page.locator('#informe-cuenta dt')).toHaveCount(3);
+        await expect(page.locator('#informe-cuenta .informe-plata__fila--neta dt')).toContainText('Ganancia neta');
+        await expect(page.locator('#informe-frase')).toContainText('en comisiones');
         // Al recargar sigue en la misma pestaña y período
         await page.reload();
         await expect(page.locator('#p-plata')).toBeVisible({ timeout: 60_000 });
@@ -60,5 +66,17 @@ test('el admin recorre las estadísticas y ve la fórmula de para vos', async ({
         await expect(page.locator('.formula__tabla tbody tr')).toHaveCount(4, { timeout: 60_000 });
         await expect(page.locator('.formula__peso')).toHaveCount(16);
         await expect(page.locator('#peso_familia_km')).toHaveAttribute('max', '5');
+        // Las fallas de internet ya no están en Parámetros: tienen su pantalla
+        await expect(page.locator('#form-falla')).toHaveCount(0);
+    });
+
+    await test.step('Fallas típicas: al elegir el modelo se ven las que ya tiene', async () => {
+        await page.goto(pagina('pages/admin/admin-fallas.html'));
+        await expect(page.locator('#falla-marca option')).not.toHaveCount(1, { timeout: 60_000 });
+        await page.selectOption('#falla-marca', 'Volkswagen');
+        await expect(page.locator('#falla-modelo')).toBeEnabled();
+        await page.selectOption('#falla-modelo', 'Gol Trend');
+        await expect(page.locator('#cargadas')).toBeVisible();
+        await expect(page.locator('#cargadas-titulo')).toHaveText('Las que ya tiene el Volkswagen Gol Trend');
     });
 });
