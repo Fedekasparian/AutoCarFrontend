@@ -10,6 +10,7 @@ import * as vistas from '../servicios/vistas.js';
 import { criterios } from '../servicios/metabusqueda.js';
 import { ruta } from '../servicios/rutas.js';
 import { boton, confirmacion } from '../servicios/acciones.js';
+import * as eventos from '../api/eventos.js';
 
 const { el } = vistas;
 const params = new URLSearchParams(window.location.search);
@@ -36,7 +37,8 @@ const precioOriginal = (a) => (a.moneda === 'USD' && a.precio !== null && cotiza
 
 // "Mandale un mecánico" con el link y los datos del aviso fijos; los de AutoCar se abren en su publicación.
 // Un auto reservado no tiene precio a la vista y ya tiene a alguien comprándolo: no se ofrece la inspección.
-function acciones(a) {
+// origen (para las estadísticas): de dónde se tocó el botón; va en el link y la pantalla del pedido lo manda.
+function acciones(a, origen = 'metabuscador') {
     if (a.fuente === 'autocar') {
         return [el('a', { class: 'boton boton--chico', href: ruta(`vehiculo.html?id=${a.id}`) }, 'Ver publicación')];
     }
@@ -54,6 +56,8 @@ function acciones(a) {
     // Para mostrar qué mecánicos ya revisaron uno igual (no se manda en el pedido: ahí vale lo que elija en la lista)
     pedido.set('marca', a.marca);
     pedido.set('modelo', a.modelo);
+    pedido.set('origen', origen);
+    eventos.registrar('mostrado', origen, a.url);
     return [
         verEnSitio,
         el('a', { class: 'boton boton--chico', href: ruta(`pedir-inspeccion.html?${pedido}`) }, 'Mandale un mecánico'),
@@ -135,7 +139,7 @@ function fila(a, i) {
             el('span', { class: 'fila__meta' }, datos),
             el('span', { class: 'resultado__precio' }, el('strong', {}, precio(a)), ' ', etiquetaPrecio(a), precioOriginal(a), comparacion(a)),
             a.para_vos ? el('span', { class: 'resultado__para-vos' }, a.para_vos.motivo) : null),
-        el('span', { class: 'fila__acciones' }, ...acciones(a)));
+        el('span', { class: 'fila__acciones' }, ...acciones(a, a.para_vos ? 'para_vos' : 'metabuscador')));
     li.style.setProperty('--n', String(i));
     return li;
 }
@@ -187,7 +191,7 @@ function mostrarDestacados(d) {
             el('span', { class: 'destacado__auto' }, `${a.marca} ${a.modelo} ${a.anio ?? ''}`.trim(),
                 a.km !== null ? ` · ${formato.km(a.km)}` : ''),
             el('span', { class: 'destacado__explicacion' }, explicacion),
-            el('span', { class: 'destacado__pie' }, sitio(a.fuente), acciones(a).at(-1)));
+            el('span', { class: 'destacado__pie' }, sitio(a.fuente), acciones(a, 'destacado').at(-1)));
     }));
     caja.hidden = false;
 }
