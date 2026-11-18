@@ -32,6 +32,8 @@ test('el admin recorre las estadísticas y ve la fórmula de para vos', async ({
         await expect(page.locator('#p-resumen')).toBeHidden();
         await expect(page.locator('#embudo-total > li')).toHaveCount(4);
         await expect(page.locator('#tabla-embudo tbody tr')).toHaveCount(4);
+        // Por tipo de usuario: los 4 perfiles y "Sin perfil", cada uno con su recomendación que mejor funciona
+        await expect(page.locator('#tabla-embudo-perfil tbody tr')).toHaveCount(5);
     });
 
     await test.step('la pestaña Inspecciones muestra estados, conclusiones y talleres', async () => {
@@ -55,10 +57,29 @@ test('el admin recorre las estadísticas y ve la fórmula de para vos', async ({
         await expect(page.locator('#informe-cuenta dt')).toHaveCount(3);
         await expect(page.locator('#informe-cuenta .informe-plata__fila--neta dt')).toContainText('Ganancia neta');
         await expect(page.locator('#informe-frase')).toContainText('en comisiones');
+        // Segmentar por tipo de usuario: el informe pasa a ser solo de esos compradores
+        await expect(page.locator('#tabla-plata-perfil tbody tr')).toHaveCount(5);
+        await page.locator('#segmento-plata').getByRole('button', { name: 'Para la familia' }).click();
+        await expect(page.locator('#t-informe')).toHaveText('Informe de los últimos 3 meses · compradores "Para la familia"');
+        await expect(page.locator('#segmento-plata').getByRole('button', { name: 'Para la familia' })).toHaveAttribute('aria-pressed', 'true');
+        await page.locator('#segmento-plata').getByRole('button', { name: 'Todos' }).click();
+        await expect(page.locator('#t-informe')).toHaveText('Informe de los últimos 3 meses');
         // Al recargar sigue en la misma pestaña y período
         await page.reload();
         await expect(page.locator('#p-plata')).toBeVisible({ timeout: 60_000 });
         await expect(page.getByRole('button', { name: '3 meses' })).toHaveAttribute('aria-pressed', 'true');
+    });
+
+    await test.step('la pestaña Metabuscador compara buscaron y compraron y cómo ordena cada tipo de usuario', async () => {
+        await page.getByRole('button', { name: 'Metabuscador' }).click();
+        await expect(page).toHaveURL(/#metabuscador$/);
+        await expect(page.locator('#kpis-metabuscador > li')).toHaveCount(3);
+        // Todos + 5 tipos de usuario, cada uno con dos barras
+        await expect(page.locator('#buscaron-compraron > li')).toHaveCount(6);
+        await expect(page.locator('#buscaron-compraron .comparar__fila')).toHaveCount(12);
+        await expect(page.locator('#tabla-ordenes thead th')).toHaveCount(6);
+        await expect(page.locator('#tabla-ordenes tbody tr')).toHaveCount(5);
+        await expect(page.locator('#sugerencias-orden > li').first()).toBeVisible();
     });
 
     await test.step('en Parámetros, la fórmula de para vos es una grilla de 4 perfiles por 4 criterios', async () => {

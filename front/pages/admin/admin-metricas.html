@@ -52,12 +52,23 @@
 
       <section class="metricas-panel pila" id="p-plata" data-pestana="plata" aria-labelledby="t-plata" hidden>
         <h2 class="solo-lector" id="t-plata">Plata</h2>
+        <div class="segmento-plata" id="plata-perfil" hidden>
+          <span class="metricas-periodo__etiqueta" id="t-segmento">Tipo de usuario</span>
+          <div class="pestanas-estado" role="group" aria-labelledby="t-segmento" id="segmento-plata"></div>
+        </div>
         <article class="recuadro informe-plata" id="informe-plata" aria-labelledby="t-informe" hidden>
           <h3 class="informe-plata__titulo" id="t-informe">Informe</h3>
           <p class="informe-plata__frase" id="informe-frase"></p>
           <dl class="informe-plata__cuenta" id="informe-cuenta"></dl>
           <p class="campo__ayuda" id="informe-notas"></p>
         </article>
+        <figure class="grafico" id="plata-perfil-tabla" hidden>
+          <figcaption class="grafico__titulo">Ganancias por tipo de usuario</figcaption>
+          <div class="tabla-desplazable"><table class="tabla tabla-embudo" id="tabla-plata-perfil"></table></div>
+          <h3 class="grafico__subtitulo">Ganancia neta por tipo de usuario</h3>
+          <ul class="barras" id="barras-plata-perfil" role="list"></ul>
+          <p class="campo__ayuda">El tipo de usuario es la respuesta a "¿Para qué buscás el auto?" del comprador que pagó la inspección. "Sin perfil": no la contestó.</p>
+        </figure>
         <ul class="resumen-admin" role="list" id="kpis-plata"></ul>
         <div class="graficos-fila">
           <figure class="grafico"><figcaption class="solo-lector">Ganancia de AutoCar en el tiempo</figcaption><div id="grafico-ganancia"></div></figure>
@@ -85,7 +96,36 @@
         <p class="campo__ayuda">De los compradores que vieron una recomendación, cuántos tocaron "Mandale un mecánico" y cuántos <strong>pagaron la inspección</strong> ("compró").</p>
         <figure class="grafico"><figcaption class="grafico__titulo">Embudo de todas las recomendaciones</figcaption><ol class="embudo" id="embudo-total"></ol></figure>
         <figure class="grafico"><figcaption class="grafico__titulo">Qué recomendación funciona mejor</figcaption><div class="tabla-desplazable"><table class="tabla tabla-embudo" id="tabla-embudo"></table></div></figure>
+        <figure class="grafico" id="embudo-perfil-figura" hidden>
+          <figcaption class="grafico__titulo">Qué recomendación funciona mejor por tipo de usuario</figcaption>
+          <div class="tabla-desplazable"><table class="tabla tabla-embudo tabla-perfil" id="tabla-embudo-perfil"></table></div>
+          <p class="campo__ayuda">Cada celda es la conversión: de los compradores de ese tipo que vieron la recomendación, qué parte pagó la inspección desde ahí. Resaltada, la que mejor funciona para ese tipo de usuario.</p>
+        </figure>
         <p class="campo__ayuda" id="sin-origen"></p>
+      </section>
+
+      <section class="metricas-panel pila" id="p-metabuscador" data-pestana="metabuscador" aria-labelledby="t-metabuscador" hidden>
+        <h2 class="solo-lector" id="t-metabuscador">Metabuscador</h2>
+        <p class="campo__ayuda">"Buscaron" = abrieron los resultados de una búsqueda del metabuscador en el período. "Compraron" = de esos, cuántos <strong>pagaron una inspección</strong> en el período.</p>
+        <ul class="resumen-admin" role="list" id="kpis-metabuscador"></ul>
+        <figure class="grafico">
+          <figcaption class="grafico__titulo">Cuántos buscaron y cuántos compraron, por tipo de usuario</figcaption>
+          <ul class="comparar__leyenda" role="list" aria-hidden="true">
+            <li><span class="comparar__muestra comparar__barra--buscaron"></span>Buscaron</li>
+            <li><span class="comparar__muestra comparar__barra--compraron"></span>Compraron (pagaron la inspección)</li>
+          </ul>
+          <ul class="comparar" id="buscaron-compraron" role="list"></ul>
+        </figure>
+        <figure class="grafico"><figcaption class="solo-lector">Compradores que buscaron en el metabuscador, en el tiempo</figcaption><div id="grafico-buscaron"></div></figure>
+        <figure class="grafico">
+          <figcaption class="grafico__titulo">Cómo ordenan los resultados, por tipo de usuario</figcaption>
+          <div class="tabla-desplazable"><table class="tabla tabla-embudo tabla-perfil" id="tabla-ordenes"></table></div>
+          <p class="campo__ayuda">Compradores distintos que eligieron cada opción de "Ordenar por" (y qué parte de los de ese tipo que eligieron un orden). Si un perfil casi nunca usa "Recomendado", la fórmula de "para vos" de ese perfil no le muestra lo que busca.</p>
+        </figure>
+        <article class="recuadro">
+          <h3 class="informe-plata__titulo">Qué parámetros cambiar</h3>
+          <ul class="sugerencias-orden" id="sugerencias-orden" role="list"></ul>
+        </article>
       </section>
 
       <section class="metricas-panel pila" id="p-usuarios" data-pestana="usuarios" aria-labelledby="t-usuarios" hidden>

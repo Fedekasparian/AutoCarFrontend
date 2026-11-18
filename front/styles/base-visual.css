@@ -806,6 +806,15 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .novedades__cifra--nuevos strong{ color: #2f855a; }
 .novedades__cifra--bajaron strong{ color: #2b6cb0; }
 .novedades__cifra--retirados strong{ color: var(--marca-gris); }
+/* "Nuevos" y "bajaron" se tocan para ver cuáles son: el botón ocupa toda la cifra */
+.novedades__cifra:has(.novedades__boton){ padding: 0; }
+.novedades__boton{ display: grid; gap: 2px; width: 100%; padding: 14px 16px; border: 0; border-radius: inherit; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.novedades__boton:hover, .novedades__boton[aria-expanded="true"]{ background: var(--marca-tenue); }
+.novedades__boton:focus-visible{ outline: 2px solid currentColor; outline-offset: 2px; }
+.novedades__boton span::after{ content: " ›"; }
+.novedades__boton[aria-expanded="true"] span::after{ content: " ⌄"; }
+.novedades-detalle[hidden]{ display: none; }
+.resultado__antes{ display: block; font-size: 13px; color: var(--marca-gris); }
 /* Cuáles son las novedades sin ver: una fila por auto, con el tipo como pastilla */
 .novedades-sin-ver__titulo{ margin: 4px 0 8px; font-family: var(--fuente-titulos); font-size: 18px; }
 .novedades-sin-ver__lista{ display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
@@ -1404,6 +1413,39 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .embudo__valor strong{ font-size: 18px; color: var(--marca-tinta); font-variant-numeric: tabular-nums; }
 .tabla-embudo td:not(:first-child), .tabla-embudo th:not(:first-child){ text-align: right; font-variant-numeric: tabular-nums; }
 .tabla-embudo__mejor td{ font-weight: 700; background: color-mix(in srgb, var(--marca-acento) 14%, transparent); }
+
+/* Estadísticas por tipo de usuario */
+.segmento-plata{ display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.segmento-plata[hidden]{ display: none; }
+.segmento-plata .pestanas-estado{ flex-wrap: wrap; overflow-x: visible; }
+.grafico__subtitulo{ margin: 18px 0 10px; font-size: 14px; font-weight: 600; color: var(--marca-gris); }
+.tabla-perfil th[scope="row"]{ font-weight: 600; white-space: nowrap; text-align: left; }
+.tabla-perfil__mejor{ font-weight: 700; background: color-mix(in srgb, var(--marca-acento) 14%, transparent); }
+.tabla-perfil__detalle{ display: block; font-size: 12px; font-weight: 400; color: var(--marca-gris); }
+.tabla-perfil__elegida td{ box-shadow: inset 0 -2px 0 var(--marca-acento); }
+.comparar{ display: grid; gap: 16px; margin: 0; padding: 0; list-style: none; }
+.comparar__grupo{ display: grid; gap: 6px; }
+.comparar__grupo--total{ padding-bottom: 14px; border-bottom: 1px solid color-mix(in srgb, var(--marca-gris) 25%, transparent); }
+.comparar__nombre{ display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; font-size: 14px; font-weight: 600; color: var(--marca-tinta); }
+.comparar__tasa{ font-size: 12px; font-weight: 500; color: var(--marca-gris); }
+.comparar__fila{ display: grid; grid-template-columns: 84px minmax(0, 1fr) 56px; align-items: center; gap: 10px; font-size: 13px; }
+.comparar__que{ color: var(--marca-gris); }
+.comparar__barra{ position: relative; height: 14px; }
+.comparar__barra::before{
+    content: ""; position: absolute; inset: 0 auto 0 0; width: var(--largo, 0%); border-radius: 0 4px 4px 0;
+    background: var(--color); transform-origin: left; animation: rango-crece .8s var(--curva-salida) both;
+}
+.comparar__barra--buscaron{ --color: var(--serie-1); }
+.comparar__barra--compraron{ --color: var(--serie-2); }
+.comparar__valor{ text-align: right; font-weight: 700; color: var(--marca-tinta); font-variant-numeric: tabular-nums; }
+.comparar__leyenda{ display: flex; flex-wrap: wrap; gap: 16px; margin: 0 0 14px; padding: 0; list-style: none; font-size: 13px; color: var(--marca-gris); }
+.comparar__leyenda li{ display: inline-flex; align-items: center; gap: 6px; }
+.comparar__muestra{ width: 12px; height: 12px; border-radius: 3px; background: var(--color); }
+.sugerencias-orden{ display: grid; gap: 8px; margin: 0; padding: 0 0 0 18px; font-size: 14px; color: var(--marca-tinta); }
+.sugerencias-orden .barras__vacio{ list-style: none; margin-left: -18px; }
+@media (prefers-reduced-motion: reduce){
+    .comparar__barra::before{ animation: none; }
+}
 @media (max-width: 640px){
     .embudo__paso{ grid-template-columns: 1fr auto; }
     .embudo__barra{ grid-column: 1 / -1; grid-row: 2; }
