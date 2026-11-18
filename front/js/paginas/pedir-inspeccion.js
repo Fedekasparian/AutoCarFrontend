@@ -40,7 +40,8 @@ function describirUrl() {
 }
 
 // Datos que llegan en la URL desde el botón "Mandale un mecánico": son los del aviso y quedan fijos (solo
-// lectura). El comprador solo completa los que el aviso no trae.
+// lectura). El comprador solo completa los que el aviso no trae, salvo el precio: ese nunca lo escribe él
+// (si el aviso no lo muestra, el informe va sin precio).
 function precargar() {
     const mapa = { url: 'url', titulo: 'titulo', anio: 'anio', km: 'kilometraje', precio: 'precio_publicado', localidad: 'localidad' };
     let faltan = false;
@@ -53,6 +54,9 @@ function precargar() {
         if (valor) {
             form.elements[campo].value = valor;
             form.elements[campo].readOnly = true;
+        } else if (campo === 'precio_publicado') {
+            form.elements[campo].readOnly = true;
+            form.elements[campo].placeholder = 'El aviso no lo muestra';
         } else {
             faltan = true;
         }
