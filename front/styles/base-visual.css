@@ -1165,8 +1165,10 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .grafico[hidden]{ display: none; }
 .grafico__titulo{ margin-bottom: 14px; font-weight: 700; color: var(--marca-tinta); }
 .graficos-fila{ display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
-.barras{ display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
-.barras__fila{ display: grid; grid-template-columns: minmax(90px, 160px) minmax(0, 1fr) 96px; align-items: center; gap: 12px; font-size: 14px; }
+.barras{ display: grid; grid-template-columns: minmax(90px, 160px) minmax(0, 1fr) auto; gap: 10px 12px; margin: 0; padding: 0; list-style: none; }
+/* Cada fila usa las columnas de la lista (subgrid): todas las barras empiezan y terminan en el mismo lugar,
+   aunque un valor sea más largo que otro ("$ 1.390.000 100 %") */
+.barras__fila{ grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: center; font-size: 14px; }
 .barras__nombre{ color: var(--marca-tinta); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .barras__barra{ position: relative; height: 14px; }
 .barras__barra::before{
@@ -1176,7 +1178,7 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 }
 .barras__fila:hover .barras__barra::before{ filter: brightness(1.12); }
 .barras__valor{ text-align: right; font-weight: 700; color: var(--marca-tinta); font-variant-numeric: tabular-nums; }
-.barras__vacio{ color: var(--marca-gris); font-size: 14px; }
+.barras__vacio{ grid-column: 1 / -1; color: var(--marca-gris); font-size: 14px; }
 
 /* Reparto de lo facturado: barra apilada con 2px de separación y la leyenda con montos */
 .reparto__barra{ display: flex; gap: 2px; height: 22px; border-radius: 6px; overflow: hidden; }
@@ -1210,7 +1212,7 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
     .resumen-admin > li.recuadro{ padding: 14px !important; }
     .resumen-admin strong{ font-size: 22px; }
     .resumen-admin__dinero strong{ font-size: 17px; }
-    .barras__fila{ grid-template-columns: minmax(80px, 110px) minmax(0, 1fr) 84px; gap: 8px; }
+    .barras{ grid-template-columns: minmax(80px, 110px) minmax(0, 1fr) auto; column-gap: 8px; }
 }
 /* Por qué este auto le conviene a su perfil ("para vos", ver js/servicios/perfil.js) */
 .resultado__para-vos{ display: block; margin-top: 4px; font-size: var(--tam-sm); color: var(--color-texto-suave); }
@@ -1399,8 +1401,9 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .barras__barra--observado::before{ background: var(--observado) !important; }
 .barras__barra--falla::before{ background: var(--falla) !important; }
 
-.embudo{ display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
-.embudo__paso{ display: grid; grid-template-columns: minmax(150px, 240px) minmax(0, 1fr) minmax(0, 170px); align-items: center; gap: 14px; font-size: 14px; }
+.embudo{ display: grid; grid-template-columns: minmax(150px, 240px) minmax(0, 1fr) minmax(0, 170px); gap: 12px 14px; margin: 0; padding: 0; list-style: none; }
+/* Igual que .barras: los pasos comparten columnas, así las barras del embudo quedan alineadas */
+.embudo__paso{ grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: center; font-size: 14px; }
 .embudo__nombre{ color: var(--marca-tinta); font-weight: 600; }
 .embudo__barra{ position: relative; height: 22px; min-width: 0; overflow: hidden; }
 .embudo__barra::before{
@@ -1447,7 +1450,7 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
     .comparar__barra::before{ animation: none; }
 }
 @media (max-width: 640px){
-    .embudo__paso{ grid-template-columns: 1fr auto; }
+    .embudo{ grid-template-columns: minmax(0, 1fr) auto; }
     .embudo__barra{ grid-column: 1 / -1; grid-row: 2; }
     .tendencia__cuerpo{ grid-template-rows: 130px 20px; }
     .tendencia__total{ font-size: 24px; }
