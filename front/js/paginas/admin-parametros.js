@@ -39,7 +39,7 @@ function campoDe(p) {
 // La fórmula de "Recomendados" (parámetros peso_<perfil>_<criterio>): una grilla perfil × criterio en vez de 16 campos
 const PERFILES = { personal: 'Uso personal', familia: 'Familia', trabajo: 'Trabajo', aplicacion: 'Aplicación (Uber, Cabify)' };
 const CRITERIOS = { precio: 'Precio', km: 'Kilómetros', dias: 'Días publicado', anio: 'Año' };
-// Lo que se ve al pasar el mouse por cada columna de la grilla: qué mide y qué pasa si le subís el peso
+// Lo que se ve abajo de la grilla al pasar el mouse (o tocar) una columna: qué mide y qué pasa si le subís el peso
 const AYUDA_CRITERIOS = {
     precio: 'Compara el precio del auto con el de autos parecidos. Más peso: suben los autos más baratos que el resto.',
     km: 'Compara los kilómetros del auto con los típicos de autos parecidos. Más peso: suben los autos con menos km.',
@@ -57,19 +57,29 @@ function formula(pesos) {
         return el('td', {}, el('input', {
             class: 'campo__input formula__peso', id: p.clave, name: p.clave, type: 'number', required: true,
             min: p.minimo, max: p.maximo, step: 'any', inputmode: 'decimal', value: Number(p.valor.toFixed(2)),
-            title: AYUDA_CRITERIOS[criterio], 'aria-label': `${PERFILES[perfil]}: peso de ${CRITERIOS[criterio].toLowerCase()}`, 'aria-describedby': `${p.clave}-error`,
+            'data-criterio': criterio, 'aria-label': `${PERFILES[perfil]}: peso de ${CRITERIOS[criterio].toLowerCase()}`, 'aria-describedby': `${p.clave}-error`,
         }), el('span', { class: 'campo__error', id: `${p.clave}-error` }));
     };
     const { minimo, maximo } = pesos[0];
+    const textoInicial = 'Pasá el mouse por una columna (o tocá un casillero) para ver qué mide y qué pasa si le subís el peso.';
+    const ayuda = el('p', { class: 'formula__ayuda', 'aria-live': 'polite' }, textoInicial);
+    const tabla = el('table', { class: 'tabla formula__tabla' },
+        el('thead', {}, el('tr', {}, el('th', {}, 'Perfil'), ...Object.entries(CRITERIOS).map(([criterio, c]) => el('th', { class: 'formula__criterio', 'data-criterio': criterio, tabindex: 0 }, c)))),
+        el('tbody', {}, ...Object.entries(PERFILES).map(([perfil, nombre]) => el('tr', {},
+            el('th', { scope: 'row' }, nombre), ...Object.keys(CRITERIOS).map((criterio) => celda(perfil, criterio))))));
+    const explicar = (evento) => {
+        const criterio = evento.target.closest('[data-criterio]')?.dataset.criterio;
+        if (criterio) ayuda.replaceChildren(el('strong', {}, `${CRITERIOS[criterio]}: `), AYUDA_CRITERIOS[criterio]);
+    };
+    tabla.addEventListener('mouseover', explicar);
+    tabla.addEventListener('focusin', explicar);
     return el('section', { class: 'pila formula', 'aria-labelledby': 'formula-titulo' },
         el('h2', { id: 'formula-titulo' }, 'Fórmula de "Recomendados"'),
         el('p', { class: 'campo__ayuda' }, `Cuánto pesa cada cosa al ordenar el metabuscador según para qué busca el auto cada comprador: de ${minimo} (no cuenta) a ${maximo} (lo que más importa). Mirá en Estadísticas → Recomendaciones si "Recomendados" convierte y ajustalo acá.`),
         el('p', { class: 'formula__cuenta' }, 'Puntaje = (peso precio × precio + peso km × km + peso días × días + peso año × año) ÷ suma de los pesos'),
         comoSeCalcula(),
-        el('div', { class: 'tabla-desplazable' }, el('table', { class: 'tabla formula__tabla' },
-            el('thead', {}, el('tr', {}, el('th', {}, 'Perfil'), ...Object.entries(CRITERIOS).map(([criterio, c]) => el('th', { class: 'formula__criterio', title: AYUDA_CRITERIOS[criterio] }, c)))),
-            el('tbody', {}, ...Object.entries(PERFILES).map(([perfil, nombre]) => el('tr', {},
-                el('th', { scope: 'row' }, nombre), ...Object.keys(CRITERIOS).map((criterio) => celda(perfil, criterio))))))));
+        el('div', { class: 'tabla-desplazable' }, tabla),
+        ayuda);
 }
 
 // Cómo sale el puntaje de cada auto (MetaBusqueda\ParaVos del back). Los topes son fijos; los pesos, los de la grilla.
