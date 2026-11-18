@@ -66,7 +66,8 @@ La lista viva está en [`../PENDIENTES.md`](../PENDIENTES.md).
 | `taller-verificacion.html` | `/taller/verificacion/:id` | Inspección con el checklist. Al cargar la patente el mecánico ve si el auto ya se revisó antes |
 | `como-funciona.html` | `/como-funciona` | Cómo funciona para quien compra, vende o es mecánico; los números salen de `GET /api/parametros` |
 | `legales.html` | `/legales` | Términos y política de privacidad (se acepta al registrarse) |
-| `admin-parametros.html` | `/admin/parametros` | Parámetros del negocio (`GET/PUT /api/admin/parametros`, permiso `parametros.editar`): comisión, fondo, tope, días de reclamo y precio de la inspección, con historial de cambios |
+| `admin-parametros.html` | `/admin/parametros` | Parámetros del negocio (`GET/PUT /api/admin/parametros`, permiso `parametros.editar`): comisión, fondo, tope, días de reclamo y precio de la inspección, con historial de cambios (las fallas de internet se cargan en `admin-fallas.html`) |
+| `admin-fallas.html` | `/admin/fallas` | Fallas típicas de internet (idea B, permiso `parametros.editar`): cargarlas con la fuente (`POST /api/admin/fallas-tipicas`) y ver las que ya tiene cada modelo (`GET /api/fallas-tipicas`) |
 | `contacto.html` | `/ayuda/contacto` | Contacto (`POST /api/contacto`, sin cuenta) |
 | `reportar.html` | `/reportes/nuevo` | Reportar publicación (`?vehiculo=N`) o usuario (`?usuario=N`) |
 | `admin-soporte.html` | `/admin/soporte` | Panel: reportes (moderador) y mensajes de contacto (admin) |

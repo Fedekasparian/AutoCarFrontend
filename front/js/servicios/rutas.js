@@ -8,6 +8,7 @@ const PAGINAS = {
     'index.html': 'index.html',
     'admin-metricas.html': 'pages/admin/admin-metricas.html',
     'admin-parametros.html': 'pages/admin/admin-parametros.html',
+    'admin-fallas.html': 'pages/admin/admin-fallas.html',
     'admin-moderar.html': 'pages/admin/admin-moderar.html',
     'admin-reclamos.html': 'pages/admin/admin-reclamos.html',
     'admin-soporte.html': 'pages/admin/admin-soporte.html',
