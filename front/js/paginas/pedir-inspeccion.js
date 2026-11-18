@@ -216,7 +216,9 @@ form.addEventListener('submit', async (evento) => {
             modelo: marca && modelo ? modelo : null,
             origen: params.get('origen') || null, // de dónde tocó "Mandale un mecánico" (estadísticas)
         });
-        window.location.assign(ruta(`mis-inspecciones.html?nueva=${inspeccion.id}`));
+        // Con Mercado Pago, se va a pagar y vuelve al detalle de la inspección; si no, como antes
+        if (inspeccion.cobro?.checkout_url) window.location.assign(inspeccion.cobro.checkout_url);
+        else window.location.assign(ruta(`mis-inspecciones.html?nueva=${inspeccion.id}`));
     } catch (error) {
         if (error.status === 401) {
             sesion.requerirLogin();
