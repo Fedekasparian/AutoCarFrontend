@@ -34,12 +34,21 @@ test('el admin recorre las estadísticas y ve la fórmula de para vos', async ({
         await expect(page.locator('#tabla-embudo tbody tr')).toHaveCount(4);
     });
 
+    await test.step('la pestaña Inspecciones muestra estados, conclusiones y talleres', async () => {
+        await page.getByRole('button', { name: 'Inspecciones' }).click();
+        await expect(page).toHaveURL(/#inspecciones$/);
+        await expect(page.locator('#kpis-inspecciones > li')).toHaveCount(6);
+        await expect(page.locator('#barras-inspecciones > li').first()).toBeVisible();
+        await expect(page.locator('#tabla-mecanicos thead th')).toHaveCount(4);
+    });
+
     await test.step('el período cambia y queda en la URL', async () => {
         await page.getByRole('button', { name: '3 meses' }).click();
         await expect(page).toHaveURL(/dias=90#embudo$/);
         await expect(page.getByRole('button', { name: '3 meses' })).toHaveAttribute('aria-pressed', 'true');
         await page.getByRole('button', { name: 'Plata' }).click();
-        await expect(page.locator('#grafico-plata')).not.toBeEmpty();
+        await expect(page.locator('#grafico-ganancia .tendencia__nombre')).toHaveText('Ganancia de AutoCar');
+        await expect(page.locator('#grafico-reclamos')).not.toBeEmpty();
         // Al recargar sigue en la misma pestaña y período
         await page.reload();
         await expect(page.locator('#p-plata')).toBeVisible({ timeout: 60_000 });

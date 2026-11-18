@@ -1157,7 +1157,7 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .grafico__titulo{ margin-bottom: 14px; font-weight: 700; color: var(--marca-tinta); }
 .graficos-fila{ display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
 .barras{ display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
-.barras__fila{ display: grid; grid-template-columns: minmax(90px, 140px) minmax(0, 1fr) 56px; align-items: center; gap: 12px; font-size: 14px; }
+.barras__fila{ display: grid; grid-template-columns: minmax(90px, 160px) minmax(0, 1fr) 96px; align-items: center; gap: 12px; font-size: 14px; }
 .barras__nombre{ color: var(--marca-tinta); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .barras__barra{ position: relative; height: 14px; }
 .barras__barra::before{
@@ -1201,7 +1201,7 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
     .resumen-admin > li.recuadro{ padding: 14px !important; }
     .resumen-admin strong{ font-size: 22px; }
     .resumen-admin__dinero strong{ font-size: 17px; }
-    .barras__fila{ grid-template-columns: minmax(80px, 110px) minmax(0, 1fr) 40px; gap: 8px; }
+    .barras__fila{ grid-template-columns: minmax(80px, 110px) minmax(0, 1fr) 84px; gap: 8px; }
 }
 /* Por qué este auto le conviene a su perfil ("para vos", ver js/servicios/perfil.js) */
 .resultado__para-vos{ display: block; margin-top: 4px; font-size: var(--tam-sm); color: var(--color-texto-suave); }
@@ -1319,7 +1319,7 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 }
 .barra .boton-modo{ position: relative; z-index: 1; }
 
-/* ---------- Estadísticas del admin (admin-metricas.html): pestañas, período, variaciones, columnas y embudo ---------- */
+/* ---------- Estadísticas del admin (admin-metricas.html): pestañas, período, variaciones, tendencias y embudo ---------- */
 .metricas-controles{ display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
 .metricas-periodo{ display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .metricas-periodo__etiqueta{ font-size: 13px; font-weight: 600; color: var(--marca-gris); }
@@ -1330,25 +1330,45 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .resumen-admin .variacion--buena{ color: var(--ok); }
 .resumen-admin .variacion--mala{ color: var(--falla); }
 
-.serie--1{ background: var(--serie-1); }
-.serie--2{ background: var(--serie-2); }
-.serie--perdida{ background: var(--falla); }
-.columnas__leyenda{ display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0 0 12px; padding: 0; list-style: none; font-size: 13px; color: var(--marca-gris); }
-.columnas__leyenda li{ display: inline-flex; align-items: center; gap: 8px; }
-.columnas__muestra{ width: 12px; height: 12px; border-radius: 3px; }
-.columnas{
-    display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 3px;
-    margin: 0; padding: 0 0 4px; list-style: none; border-bottom: 1px solid var(--marca-linea);
+/* Tendencia: UNA serie por gráfico (línea con su área), total arriba, eje con números redondos y valor al pasar el mouse */
+.tendencia{ --color: var(--serie-1); display: grid; gap: 14px; }
+.tendencia--2{ --color: var(--serie-2); }
+.tendencia--perdida{ --color: var(--falla); }
+.tendencia__cabeza{ display: grid; gap: 2px; }
+.tendencia__nombre{ font-weight: 700; color: var(--marca-tinta); }
+.tendencia__total{ font-family: "Sora", sans-serif; font-size: 28px; line-height: 1.15; color: var(--marca-tinta); font-variant-numeric: tabular-nums; }
+.tendencia__promedio{ font-size: 13px; color: var(--marca-gris); }
+.tendencia__cuerpo{ display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: 170px 20px; column-gap: 10px; }
+.tendencia__eje{ position: relative; min-width: 34px; font-size: 11px; color: var(--marca-gris); font-variant-numeric: tabular-nums; }
+.tendencia__eje span{ position: absolute; right: 0; transform: translateY(-50%); white-space: nowrap; }
+.tendencia__lienzo{ position: relative; touch-action: pan-y; cursor: crosshair; }
+.tendencia__dibujo{ display: block; width: 100%; height: 100%; overflow: visible; }
+.tendencia__guia{ stroke: var(--marca-linea); stroke-width: 1; }
+.tendencia__area{ fill: color-mix(in srgb, var(--color) 16%, transparent); }
+.tendencia__linea{ fill: none; stroke: var(--color); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.tendencia__fechas{ position: relative; grid-column: 2; font-size: 11px; color: var(--marca-gris); }
+.tendencia__fechas span{ position: absolute; top: 4px; transform: translateX(-50%); white-space: nowrap; }
+.tendencia__fechas span:first-child{ transform: none; }
+.tendencia__fechas span:last-child{ transform: translateX(-100%); }
+.tendencia__cursor{ position: absolute; top: 0; bottom: 0; width: 1px; background: var(--marca-gris); opacity: .6; pointer-events: none; }
+.tendencia__punto{ position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: var(--color); box-shadow: 0 0 0 2px var(--marca-blanco); pointer-events: none; }
+.tendencia__cartel{
+    position: absolute; top: 4px; display: grid; gap: 2px; margin-left: 10px; padding: 6px 10px; border: 1px solid var(--marca-linea);
+    border-radius: 8px; background: var(--marca-blanco); box-shadow: 0 4px 14px rgb(0 0 0 / .12); font-size: 12px; color: var(--marca-gris);
+    white-space: nowrap; pointer-events: none; z-index: 1;
 }
-.columnas__grupo{ display: grid; grid-template-rows: 160px auto; gap: 6px; min-width: 0; }
-.columnas__barras{ display: flex; align-items: flex-end; justify-content: center; gap: 2px; height: 160px; }
-.columnas__barra{
-    flex: 1 1 0; max-width: 18px; height: max(var(--alto), 0px); border-radius: 3px 3px 0 0;
-    transform-origin: bottom; animation: columna-crece .7s var(--curva-salida) both; animation-delay: calc(min(var(--n, 0), 30) * 15ms);
-}
-.columnas__grupo:hover .columnas__barra{ filter: brightness(1.15); }
-.columnas__fecha{ font-size: 11px; color: var(--marca-gris); text-align: center; white-space: nowrap; overflow: visible; height: 14px; }
-@keyframes columna-crece{ from{ transform: scaleY(0); } }
+.tendencia__cartel strong{ font-size: 15px; color: var(--marca-tinta); font-variant-numeric: tabular-nums; }
+.tendencia__cartel--izquierda{ margin-left: 0; transform: translateX(calc(-100% - 10px)); }
+.tendencia__cursor[hidden], .tendencia__punto[hidden], .tendencia__cartel[hidden]{ display: none; }
+.tendencia__area, .tendencia__linea{ animation: tendencia-aparece .6s var(--curva-salida) both; }
+@keyframes tendencia-aparece{ from{ opacity: 0; } }
+
+/* Barras: el porcentaje del total al lado del número y, para estados, el color del estado */
+.barras__valor{ display: inline-flex; justify-content: flex-end; align-items: baseline; gap: 6px; }
+.barras__parte{ min-width: 36px; font-size: 12px; font-weight: 500; color: var(--marca-gris); }
+.barras__barra--ok::before{ background: var(--ok) !important; }
+.barras__barra--observado::before{ background: var(--observado) !important; }
+.barras__barra--falla::before{ background: var(--falla) !important; }
 
 .embudo{ display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
 .embudo__paso{ display: grid; grid-template-columns: minmax(150px, 240px) minmax(0, 1fr) minmax(0, 170px); align-items: center; gap: 14px; font-size: 14px; }
@@ -1367,11 +1387,11 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 @media (max-width: 640px){
     .embudo__paso{ grid-template-columns: 1fr auto; }
     .embudo__barra{ grid-column: 1 / -1; grid-row: 2; }
-    .columnas__grupo{ grid-template-rows: 120px auto; }
-    .columnas__barras{ height: 120px; }
+    .tendencia__cuerpo{ grid-template-rows: 130px 20px; }
+    .tendencia__total{ font-size: 24px; }
 }
 @media (prefers-reduced-motion: reduce){
-    .columnas__barra, .embudo__barra::before{ animation: none; }
+    .tendencia__area, .tendencia__linea, .embudo__barra::before{ animation: none; }
 }
 
 /* Parámetros: la fórmula de "para vos" como grilla perfil × criterio */
