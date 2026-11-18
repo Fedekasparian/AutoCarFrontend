@@ -45,7 +45,8 @@ export const solicitudesTaller = (estado) => get('/api/admin/solicitudes-taller'
 export const resolverSolicitudTaller = (id, resolucion) =>
     patch(`/api/admin/solicitudes-taller/${encodeURIComponent(id)}`, resolucion);
 
-export const metricas = () => get('/api/admin/metricas');
+// dias: 7, 30 o 90 (el período de resumen, serie y embudo; sin indicar, 30)
+export const metricas = (dias) => get('/api/admin/metricas', dias ? { dias } : undefined);
 
 // Fondo de garantía (solo paga reclamos; pago simulado) → {fondo: {saldo, aportes, franquicias, devoluciones,
 //  compensaciones, firmadas, reclamos, supuesto: {aporte_por_inspeccion, costo_reclamo, inspecciones_por_reclamo},

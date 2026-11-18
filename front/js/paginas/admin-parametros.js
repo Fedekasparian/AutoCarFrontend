@@ -15,7 +15,7 @@ const campos = document.getElementById('campos');
 const listaCambios = document.getElementById('cambios');
 const aviso = document.getElementById('aviso');
 
-const UNIDADES = { porcentaje: '%', pesos: '$', dias: 'días', veces: 'veces', horas: 'horas' };
+const UNIDADES = { porcentaje: '%', pesos: '$', dias: 'días', veces: 'veces', horas: 'horas', puntos: 'puntos' };
 let actuales = {}; // clave → valor que tiene hoy, para mandar solo lo que cambió
 
 // Un valor con su unidad: "23 %", "$100.000", "15 días"
@@ -39,6 +39,33 @@ function campoDe(p) {
         el('span', { class: 'campo__error', id: `${p.clave}-error` }));
 }
 
+// La fórmula de "para vos" (parámetros peso_<perfil>_<criterio>): una grilla perfil × criterio en vez de 16 campos
+const PERFILES = { personal: 'Uso personal', familia: 'Familia', trabajo: 'Trabajo', aplicacion: 'Aplicación (Uber, Cabify)' };
+const CRITERIOS = { precio: 'Precio', km: 'Kilómetros', dias: 'Días publicado', anio: 'Año' };
+const esPeso = (p) => p.clave.startsWith('peso_');
+
+function formula(pesos) {
+    if (!pesos.length) return null;
+    const porClave = Object.fromEntries(pesos.map((p) => [p.clave, p]));
+    const celda = (perfil, criterio) => {
+        const p = porClave[`peso_${perfil}_${criterio}`];
+        if (!p) return el('td', {}, '—');
+        return el('td', {}, el('input', {
+            class: 'campo__input formula__peso', id: p.clave, name: p.clave, type: 'number', required: true,
+            min: p.minimo, max: p.maximo, step: 'any', inputmode: 'decimal', value: Number(p.valor.toFixed(2)),
+            'aria-label': `${PERFILES[perfil]}: peso de ${CRITERIOS[criterio].toLowerCase()}`, 'aria-describedby': `${p.clave}-error`,
+        }), el('span', { class: 'campo__error', id: `${p.clave}-error` }));
+    };
+    const { minimo, maximo } = pesos[0];
+    return el('section', { class: 'pila formula', 'aria-labelledby': 'formula-titulo' },
+        el('h2', { id: 'formula-titulo' }, 'Fórmula de "para vos"'),
+        el('p', { class: 'campo__ayuda' }, `Cuánto pesa cada cosa al ordenar el metabuscador según para qué busca el auto cada comprador: de ${minimo} (no cuenta) a ${maximo} (lo que más importa). Mirá en Estadísticas → Recomendaciones si "para vos" convierte y ajustalo acá.`),
+        el('div', { class: 'tabla-desplazable' }, el('table', { class: 'tabla formula__tabla' },
+            el('thead', {}, el('tr', {}, el('th', {}, 'Perfil'), ...Object.values(CRITERIOS).map((c) => el('th', {}, c)))),
+            el('tbody', {}, ...Object.entries(PERFILES).map(([perfil, nombre]) => el('tr', {},
+                el('th', { scope: 'row' }, nombre), ...Object.keys(CRITERIOS).map((criterio) => celda(perfil, criterio))))))));
+}
+
 function mostrar({ parametros, cambios }) {
     actuales = {};
     const unidades = {};
@@ -46,7 +73,7 @@ function mostrar({ parametros, cambios }) {
         actuales[p.clave] = p.valor;
         unidades[p.clave] = p.unidad;
     });
-    campos.replaceChildren(...parametros.map(campoDe));
+    campos.replaceChildren(...parametros.filter((p) => !esPeso(p)).map(campoDe), formula(parametros.filter(esPeso)) ?? '');
 
     const nombres = Object.fromEntries(parametros.map((p) => [p.clave, p.descripcion]));
     listaCambios.replaceChildren(...(cambios.length ? cambios.map((c) => el('li', { class: 'fila' },

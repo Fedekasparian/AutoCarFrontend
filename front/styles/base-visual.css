@@ -1318,3 +1318,63 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
     .barra .boton-modo{ display: none; }
 }
 .barra .boton-modo{ position: relative; z-index: 1; }
+
+/* ---------- Estadísticas del admin (admin-metricas.html): pestañas, período, variaciones, columnas y embudo ---------- */
+.metricas-controles{ display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.metricas-periodo{ display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.metricas-periodo__etiqueta{ font-size: 13px; font-weight: 600; color: var(--marca-gris); }
+.metricas-panel[hidden]{ display: none; }
+.metricas--cargando .metricas-panel{ opacity: .5; transition: opacity var(--dur-media); }
+
+.resumen-admin .variacion{ font-size: 12px; font-weight: 600; color: var(--marca-gris); }
+.resumen-admin .variacion--buena{ color: var(--ok); }
+.resumen-admin .variacion--mala{ color: var(--falla); }
+
+.serie--1{ background: var(--serie-1); }
+.serie--2{ background: var(--serie-2); }
+.serie--perdida{ background: var(--falla); }
+.columnas__leyenda{ display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0 0 12px; padding: 0; list-style: none; font-size: 13px; color: var(--marca-gris); }
+.columnas__leyenda li{ display: inline-flex; align-items: center; gap: 8px; }
+.columnas__muestra{ width: 12px; height: 12px; border-radius: 3px; }
+.columnas{
+    display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 3px;
+    margin: 0; padding: 0 0 4px; list-style: none; border-bottom: 1px solid var(--marca-linea);
+}
+.columnas__grupo{ display: grid; grid-template-rows: 160px auto; gap: 6px; min-width: 0; }
+.columnas__barras{ display: flex; align-items: flex-end; justify-content: center; gap: 2px; height: 160px; }
+.columnas__barra{
+    flex: 1 1 0; max-width: 18px; height: max(var(--alto), 0px); border-radius: 3px 3px 0 0;
+    transform-origin: bottom; animation: columna-crece .7s var(--curva-salida) both; animation-delay: calc(min(var(--n, 0), 30) * 15ms);
+}
+.columnas__grupo:hover .columnas__barra{ filter: brightness(1.15); }
+.columnas__fecha{ font-size: 11px; color: var(--marca-gris); text-align: center; white-space: nowrap; overflow: visible; height: 14px; }
+@keyframes columna-crece{ from{ transform: scaleY(0); } }
+
+.embudo{ display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.embudo__paso{ display: grid; grid-template-columns: minmax(150px, 240px) minmax(0, 1fr) minmax(120px, auto); align-items: center; gap: 14px; font-size: 14px; }
+.embudo__nombre{ color: var(--marca-tinta); font-weight: 600; }
+.embudo__barra{ position: relative; height: 22px; }
+.embudo__barra::before{
+    content: ""; position: absolute; inset: 0 auto 0 0; width: var(--largo); border-radius: 0 6px 6px 0;
+    background: var(--serie-1); transform-origin: left; animation: rango-crece .8s var(--curva-salida) both;
+}
+.embudo__paso:nth-child(3) .embudo__barra::before{ background: var(--serie-2); }
+.embudo__paso:nth-child(4) .embudo__barra::before{ background: var(--ok); }
+.embudo__valor{ display: grid; color: var(--marca-gris); font-size: 12px; }
+.embudo__valor strong{ font-size: 18px; color: var(--marca-tinta); font-variant-numeric: tabular-nums; }
+.tabla-embudo td:not(:first-child), .tabla-embudo th:not(:first-child){ text-align: right; font-variant-numeric: tabular-nums; }
+.tabla-embudo__mejor td{ font-weight: 700; background: color-mix(in srgb, var(--marca-acento) 14%, transparent); }
+@media (max-width: 640px){
+    .embudo__paso{ grid-template-columns: 1fr auto; }
+    .embudo__barra{ grid-column: 1 / -1; grid-row: 2; }
+    .columnas__grupo{ grid-template-rows: 120px auto; }
+    .columnas__barras{ height: 120px; }
+}
+@media (prefers-reduced-motion: reduce){
+    .columnas__barra, .embudo__barra::before{ animation: none; }
+}
+
+/* Parámetros: la fórmula de "para vos" como grilla perfil × criterio */
+.formula__tabla{ min-width: 560px; }
+.formula__tabla th[scope="row"]{ font-weight: 600; white-space: nowrap; }
+.formula__peso{ width: 84px; min-height: 40px; text-align: center; }
