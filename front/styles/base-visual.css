@@ -1351,9 +1351,9 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 @keyframes columna-crece{ from{ transform: scaleY(0); } }
 
 .embudo{ display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
-.embudo__paso{ display: grid; grid-template-columns: minmax(150px, 240px) minmax(0, 1fr) minmax(120px, auto); align-items: center; gap: 14px; font-size: 14px; }
+.embudo__paso{ display: grid; grid-template-columns: minmax(150px, 240px) minmax(0, 1fr) minmax(0, 170px); align-items: center; gap: 14px; font-size: 14px; }
 .embudo__nombre{ color: var(--marca-tinta); font-weight: 600; }
-.embudo__barra{ position: relative; height: 22px; }
+.embudo__barra{ position: relative; height: 22px; min-width: 0; overflow: hidden; }
 .embudo__barra::before{
     content: ""; position: absolute; inset: 0 auto 0 0; width: var(--largo); border-radius: 0 6px 6px 0;
     background: var(--serie-1); transform-origin: left; animation: rango-crece .8s var(--curva-salida) both;
