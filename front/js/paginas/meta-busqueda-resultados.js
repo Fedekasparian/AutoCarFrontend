@@ -34,21 +34,28 @@ const precioOriginal = (a) => (a.moneda === 'USD' && a.precio !== null && cotiza
     ? el('span', { class: 'resultado__original' }, `Publicado en US$ ${dolares.format(a.precio)}`)
     : null);
 
-// "Mandale un mecánico" con el link del aviso fijo; los de AutoCar se abren en su publicación
+// "Mandale un mecánico" con el link y los datos del aviso fijos; los de AutoCar se abren en su publicación.
+// Un auto reservado no tiene precio a la vista y ya tiene a alguien comprándolo: no se ofrece la inspección.
 function acciones(a) {
     if (a.fuente === 'autocar') {
         return [el('a', { class: 'boton boton--chico', href: ruta(`vehiculo.html?id=${a.id}`) }, 'Ver publicación')];
     }
+    const verEnSitio = el('a', { class: 'boton-link', href: a.url, target: '_blank', rel: 'noopener noreferrer' }, `Ver en ${insp.fuente(a.fuente)}`);
+    if (a.reservado) {
+        return [verEnSitio, el('span', { class: 'suave' }, 'Reservado: no se puede pedir inspección')];
+    }
     const pedido = new URLSearchParams({ url: a.url, titulo: `${a.marca} ${a.modelo}${a.version ? ` ${a.version}` : ''}` });
     if (a.anio) pedido.set('anio', a.anio);
     if (a.km !== null) pedido.set('km', a.km);
+    // En pesos: si el aviso está en dólares, con la misma cotización que la lista
     if (a.precio !== null && a.moneda === 'ARS') pedido.set('precio', a.precio);
+    if (a.precio !== null && a.moneda === 'USD' && cotizacion) pedido.set('precio', Math.round(a.precio * cotizacion));
     if (a.ubicacion) pedido.set('localidad', a.ubicacion);
     // Para mostrar qué mecánicos ya revisaron uno igual (no se manda en el pedido: ahí vale lo que elija en la lista)
     pedido.set('marca', a.marca);
     pedido.set('modelo', a.modelo);
     return [
-        el('a', { class: 'boton-link', href: a.url, target: '_blank', rel: 'noopener noreferrer' }, `Ver en ${insp.fuente(a.fuente)}`),
+        verEnSitio,
         el('a', { class: 'boton boton--chico', href: ruta(`pedir-inspeccion.html?${pedido}`) }, 'Mandale un mecánico'),
     ];
 }

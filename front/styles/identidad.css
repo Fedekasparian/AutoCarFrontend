@@ -166,7 +166,10 @@ a.ficha-vehiculo:hover { box-shadow:0 10px 26px #162d3c13; transform:translateY(
 .campo__input:hover { border-color:var(--marca-tinta); }
 .campo__input:focus { border-color:var(--marca-tinta); }
 /* Campo fijo (link del aviso en "Mandale un mecánico"): no reacciona al mouse ni muestra el cursor de escribir, pero se puede seleccionar y copiar */
-.campo__input[readonly], .campo__input[readonly]:hover { border-color:var(--marca-linea); background:var(--color-suave); color:var(--marca-gris); cursor:default; }
+.campo__input[readonly], .campo__input[readonly]:hover, .campo__input[readonly]:focus { border-color:var(--marca-linea); background:var(--color-suave); color:var(--marca-gris); cursor:default; box-shadow:none; }
+/* Los números fijos sin las flechitas de subir y bajar (parecían editables al pasar el mouse) */
+.campo__input[readonly][type="number"] { appearance:textfield; -moz-appearance:textfield; }
+.campo__input[readonly][type="number"]::-webkit-inner-spin-button, .campo__input[readonly][type="number"]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
 .acceso-layout { display:grid; grid-template-columns:1fr 1fr; min-height:calc(100vh - 96px); }
 .acceso-relato { padding:64px max(40px, calc((100vw - 1280px) / 2)); padding-right:64px; background:var(--marca-tinta); color:var(--marca-blanco); display:flex; flex-direction:column; justify-content:center; align-items:flex-start; }
 .acceso-relato__titulo { font-size:clamp(36px,4vw,55px); line-height:1.08; letter-spacing:-2px; max-width:460px; margin:24px 0; }
