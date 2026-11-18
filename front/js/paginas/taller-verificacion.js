@@ -27,6 +27,8 @@ const progresoTexto = document.getElementById('progreso-texto');
 
 let inspeccion = null;
 let sinGuardar = false;
+// Fotos de los ítems ya subidas: codigo → ruta de la API. Una falla sin foto no se firma.
+const fotosItems = {};
 
 function avisar(texto) {
     aviso.textContent = texto;
@@ -82,12 +84,77 @@ function campoItem(item, guardado) {
             placeholder: 'Qué viste (obligatorio si no está OK)', value: guardado?.nota || '',
             'aria-describedby': `${nota}-error`,
         }),
-        el('span', { class: 'campo__error', id: `${nota}-error` }));
+        el('span', { class: 'campo__error', id: `${nota}-error` }),
+        campoFotoItem(item, guardado?.resultado));
+}
+
+// ---------- Foto de cada ítem (obligatoria en "falla", opcional en "observado") ----------
+
+function campoFotoItem(item, resultado) {
+    const foto = `foto-${item.codigo}`;
+    const entrada = el('input', {
+        class: 'solo-lector', id: foto, type: 'file', accept: 'image/jpeg,image/png,image/webp', capture: 'environment',
+        'aria-describedby': `${foto}-estado ${foto}-error`,
+    });
+    entrada.addEventListener('change', () => subirFotoItem(item.codigo, entrada));
+    return el('div', { class: 'item-checklist__foto', id: `${foto}-caja`, hidden: resultado !== 'observado' && resultado !== 'falla' },
+        el('img', { class: 'item-checklist__miniatura', id: `${foto}-previa`, alt: `Foto de ${item.nombre}`, hidden: true }),
+        el('label', { class: 'boton boton--secundario boton--chico', for: foto, id: `${foto}-accion` }, 'Sacale una foto'),
+        entrada,
+        el('span', { class: 'campo__ayuda', id: `${foto}-estado`, role: 'status' }),
+        el('span', { class: 'campo__error', id: `${foto}-error` }));
+}
+
+// Muestra la foto del ítem (si tiene) y el texto según lo que eligió: en "falla" es obligatoria
+function mostrarFotoItem(codigo) {
+    const resultado = form.elements[`resultado-${codigo}`].value;
+    document.getElementById(`foto-${codigo}-caja`).hidden = resultado !== 'observado' && resultado !== 'falla';
+    const previa = document.getElementById(`foto-${codigo}-previa`);
+    const ruta = fotosItems[codigo];
+    previa.hidden = !ruta;
+    if (ruta) previa.src = `${API_URL}${ruta}&v=${Date.now()}`; // &v= para no ver la foto vieja después de cambiarla
+    document.getElementById(`foto-${codigo}-accion`).textContent = ruta ? 'Cambiar la foto' : 'Sacale una foto';
+    let texto = 'Opcional: si sacás una foto, el comprador la ve en el informe.';
+    if (resultado === 'falla') texto = 'Obligatoria: sin la foto de la falla no se puede firmar.';
+    if (ruta) texto = 'Foto cargada. Si sacás otra, reemplaza a esta.';
+    document.getElementById(`foto-${codigo}-estado`).textContent = texto;
+}
+
+// La foto se sube apenas la elige (achicada en el navegador, como la de la chapa)
+async function subirFotoItem(codigo, entrada) {
+    if (!entrada.files[0]) return;
+    const estadoItem = document.getElementById(`foto-${codigo}-estado`);
+    document.getElementById(`foto-${codigo}-error`).textContent = '';
+    estadoItem.textContent = 'Subiendo la foto…';
+    try {
+        const datos = new FormData();
+        datos.append('codigo', codigo);
+        datos.append('foto', await achicar(entrada.files[0]));
+        inspeccion = (await api.subirFotoItem(id, datos)).inspeccion;
+        fotosItems[codigo] = `/api/inspecciones/${id}/item-foto?codigo=${codigo}`;
+    } catch (error) {
+        if (error.status === 401) sesion.requerirLogin();
+        document.getElementById(`foto-${codigo}-error`).textContent = error.errores?.foto || error.message;
+    }
+    mostrarFotoItem(codigo);
+    entrada.value = '';
+}
+
+// Para firmar: cada ítem con "falla" tiene que tener su foto
+function revisarFotos(cargado, completo) {
+    const errores = {};
+    if (!completo) return errores;
+    cargado.items.forEach(({ codigo, resultado }) => {
+        if (resultado === 'falla' && !fotosItems[codigo]) errores[`foto-${codigo}`] = 'Sacale una foto a la falla.';
+    });
+    return errores;
 }
 
 function mostrarFormulario(i) {
     const porCodigo = Object.fromEntries((i.items || []).map((x) => [x.codigo, x]));
     document.getElementById('items').replaceChildren(...insp.CHECKLIST.map((c) => campoItem(c, porCodigo[c.codigo])));
+    (i.items || []).forEach((x) => { if (x.foto) fotosItems[x.codigo] = x.foto; });
+    insp.CHECKLIST.forEach(({ codigo }) => mostrarFotoItem(codigo));
     document.getElementById('conclusion').replaceChildren(...radios('conclusion', insp.CONCLUSIONES, i.conclusion));
     form.elements.resumen.value = i.resumen || '';
     form.elements.patente.value = insp.formatoPatente(i.patente);
@@ -256,7 +323,7 @@ function revisarPatente(cargado, completo) {
 // Junta los errores del checklist y los de la patente
 function revisar(cargado, completo) {
     const revision = insp.validarInforme(cargado, completo);
-    const errores = { ...revisarPatente(cargado, completo), ...revision.errores };
+    const errores = { ...revisarPatente(cargado, completo), ...revisarFotos(cargado, completo), ...revision.errores };
     let mensaje = revision.mensaje;
     if (!mensaje && Object.keys(errores).length) mensaje = completo ? 'Para firmar falta completar o corregir lo marcado.' : 'Revisá los datos marcados.';
     return { errores, mensaje };
@@ -316,9 +383,12 @@ async function guardar(completo) {
     }
 }
 
-form.addEventListener('change', () => {
+form.addEventListener('change', (evento) => {
     sinGuardar = true;
     actualizarProgreso();
+    // Al elegir observado o falla aparece la foto del ítem
+    const nombre = evento.target.name || '';
+    if (nombre.startsWith('resultado-')) mostrarFotoItem(nombre.slice('resultado-'.length));
 });
 form.addEventListener('input', () => { sinGuardar = true; });
 
