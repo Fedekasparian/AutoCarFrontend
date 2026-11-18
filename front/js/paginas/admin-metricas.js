@@ -1,6 +1,7 @@
 // Estadísticas de la app (permiso metricas.ver): GET /api/admin/metricas?dias=7|30|90, todo sacado de la base.
-// Ordenadas en pestañas (Resumen, Plata, Inspecciones, Recomendaciones, Usuarios, Publicaciones) con un período que vale para
-// todas. "Compró" = pagó la inspección. La pestaña y el período quedan en la URL (#plata, ?dias=90).
+// Ordenadas en pestañas (Resumen, Plata, Inspecciones, Recomendaciones, Metabuscador, Usuarios, Publicaciones) con un período
+// que vale para todas. "Compró" = pagó la inspección. La pestaña y el período quedan en la URL (#plata, ?dias=90).
+// Plata, Recomendaciones y Metabuscador también separan por tipo de usuario ("¿Para qué buscás el auto?", por_perfil).
 import * as admin from '../api/admin.js';
 import * as formato from '../servicios/formato.js';
 import { CONCLUSIONES, ESTADOS as ESTADOS_INSPECCION } from '../servicios/inspecciones.js';
@@ -13,7 +14,10 @@ const n = (valor) => numero.format(valor);
 const pesos = (v) => formato.precio(v);
 const porcentaje = (parte, total) => (total ? Math.round((parte / total) * 100) : 0);
 
-const PESTANAS = [['resumen', 'Resumen'], ['plata', 'Plata'], ['inspecciones', 'Inspecciones'], ['embudo', 'Recomendaciones'], ['usuarios', 'Usuarios'], ['plataforma', 'Publicaciones']];
+const PESTANAS = [['resumen', 'Resumen'], ['plata', 'Plata'], ['inspecciones', 'Inspecciones'], ['embudo', 'Recomendaciones'], ['metabuscador', 'Metabuscador'], ['usuarios', 'Usuarios'], ['plataforma', 'Publicaciones']];
+// "Ordenar por" del metabuscador y qué peso de la fórmula de "para vos" (Parámetros) tiene que ver con cada uno
+const ORDENES = { recomendado: 'Recomendado', precio: 'Menor precio', km: 'Menos km', nuevos: 'Más nuevos' };
+const PESO_DEL_ORDEN = { precio: 'el precio', km: 'los kilómetros', nuevos: 'el año' };
 const COLOR_CONCLUSION = { Recomendable: 'barras__barra--ok', 'Con reparos': 'barras__barra--observado', 'No recomendable': 'barras__barra--falla' };
 const PERIODOS = { 7: '7 días', 30: '30 días', 90: '3 meses' };
 const ORIGENES = {
@@ -26,6 +30,9 @@ const ORIGENES = {
 const params = new URLSearchParams(window.location.search);
 let dias = Number(params.get('dias')) in PERIODOS ? Number(params.get('dias')) : 30;
 let pestana = PESTANAS.some(([clave]) => `#${clave}` === window.location.hash) ? window.location.hash.slice(1) : 'resumen';
+// Plata: "todos" o un tipo de usuario (personal, familia, trabajo, aplicacion, sin_perfil). Se mantiene al cambiar el período.
+let segmento = 'todos';
+let ultimas = null; // las últimas métricas, para cambiar de segmento sin volver a pedirlas
 
 // ---------- Piezas ----------
 
@@ -53,8 +60,8 @@ function tarjeta(valor, texto, formatear = n, comparar = {}) {
 
 // Barras horizontales de una sola serie, de mayor a menor: el largo es la cantidad y al lado va el número y qué
 // parte del total es (cada barra es un <li> con su texto, así se lee igual sin ver el gráfico).
-// clases: {nombre: 'barras__barra--ok'} para pintar una fila con el color de su estado
-function barras(pares, vacio = 'Todavía no hay datos', clases = {}) {
+// clases: {nombre: 'barras__barra--ok'} para pintar una fila con el color de su estado; formatear: pesos para montos
+function barras(pares, vacio = 'Todavía no hay datos', clases = {}, formatear = n) {
     const filas = pares.filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
     if (!filas.length) return [el('li', { class: 'barras__vacio' }, vacio)];
     const maximo = Math.max(...filas.map(([, v]) => v), 1);
@@ -63,9 +70,9 @@ function barras(pares, vacio = 'Todavía no hay datos', clases = {}) {
         const barra = el('span', { class: `barras__barra ${clases[nombre] ?? ''}`, 'aria-hidden': 'true' });
         barra.style.setProperty('--largo', `${(valor / maximo) * 100}%`);
         barra.style.setProperty('--n', String(i));
-        return el('li', { class: 'barras__fila', title: `${nombre}: ${n(valor)} (${porcentaje(valor, total)} %)` },
+        return el('li', { class: 'barras__fila', title: `${nombre}: ${formatear(valor)} (${porcentaje(valor, total)} %)` },
             el('span', { class: 'barras__nombre' }, nombre), barra,
-            el('span', { class: 'barras__valor' }, n(valor), el('span', { class: 'barras__parte' }, `${porcentaje(valor, total)} %`)));
+            el('span', { class: 'barras__valor' }, formatear(valor), el('span', { class: 'barras__parte' }, `${porcentaje(valor, total)} %`)));
     });
 }
 
@@ -221,13 +228,17 @@ function tablaEmbudo(origenes) {
 // El informe de plata del período, como un estado de resultados chico: ganancia (la comisión completa de AutoCar,
 // con la parte del fondo), pérdida (lo que costaron los reclamos que procedieron, neto de franquicias) y la neta.
 // Si el back todavía no manda estos números, el informe queda oculto.
-function informePlata(actual, anterior, textoPeriodo) {
+// quien: el tipo de usuario si se segmentó ("Para la familia"); sin él es el de todos y compara con el período anterior.
+function informePlata(actual, anterior, textoPeriodo, quien = null) {
     const caja = document.getElementById('informe-plata');
     caja.hidden = actual.neta === undefined;
     if (caja.hidden) return;
     const { ingresos, perdida, neta } = actual;
     const cuando = `los últimos ${textoPeriodo}`;
-    document.getElementById('t-informe').textContent = `Informe de ${cuando}`;
+    document.getElementById('t-informe').textContent = quien
+        ? `Informe de ${cuando} · compradores "${quien}"`
+        : `Informe de ${cuando}`;
+    const conQuien = quien ? ` con los compradores "${quien}"` : '';
 
     const reclamos = actual.reclamos_procedieron === 1
         ? 'el reclamo que procedió costó'
@@ -237,7 +248,7 @@ function informePlata(actual, anterior, textoPeriodo) {
         ? `Ganancia neta: ${pesos(neta)}.`
         : `AutoCar perdió ${pesos(-neta)}: los reclamos costaron más que las comisiones.`;
     document.getElementById('informe-frase').textContent =
-        `En ${cuando} AutoCar ganó ${pesos(ingresos)} en comisiones ${cuantoCostaron}. ${resultado}`;
+        `En ${cuando} AutoCar ganó ${pesos(ingresos)} en comisiones${conQuien} ${cuantoCostaron}. ${resultado}`;
 
     const fila = (nombre, detalle, monto, clase, extra = null) => el('div', { class: `informe-plata__fila ${clase}` },
         el('dt', {}, nombre, detalle ? el('span', { class: 'informe-plata__detalle' }, detalle) : null),
@@ -254,6 +265,115 @@ function informePlata(actual, anterior, textoPeriodo) {
     document.getElementById('informe-notas').textContent =
         `Por cobrar: ${pesos(actual.por_cobrar)} de inspecciones firmadas que todavía están en el plazo de reclamo (se cuentan cuando pasa). `
         + 'La comisión de Mercado Pago no está descontada: el pago es simulado.';
+}
+
+// ---------- Por tipo de usuario ("¿Para qué buscás el auto?"; el que no contestó es "Sin perfil") ----------
+
+const celdas = (fila, etiqueta = 'td') => el('tr', {}, ...fila.map((c) => el(etiqueta, {}, c)));
+
+// Plata: los botones Todos / cada tipo de usuario, el informe del segmento elegido y la tabla que los compara
+function plataPorPerfil(m, textoPeriodo) {
+    const pp = m.por_perfil;
+    const caja = document.getElementById('plata-perfil');
+    caja.hidden = !pp;
+    document.getElementById('plata-perfil-tabla').hidden = !pp;
+    if (!pp) {
+        informePlata(m.resumen.actual, m.resumen.anterior, textoPeriodo);
+        return;
+    }
+    if (segmento !== 'todos' && !pp.plata.some((f) => f.uso === segmento)) segmento = 'todos';
+    const opciones = [['todos', 'Todos'], ...Object.entries(pp.usos)];
+    llenar('segmento-plata', ...opciones.map(([clave, texto]) => boton(texto, clave === segmento, () => {
+        segmento = clave;
+        plataPorPerfil(ultimas, textoPeriodo);
+    })));
+    const fila = pp.plata.find((f) => f.uso === segmento);
+    if (fila) informePlata(fila, {}, textoPeriodo, fila.nombre);
+    else informePlata(m.resumen.actual, m.resumen.anterior, textoPeriodo);
+
+    // La tabla: cada tipo de usuario con lo que pagó, lo que ganó AutoCar y qué parte de la ganancia neta es
+    const netaTotal = pp.plata.reduce((s, f) => s + Math.max(f.neta, 0), 0);
+    const mejor = Math.max(...pp.plata.map((f) => f.neta));
+    llenar('tabla-plata-perfil',
+        el('thead', {}, celdas(['Tipo de usuario', 'Inspecciones pagadas', 'Compradores', 'Ganancia', 'Pérdida por reclamos', 'Ganancia neta', 'Parte de la neta', 'Por cobrar'], 'th')),
+        el('tbody', {}, ...pp.plata.map((f) => {
+            const tr = celdas([f.nombre, n(f.pagaron), n(f.compradores), pesos(f.ingresos), f.perdida ? `− ${pesos(f.perdida)}` : '—',
+                `${f.neta < 0 ? '− ' : ''}${pesos(Math.abs(f.neta))}`, netaTotal && f.neta > 0 ? `${porcentaje(f.neta, netaTotal)} %` : '—',
+                pesos(f.por_cobrar)]);
+            if (mejor > 0 && f.neta === mejor) tr.classList.add('tabla-embudo__mejor');
+            if (f.uso === segmento) tr.classList.add('tabla-perfil__elegida');
+            return tr;
+        })));
+    llenar('barras-plata-perfil', ...barras(pp.plata.map((f) => [f.nombre, Math.max(f.neta, 0)]), 'Todavía no hay ganancia neta en este período', {}, pesos));
+}
+
+// Recomendaciones: la conversión (pagaron / vieron) de cada recomendación para cada tipo de usuario
+function tablaEmbudoPorPerfil(embudo) {
+    const origenes = embudo[0]?.origenes.map((o) => o.origen) ?? [];
+    return [
+        el('thead', {}, celdas(['Tipo de usuario', ...origenes.map((o) => ORIGENES[o] ?? o), 'Funciona mejor'], 'th')),
+        el('tbody', {}, ...embudo.map((fila) => el('tr', {},
+            el('th', { scope: 'row' }, fila.nombre),
+            ...fila.origenes.map((o) => {
+                const td = el('td', { title: `${n(o.vieron)} vieron, ${n(o.tocaron)} tocaron, ${n(o.pagaron)} pagaron` },
+                    o.conversion === null ? '—' : `${String(o.conversion).replace('.', ',')} %`,
+                    o.vieron ? el('span', { class: 'tabla-perfil__detalle' }, `${n(o.pagaron)} de ${n(o.vieron)}`) : null);
+                if (o.origen === fila.mejor) td.classList.add('tabla-perfil__mejor');
+                return td;
+            }),
+            el('td', {}, fila.mejor ? (ORIGENES[fila.mejor] ?? fila.mejor) : 'Sin pagos todavía')))),
+    ];
+}
+
+// Gráfico: por cada tipo de usuario, dos barras (buscaron en el metabuscador y, de esos, pagaron la inspección),
+// con el largo relativo al grupo que más buscó. Primero el total. Cada barra lleva su número al lado.
+function buscaronYCompraron(mb) {
+    const grupos = [{ nombre: 'Todos', ...mb.total }, ...mb.por_uso];
+    const maximo = Math.max(...grupos.map((g) => g.buscaron), 1);
+    const barra = (clase, valor, texto) => {
+        const b = el('span', { class: `comparar__barra comparar__barra--${clase}`, 'aria-hidden': 'true' });
+        b.style.setProperty('--largo', `${Math.max((valor / maximo) * 100, valor ? 2 : 0)}%`);
+        return el('div', { class: 'comparar__fila' }, el('span', { class: 'comparar__que' }, texto), b,
+            el('span', { class: 'comparar__valor' }, n(valor)));
+    };
+    return grupos.map((g, i) => el('li', { class: `comparar__grupo${i === 0 ? ' comparar__grupo--total' : ''}` },
+        el('span', { class: 'comparar__nombre' }, g.nombre,
+            el('span', { class: 'comparar__tasa' }, g.buscaron ? `${porcentaje(g.compraron, g.buscaron)} % compró` : 'nadie buscó')),
+        barra('buscaron', g.buscaron, 'Buscaron'),
+        barra('compraron', g.compraron, 'Compraron')));
+}
+
+// Qué orden elige cada tipo de usuario: compradores distintos (y qué parte de los que eligieron un orden)
+function tablaOrdenes(ordenes) {
+    return [
+        el('thead', {}, celdas(['Tipo de usuario', ...Object.values(ORDENES), 'El que más eligen'], 'th')),
+        el('tbody', {}, ...ordenes.map((fila) => {
+            const total = Object.values(fila.ordenes).reduce((s, o) => s + o.usuarios, 0);
+            return el('tr', {},
+                el('th', { scope: 'row' }, fila.nombre),
+                ...Object.keys(ORDENES).map((clave) => {
+                    const o = fila.ordenes[clave] ?? { usuarios: 0, veces: 0 };
+                    const td = el('td', { title: `${n(o.usuarios)} compradores, ${n(o.veces)} veces` },
+                        o.usuarios ? `${n(o.usuarios)}` : '—',
+                        o.usuarios ? el('span', { class: 'tabla-perfil__detalle' }, `${porcentaje(o.usuarios, total)} %`) : null);
+                    if (clave === fila.preferido) td.classList.add('tabla-perfil__mejor');
+                    return td;
+                }),
+                el('td', {}, fila.preferido ? ORDENES[fila.preferido] : 'Nadie eligió un orden'));
+        })),
+    ];
+}
+
+// Qué cambiar: si un perfil ordena casi siempre por otra cosa que "Recomendado", la fórmula de "para vos" de ese perfil
+// no le está mostrando lo que busca. Se sugiere subir ese peso en Parámetros (solo los perfiles tienen fórmula).
+function sugerenciasOrden(ordenes) {
+    const items = ordenes.filter((f) => f.preferido && f.preferido !== 'recomendado' && f.uso !== 'sin_perfil').map((f) =>
+        el('li', {}, el('strong', {}, `${f.nombre}: `),
+            `la mayoría ordena por "${ORDENES[f.preferido]}". Probá subir cuánto pesa ${PESO_DEL_ORDEN[f.preferido]} para ese perfil en `,
+            el('a', { href: 'admin-parametros.html' }, 'Parámetros'), '.'));
+    return items.length
+        ? items
+        : [el('li', { class: 'barras__vacio' }, 'Ningún perfil prefiere otro orden que "Recomendado": la fórmula de "para vos" parece acertar (o todavía no hay datos).')];
 }
 
 // ---------- Pestañas y período (los botones se arman acá, no en el HTML) ----------
@@ -317,8 +437,8 @@ function mostrar(m) {
     llenar('grafico-pagaron', tendencia(m.serie, { clave: 'pagaron', nombre: 'Inspecciones pagadas', clase: 'tendencia--1' }));
     llenar('grafico-nuevos', tendencia(m.serie, { clave: 'nuevos_usuarios', nombre: 'Usuarios nuevos', clase: 'tendencia--2' }));
 
-    // Plata: arriba el informe (ganancia − pérdida = neta) y después el detalle
-    informePlata(actual, anterior, textoPeriodo);
+    // Plata: arriba el informe (ganancia − pérdida = neta) de todos o de un tipo de usuario, y después el detalle
+    plataPorPerfil(m, textoPeriodo);
     const conInforme = actual.neta !== undefined;
     llenar('kpis-plata',
         conInforme
@@ -382,6 +502,23 @@ function mostrar(m) {
         ? `Además, ${n(m.embudo.sin_origen)} inspecciones del período se pidieron sin dato de dónde venían (anteriores a que empezáramos a medirlo).`
         : '';
 
+    // Por tipo de usuario: qué recomendación funciona mejor, quién busca y compra, y qué orden eligen
+    const pp = m.por_perfil;
+    document.getElementById('embudo-perfil-figura').hidden = !pp;
+    document.querySelector('[data-pestana-boton="metabuscador"]').hidden = !pp;
+    if (pp) {
+        llenar('tabla-embudo-perfil', ...tablaEmbudoPorPerfil(pp.embudo));
+        const mb = pp.metabuscador.total;
+        llenar('kpis-metabuscador',
+            tarjeta(mb.buscaron, `Buscaron en el metabuscador en ${textoPeriodo}`),
+            tarjeta(mb.compraron, `De esos, pagaron una inspección (${porcentaje(mb.compraron, mb.buscaron)} %)`),
+            tarjeta(mb.desde_metabuscador, 'La pagaron desde un auto del metabuscador'));
+        llenar('buscaron-compraron', ...buscaronYCompraron(pp.metabuscador));
+        llenar('grafico-buscaron', tendencia(m.serie, { clave: 'buscaron', nombre: 'Buscaron en el metabuscador', clase: 'tendencia--1' }));
+        llenar('tabla-ordenes', ...tablaOrdenes(pp.ordenes));
+        llenar('sugerencias-orden', ...sugerenciasOrden(pp.ordenes));
+    }
+
     // Usuarios
     const u = m.usuarios;
     const r = m.recurrentes;
@@ -426,7 +563,8 @@ async function cargar() {
     estado.replaceChildren(vistas.cargando());
     contenido.classList.add('metricas--cargando');
     try {
-        mostrar(await admin.metricas(dias));
+        ultimas = await admin.metricas(dias);
+        mostrar(ultimas);
         estado.replaceChildren();
         contenido.hidden = false;
         mostrarPestana();

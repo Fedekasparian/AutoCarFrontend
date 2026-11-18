@@ -265,11 +265,14 @@ const filtros = $('filtros');
 ['orden', 'fuente'].forEach((campo) => {
     filtros.elements[campo].value = params.get(campo) || '';
 });
-filtros.addEventListener('change', () => {
+filtros.addEventListener('change', async () => {
     const nuevos = new URLSearchParams({ id });
     ['orden', 'fuente'].forEach((k) => {
         if (filtros.elements[k].value) nuevos.set(k, filtros.elements[k].value);
     });
+    // Para las estadísticas del admin: qué orden elige cada tipo de usuario (se manda antes de recargar)
+    const orden = filtros.elements.orden.value || 'recomendado';
+    if (orden !== (params.get('orden') || 'recomendado')) await eventos.registrarYa('orden', 'metabuscador', orden);
     window.location.search = nuevos.toString();
 });
 
