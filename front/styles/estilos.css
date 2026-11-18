@@ -129,6 +129,8 @@ body.con-barra{
 }
 .pila{
     display: grid;
+    /* minmax(0, 1fr): un hijo ancho (pestañas, tablas) no estira la columna más allá de la pantalla */
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--esp-3);
 }
 

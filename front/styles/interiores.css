@@ -252,6 +252,15 @@
 .item-checklist legend .campo__ayuda { font-weight:400; }
 .vista-pedir-inspeccion .pantalla,.vista-mis-inspecciones .pantalla,.vista-admin-reclamos .pantalla { max-width:900px; }
 .vista-pedir-inspeccion .opciones label .fila__cuerpo { flex:1; min-width:0; }
+.orden > legend { padding:0; }
+/* Celular: las dos formas de ordenar en una fila y el precio del taller abajo del nombre, para que el nombre respire */
+@media (max-width:480px) {
+    .orden .orden__opciones { display:grid; grid-template-columns:1fr 1fr; }
+    .orden .orden__opcion { display:flex; }
+    .orden .orden__opcion span { width:100%; justify-content:center; text-align:center; padding:6px 10px; font-size:14px; line-height:1.2; }
+    .vista-pedir-inspeccion .opciones label { flex-wrap:wrap; }
+    .vista-pedir-inspeccion .opciones label > strong { flex-basis:100%; padding-left:30px; }
+}
 .vista-pedir-inspeccion summary { cursor:pointer; font-weight:600; }
 .vista-mis-inspecciones .pantalla > .boton { justify-self:start; }
 
