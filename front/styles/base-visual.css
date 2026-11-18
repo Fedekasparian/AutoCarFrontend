@@ -1321,6 +1321,8 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 
 /* ---------- Estadísticas del admin (admin-metricas.html): pestañas, período, variaciones, tendencias y embudo ---------- */
 .metricas-controles{ display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+/* Son 6 secciones: en celular bajan de renglón en vez de esconderse a la derecha */
+.metricas-controles .pestanas-estado{ flex-wrap: wrap; overflow-x: visible; }
 .metricas-periodo{ display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .metricas-periodo__etiqueta{ font-size: 13px; font-weight: 600; color: var(--marca-gris); }
 .metricas-panel[hidden]{ display: none; }
