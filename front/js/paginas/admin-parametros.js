@@ -36,7 +36,7 @@ function campoDe(p) {
         el('span', { class: 'campo__error', id: `${p.clave}-error` }));
 }
 
-// La fórmula de "para vos" (parámetros peso_<perfil>_<criterio>): una grilla perfil × criterio en vez de 16 campos
+// La fórmula de "Recomendados" (parámetros peso_<perfil>_<criterio>): una grilla perfil × criterio en vez de 16 campos
 const PERFILES = { personal: 'Uso personal', familia: 'Familia', trabajo: 'Trabajo', aplicacion: 'Aplicación (Uber, Cabify)' };
 const CRITERIOS = { precio: 'Precio', km: 'Kilómetros', dias: 'Días publicado', anio: 'Año' };
 const esPeso = (p) => p.clave.startsWith('peso_');
@@ -55,12 +55,41 @@ function formula(pesos) {
     };
     const { minimo, maximo } = pesos[0];
     return el('section', { class: 'pila formula', 'aria-labelledby': 'formula-titulo' },
-        el('h2', { id: 'formula-titulo' }, 'Fórmula de "para vos"'),
-        el('p', { class: 'campo__ayuda' }, `Cuánto pesa cada cosa al ordenar el metabuscador según para qué busca el auto cada comprador: de ${minimo} (no cuenta) a ${maximo} (lo que más importa). Mirá en Estadísticas → Recomendaciones si "para vos" convierte y ajustalo acá.`),
+        el('h2', { id: 'formula-titulo' }, 'Fórmula de "Recomendados"'),
+        el('p', { class: 'campo__ayuda' }, `Cuánto pesa cada cosa al ordenar el metabuscador según para qué busca el auto cada comprador: de ${minimo} (no cuenta) a ${maximo} (lo que más importa). Mirá en Estadísticas → Recomendaciones si "Recomendados" convierte y ajustalo acá.`),
+        comoSeCalcula(),
         el('div', { class: 'tabla-desplazable' }, el('table', { class: 'tabla formula__tabla' },
             el('thead', {}, el('tr', {}, el('th', {}, 'Perfil'), ...Object.values(CRITERIOS).map((c) => el('th', {}, c)))),
             el('tbody', {}, ...Object.entries(PERFILES).map(([perfil, nombre]) => el('tr', {},
                 el('th', { scope: 'row' }, nombre), ...Object.keys(CRITERIOS).map((criterio) => celda(perfil, criterio))))))));
+}
+
+// Cómo sale el puntaje de cada auto (MetaBusqueda\ParaVos del back). Los topes son fijos; los pesos, los de la grilla.
+function comoSeCalcula() {
+    return el('details', { class: 'formula__explicacion' },
+        el('summary', {}, 'Cómo se calcula el puntaje de cada auto'),
+        el('p', {}, 'Cada auto del metabuscador se compara con autos parecidos (mismo modelo y sitio, año ±2 y km ±30 %). Se miran cuatro cosas y cada una da un valor entre −1 (en contra) y 1 (a favor):'),
+        el('ul', {},
+            el('li', {}, el('strong', {}, 'Precio: '), '% más barato que los parecidos ÷ 20. 20 % más barato (o más) suma 1; 20 % más caro resta 1.'),
+            el('li', {}, el('strong', {}, 'Kilómetros: '), '(km típicos de los parecidos − km del auto) ÷ km típicos ÷ 0,5. La mitad de km (o menos) suma 1.'),
+            el('li', {}, el('strong', {}, 'Días publicado: '), 'días desde que apareció ÷ 60. Con 60 días o más suma 1 (hay margen para negociar).'),
+            el('li', {}, el('strong', {}, 'Año: '), '(año del auto − año típico de la búsqueda) ÷ 5. 5 años más nuevo suma 1; 5 más viejo resta 1.')),
+        el('p', { class: 'formula__cuenta' }, 'Puntaje = (peso precio × precio + peso km × km + peso días × días + peso año × año) ÷ suma de los pesos'),
+        el('p', {}, 'Da entre −1 y 1. "Recomendado" ordena de mayor a menor y el motivo que ve el comprador son las dos cosas que más suman. Ejemplo para "Familia" (2, 3, 1, 1): un auto 10 % más barato (0,5), con 25 % menos km (0,5), 30 días publicado (0,5) y del año típico (0) da (2×0,5 + 3×0,5 + 1×0,5 + 1×0) ÷ 7 = 0,43.'),
+        el('p', {}, 'Si un perfil tiene todos los pesos en 0, sus autos no llevan puntaje y se ordenan por la diferencia con el precio típico.'));
+}
+
+// Cómo se arma el ranking de los mecánicos (Inspecciones\Ranking del back). No son parámetros: se muestra para entenderlo.
+function rankingMecanicos() {
+    return el('section', { class: 'pila', 'aria-labelledby': 'ranking-titulo' },
+        el('h2', { id: 'ranking-titulo' }, 'Cómo se arma el ranking de los mecánicos'),
+        el('p', { class: 'campo__ayuda' }, 'Sale solo de cómo trabajó cada mecánico, nunca de un pago. No se cambia desde acá.'),
+        el('p', { class: 'formula__cuenta' }, 'Puntaje = 5 × (1 − 2 × reclamos que procedieron ÷ inspecciones firmadas), con mínimo 0'),
+        el('ul', {},
+            el('li', {}, 'Con menos de 3 inspecciones firmadas no tiene puntaje: aparece como "Nuevo en la red" y va al final.'),
+            el('li', {}, 'Ejemplo: 10 firmadas y 1 reclamo que procedió → 5 × (1 − 2 × 1 ÷ 10) = 4. Con 1 reclamo cada 2 firmadas llega a 0.'),
+            el('li', {}, 'Orden del ranking general: mayor puntaje primero; si empatan, el que más firmó.'),
+            el('li', {}, 'Al pedir una inspección de un auto, primero van los buenos en ese modelo, después los buenos en esa marca, después los que no revisaron ninguno y al final los que tuvieron reclamos en esos autos. "Bueno" = la misma cuenta, pero solo con las inspecciones de ese modelo (o de la marca), con 2,5 o más (hasta 1 reclamo cada 4 revisados).')));
 }
 
 function mostrar({ parametros, cambios }) {
@@ -100,6 +129,7 @@ formularios.alEnviar(form, async (datos) => {
 });
 
 async function iniciar() {
+    form.after(rankingMecanicos());
     try {
         mostrar(await api.todos());
     } catch (error) {
