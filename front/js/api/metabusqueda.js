@@ -16,6 +16,10 @@ export const crear = (datos) => post('/api/meta-busquedas', datos);
 // filtros: {orden, fuente, page} → {busqueda, referencia, novedades, destacados, resultados, aclaracion, ...}
 export const reporte = (busquedaId, filtros) => get(`/api/meta-busquedas/${id(busquedaId)}`, filtros);
 
+// Página de novedades → {busqueda, cotizacion_dolar, corrida: {disponible, nuevos, bajaron, retirados, actualizado, items},
+// por_dia: [{fecha, nuevo, bajo, retirado}] (últimos 30 días), sin_ver}
+export const novedades = (busquedaId) => get(`/api/meta-busquedas/${id(busquedaId)}/novedades`);
+
 // → null (204)
 export const eliminar = (busquedaId) => del(`/api/meta-busquedas/${id(busquedaId)}`);
 

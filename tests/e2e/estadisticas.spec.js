@@ -32,8 +32,12 @@ test('el admin recorre las estadísticas y ve la fórmula de para vos', async ({
         await expect(page.locator('#p-resumen')).toBeHidden();
         await expect(page.locator('#embudo-total > li')).toHaveCount(4);
         await expect(page.locator('#tabla-embudo tbody tr')).toHaveCount(4);
-        // Por tipo de usuario: los 4 perfiles y "Sin perfil", cada uno con su recomendación que mejor funciona
-        await expect(page.locator('#tabla-embudo-perfil tbody tr')).toHaveCount(5);
+        // Por tipo de usuario: Todos, los 4 perfiles y "Sin perfil"; al elegir uno, la tabla es solo de ese perfil
+        await expect(page.locator('#segmento-embudo button')).toHaveCount(6);
+        await page.locator('#segmento-embudo').getByRole('button', { name: 'Para la familia' }).click();
+        await expect(page.locator('#tabla-embudo-titulo')).toHaveText('Qué recomendación funciona mejor · Para la familia');
+        await page.locator('#segmento-embudo').getByRole('button', { name: 'Todos' }).click();
+        await expect(page.locator('#tabla-embudo-titulo')).toHaveText('Qué recomendación funciona mejor');
     });
 
     await test.step('la pestaña Inspecciones muestra estados, conclusiones y talleres', async () => {
@@ -46,7 +50,7 @@ test('el admin recorre las estadísticas y ve la fórmula de para vos', async ({
 
     await test.step('el período cambia y queda en la URL', async () => {
         await page.getByRole('button', { name: '3 meses' }).click();
-        await expect(page).toHaveURL(/dias=90#embudo$/);
+        await expect(page).toHaveURL(/dias=90#inspecciones$/); // sigue en la pestaña que estaba abierta
         await expect(page.getByRole('button', { name: '3 meses' })).toHaveAttribute('aria-pressed', 'true');
         await page.getByRole('button', { name: 'Plata' }).click();
         await expect(page.locator('#grafico-ganancia .tendencia__nombre')).toHaveText('Ganancia (comisiones)');
@@ -59,6 +63,10 @@ test('el admin recorre las estadísticas y ve la fórmula de para vos', async ({
         await expect(page.locator('#informe-frase')).toContainText('en comisiones');
         // Segmentar por tipo de usuario: el informe pasa a ser solo de esos compradores
         await expect(page.locator('#tabla-plata-perfil tbody tr')).toHaveCount(5);
+        // Cuánto deja cada interacción por tipo de usuario: 4 indicadores del total y una fila por perfil
+        await expect(page.locator('#kpis-valor > li')).toHaveCount(4);
+        await expect(page.locator('#tabla-valor thead th')).toHaveCount(9);
+        await expect(page.locator('#tabla-valor tbody tr')).toHaveCount(5);
         await page.locator('#segmento-plata').getByRole('button', { name: 'Para la familia' }).click();
         await expect(page.locator('#t-informe')).toHaveText('Informe de los últimos 3 meses · compradores "Para la familia"');
         await expect(page.locator('#segmento-plata').getByRole('button', { name: 'Para la familia' })).toHaveAttribute('aria-pressed', 'true');
