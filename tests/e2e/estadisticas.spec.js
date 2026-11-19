@@ -34,10 +34,18 @@ test('el admin recorre las estadísticas y ve la fórmula de para vos', async ({
         await expect(page.locator('#tabla-embudo tbody tr')).toHaveCount(4);
         // Por tipo de usuario: Todos, los 4 perfiles y "Sin perfil"; al elegir uno, la tabla es solo de ese perfil
         await expect(page.locator('#segmento-embudo button')).toHaveCount(6);
+        // La misma tabla en plata: ganancia y cuánto deja por persona que vio, tocó o pagó
+        await expect(page.locator('#tabla-ganancia-embudo thead th')).toHaveCount(5);
+        await expect(page.locator('#tabla-ganancia-embudo tbody tr')).toHaveCount(4);
         await page.locator('#segmento-embudo').getByRole('button', { name: 'Para la familia' }).click();
         await expect(page.locator('#tabla-embudo-titulo')).toHaveText('Qué recomendación funciona mejor · Para la familia');
+        await expect(page.locator('#ganancia-embudo-titulo')).toHaveText('Cuánta ganancia deja cada recomendación · Para la familia');
         await page.locator('#segmento-embudo').getByRole('button', { name: 'Todos' }).click();
         await expect(page.locator('#tabla-embudo-titulo')).toHaveText('Qué recomendación funciona mejor');
+        // Cuánto le cuesta decidirse a cada tipo de usuario: 2 indicadores y una fila por perfil
+        await expect(page.locator('#kpis-valor > li')).toHaveCount(2);
+        await expect(page.locator('#tabla-valor thead th')).toHaveCount(6);
+        await expect(page.locator('#tabla-valor tbody tr')).toHaveCount(5);
     });
 
     await test.step('la pestaña Inspecciones muestra estados, conclusiones y talleres', async () => {
@@ -63,10 +71,6 @@ test('el admin recorre las estadísticas y ve la fórmula de para vos', async ({
         await expect(page.locator('#informe-frase')).toContainText('en comisiones');
         // Segmentar por tipo de usuario: el informe pasa a ser solo de esos compradores
         await expect(page.locator('#tabla-plata-perfil tbody tr')).toHaveCount(5);
-        // Cuánto deja cada interacción por tipo de usuario: 4 indicadores del total y una fila por perfil
-        await expect(page.locator('#kpis-valor > li')).toHaveCount(4);
-        await expect(page.locator('#tabla-valor thead th')).toHaveCount(9);
-        await expect(page.locator('#tabla-valor tbody tr')).toHaveCount(5);
         await page.locator('#segmento-plata').getByRole('button', { name: 'Para la familia' }).click();
         await expect(page.locator('#t-informe')).toHaveText('Informe de los últimos 3 meses · compradores "Para la familia"');
         await expect(page.locator('#segmento-plata').getByRole('button', { name: 'Para la familia' })).toHaveAttribute('aria-pressed', 'true');
