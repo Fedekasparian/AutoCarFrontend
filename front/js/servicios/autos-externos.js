@@ -82,6 +82,18 @@ function comparacion(a) {
         `${relacion} ${e.comparables} autos parecidos (año y km)`);
 }
 
+// El mensaje de "Más recomendados" con un título y, en negrita, el motivo (lo que va después de los dos puntos):
+// "Como lo buscás para la familia, priorizamos pocos kilómetros: **tiene 40 % menos km que autos parecidos…**"
+function mensajeRecomendado(texto) {
+    const corte = texto.indexOf(': ');
+    const cuerpo = corte > 0
+        ? [texto.slice(0, corte + 2), el('strong', {}, texto.slice(corte + 2))]
+        : [el('strong', {}, texto)];
+    return el('span', { class: 'resultado__mensaje' },
+        el('span', { class: 'resultado__mensaje-titulo' }, 'Por qué te lo recomendamos'),
+        el('span', { class: 'resultado__mensaje-texto' }, ...cuerpo));
+}
+
 export const idFila = (autoId) => `auto-${String(autoId).replace(/[^\w-]/g, '-')}`;
 
 /**
@@ -107,7 +119,7 @@ export function fila(a, { i = 0, id = null, aviso = null, extra = null, puesto =
             el('span', { class: 'fila__meta' }, datos),
             el('span', { class: 'resultado__precio' }, el('strong', {}, precio(a)), ' ', etiquetaPrecio(a), precioOriginal(a), comparacion(a)),
             extra,
-            mensaje ? el('span', { class: 'resultado__mensaje' }, mensaje) : null,
+            mensaje ? mensajeRecomendado(mensaje) : null,
             !mensaje && motivo ? el('span', { class: 'resultado__para-vos' }, motivo) : null),
         conAcciones ? el('span', { class: 'fila__acciones' }, ...acciones(a, origen)) : null);
     li.style.setProperty('--n', String(i));
