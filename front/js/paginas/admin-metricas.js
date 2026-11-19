@@ -238,11 +238,35 @@ function tablaEmbudo(origenes) {
 
 // Recomendaciones: botones Todos / cada tipo de usuario y la tabla de ese segmento. En "Todos" las columnas de
 // "ordenaron" son la suma de los tipos de usuario (cada comprador tiene un solo tipo).
+// Cuánta ganancia dejó cada recomendación y cuánto por persona en cada paso (viene calculado del back: conGanancia)
+function tablaGanancia(origenes) {
+    const o = (x) => (x === null || x === undefined ? '—' : pesos(x));
+    const mejor = Math.max(...origenes.map((x) => x.por_vio ?? 0));
+    return [
+        el('thead', {}, celdas(['Recomendación', 'Ganancia', 'Por persona que la vio', 'Por persona que tocó "Mandale un mecánico"', 'Por inspección pagada'], 'th')),
+        el('tbody', {}, ...origenes.map((x) => {
+            const tr = celdas([ORIGENES[x.origen] ?? x.origen, pesos(x.ganancia ?? 0), o(x.por_vio), o(x.por_toco), o(x.por_pago)]);
+            if (mejor > 0 && x.por_vio === mejor) tr.classList.add('tabla-embudo__mejor');
+            return tr;
+        })),
+    ];
+}
+
+function mostrarEmbudo(origenes, quien = null) {
+    llenar('tabla-embudo', ...tablaEmbudo(origenes));
+    llenar('tabla-ganancia-embudo', ...tablaGanancia(origenes));
+    llenar('barras-ganancia-embudo', ...barras(origenes.map((x) => [ORIGENES[x.origen] ?? x.origen, x.por_vio ?? 0]),
+        'Todavía no hay ganancia de inspecciones firmadas en este período', {}, pesos, false));
+    document.getElementById('ganancia-embudo-titulo').textContent = quien
+        ? `Cuánta ganancia deja cada recomendación · ${quien}`
+        : 'Cuánta ganancia deja cada recomendación';
+}
+
 function embudoPorPerfil(m) {
     const pp = m.por_perfil;
     document.getElementById('embudo-perfil').hidden = !pp;
     if (!pp) {
-        llenar('tabla-embudo', ...tablaEmbudo(m.embudo.origenes));
+        mostrarEmbudo(m.embudo.origenes);
         return;
     }
     if (segmentoEmbudo !== 'todos' && !pp.embudo.some((f) => f.uso === segmentoEmbudo)) segmentoEmbudo = 'todos';
@@ -260,7 +284,7 @@ function embudoPorPerfil(m) {
     document.getElementById('tabla-embudo-titulo').textContent = fila
         ? `Qué recomendación funciona mejor · ${fila.nombre}`
         : 'Qué recomendación funciona mejor';
-    llenar('tabla-embudo', ...tablaEmbudo(origenes));
+    mostrarEmbudo(origenes, fila?.nombre);
 }
 
 // El informe de plata del período, como un estado de resultados chico: ganancia (la comisión completa de AutoCar,
@@ -345,31 +369,22 @@ function plataPorPerfil(m, textoPeriodo) {
     llenar('barras-plata-perfil', ...barras(pp.plata.map((f) => [f.nombre, Math.max(f.neta, 0)]), 'Todavía no hay ganancia neta en este período', {}, pesos));
 }
 
-// Cuánto deja cada interacción (buscar, cambiar el orden, tocar "Mandale un mecánico") y cuánto tuvo que interactuar
-// cada tipo de usuario para comprar. Arriba el total, después la tabla y las barras de ganancia por interacción.
+// Cuánto le cuesta decidirse a cada tipo de usuario: interacciones (buscar, cambiar el orden, tocar "Mandale un
+// mecánico") y días desde la primera hasta pagar, en mediana de los compradores
 const decimal = (v) => String(v).replace('.', ',');
-function valorPorPerfil(v, textoPeriodo) {
+function valorPorPerfil(v) {
     document.getElementById('valor-figura').hidden = !v;
     if (!v) return;
     const t = v.total;
     const o = (x, f = n) => (x === null ? '—' : f(x));
     llenar('kpis-valor',
-        tarjeta(t.por_interaccion, `Ganancia por interacción en ${textoPeriodo}`, pesos),
-        tarjeta(t.por_usuario, 'Ganancia por usuario activo', pesos),
         tarjeta(t.interacciones_hasta_comprar === null ? null : decimal(t.interacciones_hasta_comprar), 'Interacciones hasta comprar (mediana)'),
         tarjeta(t.dias_hasta_comprar === null ? null : `${decimal(t.dias_hasta_comprar)} días`, 'De la primera interacción a pagar (mediana)'));
-    const mejor = Math.max(...v.por_uso.map((f) => f.por_interaccion ?? 0));
     llenar('tabla-valor',
-        el('thead', {}, celdas(['Tipo de usuario', 'Ganancia', 'Interacciones', 'Usuarios activos', 'Por interacción', 'Por usuario', 'Interacciones hasta comprar', 'Días hasta comprar', 'Compradores'], 'th')),
-        el('tbody', {}, ...v.por_uso.map((f) => {
-            const tr = celdas([f.nombre, pesos(f.ingresos), n(f.interacciones), n(f.activos), o(f.por_interaccion, pesos), o(f.por_usuario, pesos),
-                o(f.interacciones_hasta_comprar, decimal), o(f.dias_hasta_comprar, decimal),
-                f.compradores_sin_interacciones ? `${n(f.compradores)} (${n(f.compradores_sin_interacciones)} sin interacciones)` : n(f.compradores)]);
-            if (mejor > 0 && f.por_interaccion === mejor) tr.classList.add('tabla-embudo__mejor');
-            return tr;
-        })));
-    llenar('barras-valor', ...barras(v.por_uso.map((f) => [f.nombre, f.por_interaccion ?? 0]),
-        'Todavía no hay ganancia con interacciones en este período', {}, pesos, false));
+        el('thead', {}, celdas(['Tipo de usuario', 'Interacciones', 'Usuarios activos', 'Compradores', 'Interacciones hasta comprar', 'Días hasta comprar'], 'th')),
+        el('tbody', {}, ...v.por_uso.map((f) => celdas([f.nombre, n(f.interacciones), n(f.activos),
+            f.compradores_sin_interacciones ? `${n(f.compradores)} (${n(f.compradores_sin_interacciones)} sin interacciones)` : n(f.compradores),
+            o(f.interacciones_hasta_comprar, decimal), o(f.dias_hasta_comprar, decimal)]))));
 }
 
 // Gráfico: por cada tipo de usuario, dos barras (buscaron en el metabuscador y, de esos, pagaron la inspección),
@@ -486,7 +501,6 @@ function mostrar(m) {
 
     // Plata: arriba el informe (ganancia − pérdida = neta) de todos o de un tipo de usuario, y después el detalle
     plataPorPerfil(m, textoPeriodo);
-    valorPorPerfil(m.por_perfil?.valor, textoPeriodo);
     const conInforme = actual.neta !== undefined;
     llenar('kpis-plata',
         conInforme
@@ -547,6 +561,7 @@ function mostrar(m) {
         pasoEmbudo('Pagaron la inspección ("compró")', emb.pagaron, emb.vieron, emb.vieron ? `${conversion} % de los que vieron` : null),
         pasoEmbudo('Ya tienen la inspección firmada', emb.firmadas, emb.vieron, null));
     embudoPorPerfil(m);
+    valorPorPerfil(m.por_perfil?.valor);
     document.getElementById('sin-origen').textContent = m.embudo.sin_origen
         ? `Además, ${n(m.embudo.sin_origen)} inspecciones del período se pidieron sin dato de dónde venían (anteriores a que empezáramos a medirlo).`
         : '';
