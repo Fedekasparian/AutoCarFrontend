@@ -29,6 +29,7 @@ const PAGINAS = {
     'mensajes.html': 'pages/operaciones/mensajes.html',
     'meta-busqueda-nueva.html': 'pages/operaciones/meta-busqueda-nueva.html',
     'meta-busqueda-resultados.html': 'pages/operaciones/meta-busqueda-resultados.html',
+    'meta-busqueda-novedades.html': 'pages/operaciones/meta-busqueda-novedades.html',
     'meta-busqueda.html': 'pages/operaciones/meta-busqueda.html',
     'mis-inspecciones.html': 'pages/talleres/mis-inspecciones.html',
     'mis-publicaciones.html': 'pages/vehiculos/mis-publicaciones.html',

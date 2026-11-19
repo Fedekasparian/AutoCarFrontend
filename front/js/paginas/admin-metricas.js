@@ -16,7 +16,7 @@ const porcentaje = (parte, total) => (total ? Math.round((parte / total) * 100) 
 
 const PESTANAS = [['resumen', 'Resumen'], ['plata', 'Plata'], ['inspecciones', 'Inspecciones'], ['embudo', 'Recomendaciones'], ['metabuscador', 'Metabuscador'], ['usuarios', 'Usuarios'], ['plataforma', 'Publicaciones']];
 // "Ordenar por" del metabuscador y qué peso de la fórmula de "Recomendados" (Parámetros) tiene que ver con cada uno
-const ORDENES = { recomendado: 'Recomendado', precio: 'Menor precio', km: 'Menos km', nuevos: 'Más nuevos' };
+const ORDENES = { recomendado: 'Más recomendados', precio: 'Menor precio', km: 'Menos km', nuevos: 'Más nuevos' };
 const PESO_DEL_ORDEN = { precio: 'el precio', km: 'los kilómetros', nuevos: 'el año' };
 const COLOR_CONCLUSION = { Recomendable: 'barras__barra--ok', 'Con reparos': 'barras__barra--observado', 'No recomendable': 'barras__barra--falla' };
 const PERIODOS = { 7: '7 días', 30: '30 días', 90: '3 meses' };
@@ -61,8 +61,9 @@ function tarjeta(valor, texto, formatear = n, comparar = {}) {
 
 // Barras horizontales de una sola serie, de mayor a menor: el largo es la cantidad y al lado va el número y qué
 // parte del total es (cada barra es un <li> con su texto, así se lee igual sin ver el gráfico).
-// clases: {nombre: 'barras__barra--ok'} para pintar una fila con el color de su estado; formatear: pesos para montos
-function barras(pares, vacio = 'Todavía no hay datos', clases = {}, formatear = n) {
+// clases: {nombre: 'barras__barra--ok'} para pintar una fila con el color de su estado; formatear: pesos para montos;
+// conParte: false cuando sumar los valores no tiene sentido (un promedio por persona, por ejemplo)
+function barras(pares, vacio = 'Todavía no hay datos', clases = {}, formatear = n, conParte = true) {
     const filas = pares.filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
     if (!filas.length) return [el('li', { class: 'barras__vacio' }, vacio)];
     const maximo = Math.max(...filas.map(([, v]) => v), 1);
@@ -71,9 +72,9 @@ function barras(pares, vacio = 'Todavía no hay datos', clases = {}, formatear =
         const barra = el('span', { class: `barras__barra ${clases[nombre] ?? ''}`, 'aria-hidden': 'true' });
         barra.style.setProperty('--largo', `${(valor / maximo) * 100}%`);
         barra.style.setProperty('--n', String(i));
-        return el('li', { class: 'barras__fila', title: `${nombre}: ${formatear(valor)} (${porcentaje(valor, total)} %)` },
+        return el('li', { class: 'barras__fila', title: `${nombre}: ${formatear(valor)}${conParte ? ` (${porcentaje(valor, total)} %)` : ''}` },
             el('span', { class: 'barras__nombre' }, nombre), barra,
-            el('span', { class: 'barras__valor' }, formatear(valor), el('span', { class: 'barras__parte' }, `${porcentaje(valor, total)} %`)));
+            el('span', { class: 'barras__valor' }, formatear(valor), conParte ? el('span', { class: 'barras__parte' }, `${porcentaje(valor, total)} %`) : null));
     });
 }
 
@@ -344,6 +345,33 @@ function plataPorPerfil(m, textoPeriodo) {
     llenar('barras-plata-perfil', ...barras(pp.plata.map((f) => [f.nombre, Math.max(f.neta, 0)]), 'Todavía no hay ganancia neta en este período', {}, pesos));
 }
 
+// Cuánto deja cada interacción (buscar, cambiar el orden, tocar "Mandale un mecánico") y cuánto tuvo que interactuar
+// cada tipo de usuario para comprar. Arriba el total, después la tabla y las barras de ganancia por interacción.
+const decimal = (v) => String(v).replace('.', ',');
+function valorPorPerfil(v, textoPeriodo) {
+    document.getElementById('valor-figura').hidden = !v;
+    if (!v) return;
+    const t = v.total;
+    const o = (x, f = n) => (x === null ? '—' : f(x));
+    llenar('kpis-valor',
+        tarjeta(t.por_interaccion, `Ganancia por interacción en ${textoPeriodo}`, pesos),
+        tarjeta(t.por_usuario, 'Ganancia por usuario activo', pesos),
+        tarjeta(t.interacciones_hasta_comprar === null ? null : decimal(t.interacciones_hasta_comprar), 'Interacciones hasta comprar (mediana)'),
+        tarjeta(t.dias_hasta_comprar === null ? null : `${decimal(t.dias_hasta_comprar)} días`, 'De la primera interacción a pagar (mediana)'));
+    const mejor = Math.max(...v.por_uso.map((f) => f.por_interaccion ?? 0));
+    llenar('tabla-valor',
+        el('thead', {}, celdas(['Tipo de usuario', 'Ganancia', 'Interacciones', 'Usuarios activos', 'Por interacción', 'Por usuario', 'Interacciones hasta comprar', 'Días hasta comprar', 'Compradores'], 'th')),
+        el('tbody', {}, ...v.por_uso.map((f) => {
+            const tr = celdas([f.nombre, pesos(f.ingresos), n(f.interacciones), n(f.activos), o(f.por_interaccion, pesos), o(f.por_usuario, pesos),
+                o(f.interacciones_hasta_comprar, decimal), o(f.dias_hasta_comprar, decimal),
+                f.compradores_sin_interacciones ? `${n(f.compradores)} (${n(f.compradores_sin_interacciones)} sin interacciones)` : n(f.compradores)]);
+            if (mejor > 0 && f.por_interaccion === mejor) tr.classList.add('tabla-embudo__mejor');
+            return tr;
+        })));
+    llenar('barras-valor', ...barras(v.por_uso.map((f) => [f.nombre, f.por_interaccion ?? 0]),
+        'Todavía no hay ganancia con interacciones en este período', {}, pesos, false));
+}
+
 // Gráfico: por cada tipo de usuario, dos barras (buscaron en el metabuscador y, de esos, pagaron la inspección),
 // con el largo relativo al grupo que más buscó. Primero el total. Cada barra lleva su número al lado.
 function buscaronYCompraron(mb) {
@@ -392,7 +420,7 @@ function sugerenciasOrden(ordenes) {
             el('a', { href: 'admin-parametros.html' }, 'Parámetros'), '.'));
     return items.length
         ? items
-        : [el('li', { class: 'barras__vacio' }, 'Ningún perfil prefiere otro orden que "Recomendado": la fórmula de "Recomendados" parece acertar (o todavía no hay datos).')];
+        : [el('li', { class: 'barras__vacio' }, 'Ningún perfil prefiere otro orden que "Más recomendados": la fórmula de "Recomendados" parece acertar (o todavía no hay datos).')];
 }
 
 // ---------- Pestañas y período (los botones se arman acá, no en el HTML) ----------
@@ -458,6 +486,7 @@ function mostrar(m) {
 
     // Plata: arriba el informe (ganancia − pérdida = neta) de todos o de un tipo de usuario, y después el detalle
     plataPorPerfil(m, textoPeriodo);
+    valorPorPerfil(m.por_perfil?.valor, textoPeriodo);
     const conInforme = actual.neta !== undefined;
     llenar('kpis-plata',
         conInforme

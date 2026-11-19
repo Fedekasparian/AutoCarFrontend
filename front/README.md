@@ -55,7 +55,8 @@ La lista viva está en [`../PENDIENTES.md`](../PENDIENTES.md).
 | `publicar.html` | `/mis-publicaciones/nueva` | Publicar vehículo en 6 pasos |
 | `meta-busqueda.html` | `/meta-busqueda` | Mis intereses (búsquedas guardadas) |
 | `meta-busqueda-nueva.html` | `/meta-busqueda/nueva` | Nueva búsqueda: marca, modelo, años, precio, km y transmisión |
-| `meta-busqueda-resultados.html` | `/meta-busqueda/:id` | Autos de MercadoLibre, Kavak, Autocosmos y AutoCar, precio típico y "Mandale un mecánico" |
+| `meta-busqueda-resultados.html` | `/meta-busqueda/:id` | Autos de MercadoLibre, Kavak, Autocosmos y AutoCar, precio típico y "Mandale un mecánico". En "Más recomendados", primero los 5 con el mensaje de por qué se le recomiendan según su perfil y "Ver listado completo" (`?todo=1`); arriba, una franja con las novedades |
+| `meta-busqueda-novedades.html` | `/meta-busqueda/:id/novedades` | Novedades de una búsqueda: gráfico de nuevos, bajas de precio y retirados por día (30 días) y cuáles cambiaron en la última corrida |
 | `mensajes.html` | `/mensajes` | Conversaciones |
 | `conversacion.html` | `/mensajes/:id` | Conversación |
 | `preferencias.html` | `/cuenta/preferencias` | "¿Para qué buscás el auto?" (`PUT /api/me/preferencias`). Obligatoria para las cuentas personales: `js/navegacion.js` las trae acá hasta que contestan y aceptan la política de privacidad |
