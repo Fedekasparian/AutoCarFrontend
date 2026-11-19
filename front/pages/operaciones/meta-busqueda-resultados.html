@@ -34,12 +34,11 @@
     <h1 id="titulo">Resultados</h1>
   </header>
 
-  <!-- GET /api/meta-busquedas/{id} (js/paginas/meta-busqueda-resultados.js?id=N): referencia de precio,
+  <!-- GET /api/meta-busquedas/{id} (js/paginas/meta-busqueda-resultados.js?id=N): precio típico por sitio,
        novedades, destacados y los autos de todas las fuentes. Cada uno con "Mandale un mecánico" (link fijo). -->
   <main id="contenido" class="pantalla">
     <div class="estado" id="estado"></div>
     <section class="pila" id="resumen" hidden aria-label="Resumen de la búsqueda">
-      <p class="recuadro" id="referencia"></p>
       <!-- Precio típico de cada sitio en una misma escala (lo arma js/paginas/meta-busqueda-resultados.js) -->
       <div class="sitios" id="sitios" hidden></div>
       <!-- Nuevos, bajaron y ya no están desde la corrida anterior, con el link a la página de novedades

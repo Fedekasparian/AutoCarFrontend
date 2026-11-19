@@ -1505,9 +1505,23 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
     background: var(--marca-tinta); color: var(--marca-blanco); font-size: 12px; font-weight: 700;
 }
 .resultado__mensaje{
-    display: block; margin-top: 6px; padding: 8px 12px; border-radius: 10px; font-size: 14px; line-height: 1.45; color: var(--marca-tinta);
-    background: color-mix(in srgb, var(--marca-acento) 14%, var(--marca-blanco));
+    display: grid; gap: 4px; margin-top: 10px; padding: 12px 16px; border-radius: 12px;
+    border: 1px solid color-mix(in srgb, var(--marca-acento) 55%, var(--marca-linea));
+    background: color-mix(in srgb, var(--marca-acento) 22%, var(--marca-blanco));
+    color: var(--marca-tinta); animation: ficha-entra var(--dur-media) var(--curva-salida) both;
 }
+.resultado__mensaje-titulo{
+    display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase;
+    color: color-mix(in srgb, var(--marca-acento) 40%, var(--marca-tinta));
+}
+.resultado__mensaje-titulo::before{
+    content: "★"; display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%;
+    background: var(--marca-acento); color: var(--sobre-acento); font-size: 11px; letter-spacing: 0;
+}
+.resultado__mensaje-texto{ font-size: 15px; line-height: 1.5; }
+.resultado__mensaje-texto strong{ font-weight: 700; }
+:where(:root[data-modo="oscuro"]) .resultado__mensaje-titulo{ color: var(--marca-acento); }
+@media (prefers-reduced-motion: reduce){ .resultado__mensaje{ animation: none; } }
 .vista-meta-busqueda-resultados .ver-todo{ justify-self: center; width: auto; }
 
 /* Novedades por día: una columna apilada por día (nuevos abajo, después bajaron y ya no están) */

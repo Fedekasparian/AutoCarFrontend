@@ -1,12 +1,11 @@
 // Reporte de una búsqueda guardada (meta-busqueda-resultados.html?id=N) con GET /api/meta-busquedas/{id}:
-// precio de referencia, una franja con las novedades (el detalle está en meta-busqueda-novedades.html) y los autos
+// precio típico por sitio, una franja con las novedades (el detalle está en meta-busqueda-novedades.html) y los autos
 // de todas las fuentes, cada uno con "Mandale un mecánico".
 // "Más recomendados" (sin orden en la URL) lo decide el back: si eligió para qué busca el auto, según su perfil
 // (para_vos); si no, por la diferencia con el precio típico. En ese orden se ven primero los 5 más recomendados,
 // cada uno con por qué se le recomienda, y "Ver listado completo" muestra el resto (queda en la URL: ?todo=1).
 import * as api from '../api/metabusqueda.js';
 import * as formato from '../servicios/formato.js';
-import * as insp from '../servicios/inspecciones.js';
 import * as sesion from '../servicios/sesion.js';
 import * as vistas from '../servicios/vistas.js';
 import { criterios } from '../servicios/metabusqueda.js';
@@ -45,16 +44,17 @@ async function traerAvisos() {
     }
 }
 
-// Precio típico por sitio, todos en la misma escala: franja del 25 % al 75 % y una marca en la mediana
+// Precio típico por sitio, todos en la misma escala: franja del 25 % al 75 % y una marca en la mediana.
+// Es la única referencia de precio de la página: se muestra aunque haya un solo sitio con autos suficientes.
 function mostrarSitios(referencia) {
     const grupos = referencia.filter((g) => g.moneda === 'ARS' && g.suficiente);
     const caja = $('sitios');
-    if (grupos.length < 2) { caja.hidden = true; return; }
+    if (!grupos.length) { caja.hidden = true; return; }
     const desde = Math.min(...grupos.map((g) => g.p25)) * 0.95;
     const hasta = Math.max(...grupos.map((g) => g.p75)) * 1.05;
     const pos = (v) => `${(((v - desde) / (hasta - desde)) * 100).toFixed(1)}%`;
     caja.replaceChildren(
-        el('p', { class: 'sitios__titulo' }, 'Precio típico en cada sitio'),
+        el('p', { class: 'sitios__titulo' }, grupos.length > 1 ? 'Precio típico en cada sitio' : 'Precio típico'),
         ...grupos.sort((a, b) => a.mediana - b.mediana).map((g) => {
             const pista = el('span', { class: 'sitios__pista', 'aria-hidden': 'true' },
                 el('span', { class: 'sitios__franja' }), el('span', { class: 'sitios__mediana' }));
@@ -79,14 +79,16 @@ function mostrarNovedades(n) {
     }
     const cifra = (valor, texto, clase) => el('span', { class: `novedades-franja__cifra novedades-franja__cifra--${clase}` },
         el('strong', {}, String(valor)), ` ${texto}`);
-    caja.replaceChildren(
+    // replaceChildren escribe "null" si le llega un null: lo que no va se filtra antes
+    caja.replaceChildren(...[
         el('span', { class: 'novedades-franja__texto' }, 'Desde la corrida anterior'),
         el('span', { class: 'novedades-franja__cifras' },
             cifra(n.nuevos, n.nuevos === 1 ? 'nuevo' : 'nuevos', 'nuevos'),
             cifra(n.bajaron, 'bajaron de precio', 'bajaron'),
             cifra(n.retirados, 'ya no están', 'retirados')),
         avisos.length ? el('span', { class: 'novedades-franja__sin-ver' }, `${avisos.length} sin ver`) : null,
-        el('a', { class: 'boton boton--chico boton--secundario novedades-franja__ver', href: ruta(`meta-busqueda-novedades.html?id=${id}`) }, 'Ver novedades'));
+        el('a', { class: 'boton boton--chico boton--secundario novedades-franja__ver', href: ruta(`meta-busqueda-novedades.html?id=${id}`) }, 'Ver novedades'),
+    ].filter(Boolean));
     caja.classList.add('novedades-franja--con-datos');
 }
 
@@ -177,12 +179,6 @@ function mostrar(r) {
     $('titulo').textContent = criterios(b);
     document.title = `${b.marca} ${b.modelo} - AutoCar`;
 
-    // La referencia en pesos del sitio con más autos (cada sitio trae la suya)
-    const ref = r.referencia.filter((g) => g.moneda === 'ARS' && g.suficiente)
-        .sort((a, b) => b.cantidad - a.cantidad)[0];
-    $('referencia').textContent = ref
-        ? `Precio típico en ${insp.fuente(ref.fuente)}: ${formato.precio(ref.mediana)} (la mitad de ${ref.cantidad} autos está entre ${formato.precio(ref.p25)} y ${formato.precio(ref.p75)}).`
-        : 'Todavía no hay suficientes autos para calcular un precio típico.';
     $('aclaracion').textContent = r.aclaracion;
     mostrarSitios(r.referencia);
     mostrarNovedades(r.novedades);
