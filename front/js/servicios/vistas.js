@@ -40,6 +40,15 @@ export function avatar(persona, clase = '') {
 }
 
 // Ficha de la grilla de publicaciones (home y buscar). Mismo HTML que el maquetado.
+// "Concesionaria X · Empresa verificada"
+export function insigniaEmpresa(empresa, enlace = false) {
+    const contenido = [el('span', { class: 'insignia-empresa__sello', 'aria-hidden': 'true' }, '✓'),
+        el('span', { class: 'insignia-empresa__nombre' }, empresa.nombre), el('span', { class: 'insignia-empresa__texto' }, ' · Empresa verificada')];
+    return enlace
+        ? el('a', { class: 'insignia-empresa', href: ruta(`empresa.html?id=${empresa.id}`) }, ...contenido)
+        : el('span', { class: 'insignia-empresa' }, ...contenido);
+}
+
 export function fichaVehiculo(v) {
     return el('li', {},
         el('a', { class: 'ficha-vehiculo', href: ruta(`vehiculo.html?id=${v.id}`) },
@@ -50,6 +59,8 @@ export function fichaVehiculo(v) {
             el('div', { class: 'ficha-vehiculo__cuerpo' },
                 el('span', { class: 'ficha-vehiculo__precio' }, formato.precio(v.precio)),
                 el('span', { class: 'ficha-vehiculo__titulo' }, formato.titulo(v)),
+                // Concesionaria aprobada: su nombre con la insignia (sin logo; no es "patrocinado": compite igual)
+                v.empresa ? insigniaEmpresa(v.empresa) : null,
                 el('span', { class: 'ficha-vehiculo__lugar' },
                     `${formato.km(v.kilometraje)} · ${formato.combustible(v.combustible)}`),
                 v.localidad || v.transmision

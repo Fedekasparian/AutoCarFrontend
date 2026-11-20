@@ -72,6 +72,23 @@
           <label class="campo__etiqueta" for="precio_max">Precio máximo</label>
           <input class="campo__input" id="precio_max" name="precio_max" type="number" min="1" step="1" inputmode="numeric" placeholder="Sin límite">
         </div>
+        <div class="campos-fila">
+          <div class="campo">
+            <label class="campo__etiqueta" for="vendedor">Vendedor</label>
+            <select class="campo__input" id="vendedor" name="vendedor">
+              <option value="">Todos</option>
+              <option value="particular">Particulares</option>
+              <option value="empresa">Concesionarias</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label class="campo__etiqueta" for="orden">Ordenar por</label>
+            <select class="campo__input" id="orden" name="orden">
+              <option value="">Más relevantes</option>
+              <option value="recientes">Más recientes</option>
+            </select>
+          </div>
+        </div>
         <button class="boton" type="submit">Aplicar filtros</button>
       </form>
     </details>

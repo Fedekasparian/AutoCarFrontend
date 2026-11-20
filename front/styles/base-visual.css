@@ -1530,7 +1530,7 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .leyenda-dias__item--nuevo, .dias__tramo--nuevo{ --color-tramo: #2f855a; }
 .leyenda-dias__item--bajo, .dias__tramo--bajo{ --color-tramo: #2b6cb0; }
 .leyenda-dias__item--retirado, .dias__tramo--retirado{ --color-tramo: #a0aec0; }
-.dias{ display: grid; grid-template-columns: repeat(30, minmax(0, 1fr)); gap: 3px; height: 180px; margin: 0; padding: 0; list-style: none; }
+.dias{ display: grid; grid-template-columns: repeat(var(--columnas, 30), minmax(0, 1fr)); gap: 3px; height: 180px; margin: 0; padding: 0; list-style: none; }
 .dias[hidden]{ display: none; }
 .dias__dia{ display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 4px; min-width: 0; }
 .dias__columna{
@@ -1589,3 +1589,35 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 :where(:root[data-modo="oscuro"]) .estado-cobro--cobrado{ background: color-mix(in srgb, #68d391 25%, transparent); color: #9ae6b4; }
 :where(:root[data-modo="oscuro"]) .estado-cobro--pendiente{ background: color-mix(in srgb, #f6ad55 25%, transparent); color: #fbd38d; }
 @media (prefers-reduced-motion: reduce){ .meses__columna{ animation: none; } }
+
+/* =====================================================================
+   Empresas (concesionarias): la insignia en las fichas y el detalle, "Sumá tu concesionaria", la vitrina y el panel
+   ===================================================================== */
+.insignia-empresa{
+    display: inline-flex; align-items: center; gap: 4px; max-width: 100%; font-size: 12px; font-weight: 600; color: var(--marca-tinta);
+    text-decoration: none;
+}
+.insignia-empresa__sello{
+    display: inline-grid; place-items: center; flex: none; width: 16px; height: 16px; border-radius: 50%;
+    background: var(--marca-acento); color: var(--sobre-acento); font-size: 10px; font-weight: 800;
+}
+.insignia-empresa__nombre{ overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.insignia-empresa__texto{ flex: none; color: var(--marca-gris); font-weight: 500; }
+a.insignia-empresa:hover .insignia-empresa__nombre{ text-decoration: underline; }
+.insignia-empresa--grande{ margin: 0; font-size: 14px; }
+.insignia-empresa--grande .insignia-empresa__sello{ width: 20px; height: 20px; font-size: 12px; margin-right: 4px; }
+.ficha-vehiculo .insignia-empresa{ margin-top: 2px; }
+
+.beneficios-empresa{ display: grid; gap: 8px; margin: 0; padding-left: 20px; line-height: 1.5; }
+.vitrina{ display: grid; gap: 12px; }
+.vitrina[hidden]{ display: none; }
+
+.panel-empresa__barra{ display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.panel-empresa__barra p{ margin: 0; }
+.mas-vista{ display: grid; gap: 6px; border-left: 4px solid var(--marca-acento); }
+.mas-vista[hidden]{ display: none; }
+.mas-vista p{ margin: 0; font-size: 16px; }
+.dias--visitas .dias__tramo--visitas{ background: var(--serie-1, #1f9e8f); border-radius: 3px 3px 0 0; }
+.vista-empresa-panel .dias{ height: 160px; }
+.dias--visitas{ gap: 2px; }
+@media (max-width: 599px){ .dias--visitas{ gap: 1px; } }
