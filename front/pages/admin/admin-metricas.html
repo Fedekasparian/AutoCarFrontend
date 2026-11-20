@@ -122,6 +122,36 @@
         <p class="campo__ayuda" id="sin-origen"></p>
       </section>
 
+      <!-- Afiliación con las plataformas (GET /api/admin/afiliacion): no depende del período elegido arriba -->
+      <section class="metricas-panel pila" id="p-afiliaciones" data-pestana="afiliaciones" aria-labelledby="t-afiliaciones" hidden>
+        <h2 class="solo-lector" id="t-afiliaciones">Afiliaciones</h2>
+        <p class="campo__ayuda">Convenio <strong>simulado</strong> con las plataformas del metabuscador: cada "Ver en …" se cuenta y a fin de mes se le cobra a cada una sus clics válidos por su tarifa. Válido = de una cuenta personal y no repetido (el mismo usuario y el mismo auto cuentan una vez cada 24 horas). No hay acuerdos reales con esas empresas.</p>
+        <h3 class="titulo-seccion">Este mes</h3>
+        <ul class="resumen-admin" role="list" id="kpis-afiliacion"></ul>
+        <figure class="grafico">
+          <figcaption class="grafico__titulo" id="afiliacion-mes-titulo">Lo que se va a cobrar este mes</figcaption>
+          <div class="tabla-desplazable"><table class="tabla tabla-embudo" id="tabla-afiliacion-mes"></table></div>
+          <p class="campo__ayuda" id="afiliacion-cierre"></p>
+        </figure>
+        <h3 class="titulo-seccion">Evolución</h3>
+        <figure class="grafico">
+          <figcaption class="grafico__titulo">Lo que se cobra por afiliación, mes a mes (últimos 12)</figcaption>
+          <ul class="leyenda-dias" role="list" aria-label="Referencias">
+            <li class="leyenda-dias__item leyenda-meses--clics">Clics a plataformas</li>
+            <li class="leyenda-dias__item leyenda-meses--abonos">Abonos de empresas</li>
+          </ul>
+          <ol class="meses" id="meses-afiliacion"></ol>
+        </figure>
+        <figure class="grafico">
+          <figcaption class="grafico__titulo">Meses cerrados</figcaption>
+          <div class="tabla-desplazable"><table class="tabla tabla-embudo" id="tabla-afiliacion-meses"></table></div>
+          <p class="campo__ayuda">Un mes se cobra cuando termina. "Marcar cobrado" guarda lo de ese momento: si después cambia la tarifa, ese mes no se mueve.</p>
+        </figure>
+        <h3 class="titulo-seccion">Convenios</h3>
+        <div class="tabla-desplazable"><table class="tabla tabla-embudo" id="tabla-convenios"></table></div>
+        <p class="campo__ayuda">La tarifa nueva vale para el mes en curso y los meses que todavía no se cobraron. Sin convenio activo los clics se cuentan, pero no se cobran.</p>
+      </section>
+
       <section class="metricas-panel pila" id="p-metabuscador" data-pestana="metabuscador" aria-labelledby="t-metabuscador" hidden>
         <h2 class="solo-lector" id="t-metabuscador">Metabuscador</h2>
         <p class="campo__ayuda">"Buscaron" = abrieron los resultados de una búsqueda del metabuscador en el período. "Compraron" = de esos, cuántos <strong>pagaron una inspección</strong> en el período.</p>

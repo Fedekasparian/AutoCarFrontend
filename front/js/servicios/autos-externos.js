@@ -5,6 +5,7 @@ import * as insp from './inspecciones.js';
 import * as vistas from './vistas.js';
 import { ruta } from './rutas.js';
 import * as eventos from '../api/eventos.js';
+import { API_URL } from '../api/config.js';
 
 const { el } = vistas;
 
@@ -43,7 +44,10 @@ export function acciones(a, origen = 'metabuscador') {
     if (a.fuente === 'autocar') {
         return [el('a', { class: 'boton boton--chico', href: ruta(`vehiculo.html?id=${a.id}`) }, 'Ver publicación')];
     }
-    const verEnSitio = el('a', { class: 'boton-link', href: a.url, target: '_blank', rel: 'noopener noreferrer' }, `Ver en ${insp.fuente(a.fuente)}`);
+    // "Ver en …" pasa por el back (GET /api/salida), que anota el clic para la afiliación con esa plataforma y redirige
+    // al aviso. La dirección del aviso la pone el back con sus datos, no la que viaja en el link.
+    const salida = `${API_URL}/api/salida?${new URLSearchParams({ id: a.id, origen })}`;
+    const verEnSitio = el('a', { class: 'boton-link', href: salida, target: '_blank', rel: 'noopener noreferrer' }, `Ver en ${insp.fuente(a.fuente)}`);
     if (a.reservado) {
         return [verEnSitio, el('span', { class: 'suave' }, 'Reservado: no se puede pedir inspección')];
     }
