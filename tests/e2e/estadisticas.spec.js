@@ -94,6 +94,17 @@ test('el admin recorre las estadísticas y ve la fórmula de para vos', async ({
         await expect(page.locator('#sugerencias-orden > li').first()).toBeVisible();
     });
 
+    await test.step('la pestaña Afiliaciones muestra el mes en curso, la evolución y los convenios', async () => {
+        await page.getByRole('button', { name: 'Afiliaciones' }).click();
+        await expect(page).toHaveURL(/#afiliaciones$/);
+        await expect(page.locator('#kpis-afiliacion > li')).toHaveCount(3);
+        await expect(page.locator('#tabla-afiliacion-mes thead th')).toHaveCount(6);
+        await expect(page.locator('#tabla-afiliacion-mes tbody tr').last()).toContainText('Total del mes');
+        await expect(page.locator('#meses-afiliacion > li')).toHaveCount(12);
+        await expect(page.locator('#tabla-afiliacion-meses tbody tr')).toHaveCount(11);
+        await expect(page.locator('#tabla-convenios tbody tr').first().locator('input[type="number"]')).toBeVisible();
+    });
+
     await test.step('en Parámetros, la fórmula de para vos es una grilla de 4 perfiles por 4 criterios', async () => {
         await page.goto(pagina('pages/admin/admin-parametros.html'));
         await expect(page.locator('.formula__tabla tbody tr')).toHaveCount(4, { timeout: 60_000 });

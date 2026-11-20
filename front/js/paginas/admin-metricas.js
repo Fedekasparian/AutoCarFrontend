@@ -14,7 +14,7 @@ const n = (valor) => numero.format(valor);
 const pesos = (v) => formato.precio(v);
 const porcentaje = (parte, total) => (total ? Math.round((parte / total) * 100) : 0);
 
-const PESTANAS = [['resumen', 'Resumen'], ['plata', 'Plata'], ['inspecciones', 'Inspecciones'], ['embudo', 'Recomendaciones'], ['metabuscador', 'Metabuscador'], ['usuarios', 'Usuarios'], ['plataforma', 'Publicaciones']];
+const PESTANAS = [['resumen', 'Resumen'], ['plata', 'Plata'], ['inspecciones', 'Inspecciones'], ['embudo', 'Recomendaciones'], ['metabuscador', 'Metabuscador'], ['afiliaciones', 'Afiliaciones'], ['usuarios', 'Usuarios'], ['plataforma', 'Publicaciones']];
 // "Ordenar por" del metabuscador y qué peso de la fórmula de "Recomendados" (Parámetros) tiene que ver con cada uno
 const ORDENES = { recomendado: 'Más recomendados', precio: 'Menor precio', km: 'Menos km', nuevos: 'Más nuevos' };
 const PESO_DEL_ORDEN = { precio: 'el precio', km: 'los kilómetros', nuevos: 'el año' };
@@ -438,6 +438,129 @@ function sugerenciasOrden(ordenes) {
         : [el('li', { class: 'barras__vacio' }, 'Ningún perfil prefiere otro orden que "Más recomendados": la fórmula de "Recomendados" parece acertar (o todavía no hay datos).')];
 }
 
+// ---------- Afiliaciones: lo que se cobra a las plataformas por los clics (convenio simulado) ----------
+
+const nombreMes = (mes, largo = false) => new Date(`${mes}T12:00:00`).toLocaleDateString('es-AR', { month: largo ? 'long' : 'short', year: 'numeric' });
+const mesCorto = (mes) => mes.slice(0, 7); // "2026-10-01" → "2026-10", como lo pide la API
+const ESTADO_MES = { en_curso: 'En curso', pendiente: 'Falta cobrar', cobrado: 'Cobrado' };
+
+function esteMesAfiliacion(m) {
+    llenar('kpis-afiliacion',
+        tarjeta(m.total, `A cobrar en ${nombreMes(m.mes, true)}`, pesos),
+        tarjeta(m.de_clics, `De clics a plataformas (${n(m.validos)} válidos de ${n(m.clics)})`, pesos),
+        tarjeta(m.de_abonos, 'De abonos de empresas', pesos));
+    document.getElementById('afiliacion-mes-titulo').textContent = `Lo que se va a cobrar en ${nombreMes(m.mes, true)}`;
+    llenar('tabla-afiliacion-mes',
+        el('thead', {}, celdas(['Socio', 'Tipo', 'Clics', 'Válidos', 'Tarifa', 'A cobrar'], 'th')),
+        el('tbody', {}, ...m.filas.map((f) => celdas([f.nombre, 'Plataforma', n(f.clics), n(f.validos),
+            f.activo ? `${pesos(f.tarifa_clic)} / clic` : 'Sin convenio activo', pesos(f.monto)])),
+        celdas([el('strong', {}, 'Total del mes'), '', n(m.clics), n(m.validos), '', el('strong', {}, pesos(m.total))])));
+    document.getElementById('afiliacion-cierre').textContent = m.dias_al_cierre
+        ? `Faltan ${m.dias_al_cierre} ${m.dias_al_cierre === 1 ? 'día' : 'días'} para el cierre del mes.`
+        : 'Hoy cierra el mes.';
+}
+
+// Una columna por mes, partida en clics y abonos, con el alto relativo al mes que más se cobró
+function mesesAfiliacion(evolucion) {
+    const maximo = Math.max(...evolucion.map((m) => m.total), 0);
+    llenar('meses-afiliacion', ...evolucion.map((m, i) => {
+        const columna = el('span', { class: 'meses__columna', 'aria-hidden': 'true' },
+            ...[['clics', m.de_clics], ['abonos', m.de_abonos]].map(([clase, valor]) => {
+                const tramo = el('span', { class: `meses__tramo meses__tramo--${clase}` });
+                tramo.style.setProperty('--alto', `${maximo ? (valor / maximo) * 100 : 0}%`);
+                return tramo;
+            }));
+        const li = el('li', { class: `meses__mes${m.en_curso ? ' meses__mes--actual' : ''}`, title: `${nombreMes(m.mes)}: ${pesos(m.total)}` },
+            el('span', { class: 'meses__valor', 'aria-hidden': 'true' }, m.total ? pesosCorto(m.total) : ''),
+            columna,
+            el('span', { class: 'meses__nombre', 'aria-hidden': 'true' }, nombreMes(m.mes)),
+            el('span', { class: 'solo-lector' }, `${nombreMes(m.mes, true)}: ${pesos(m.total)}${m.en_curso ? ' (en curso)' : ''}`));
+        li.style.setProperty('--n', String(i));
+        return li;
+    }));
+}
+
+// Los meses cerrados, del más nuevo al más viejo; al tocar uno se ve cada socio y se marca cobrado
+let mesAbierto = null;
+function mesesCerradosAfiliacion(evolucion) {
+    const cerrados = evolucion.filter((m) => !m.en_curso).reverse();
+    const filas = cerrados.flatMap((m) => {
+        const abierto = mesAbierto === m.mes;
+        const ver = el('button', { class: 'boton-link', type: 'button', 'aria-expanded': String(abierto) }, abierto ? 'Ocultar' : 'Ver por socio');
+        ver.addEventListener('click', () => { mesAbierto = abierto ? null : m.mes; mesesCerradosAfiliacion(evolucion); });
+        const estado = el('span', { class: `estado-cobro estado-cobro--${m.estado}` }, ESTADO_MES[m.estado]);
+        const fila = celdas([nombreMes(m.mes, true), n(m.validos), pesos(m.de_clics), pesos(m.de_abonos), pesos(m.total), estado, ver]);
+        if (!abierto) return [fila];
+        const detalle = el('table', { class: 'tabla tabla-cobros' },
+            el('thead', {}, celdas(['Socio', 'Válidos', 'Monto', ''], 'th')),
+            el('tbody', {}, ...m.filas.map((f) => celdas([f.nombre, n(f.validos), pesos(f.monto), cobroDe(m, f)]))));
+        return [fila, el('tr', { class: 'tabla-cobros__fila' }, el('td', { colspan: '7' }, detalle))];
+    });
+    llenar('tabla-afiliacion-meses',
+        el('thead', {}, celdas(['Mes', 'Clics válidos', 'De clics', 'De abonos', 'Total', 'Estado', ''], 'th')),
+        el('tbody', {}, ...(filas.length ? filas : [el('tr', {}, el('td', { colspan: '7' }, 'Todavía no hay meses cerrados.'))])));
+}
+
+function cobroDe(m, f) {
+    if (f.cobrado_at) return el('span', { class: 'estado-cobro estado-cobro--cobrado' }, `Cobrado el ${new Date(f.cobrado_at).toLocaleDateString('es-AR')}`);
+    if (!f.monto) return el('span', { class: 'suave' }, 'Nada que cobrar');
+    const b = el('button', { class: 'boton boton--chico', type: 'button' }, 'Marcar cobrado');
+    b.addEventListener('click', async () => {
+        b.disabled = true;
+        try {
+            mostrarAfiliacion(await admin.cobrarAfiliacion(f.fuente, mesCorto(m.mes)));
+        } catch (error) {
+            b.replaceWith(el('span', { class: 'campo__error' }, error.status === 403 ? 'No tenés permiso para marcar cobros.' : error.message));
+        }
+    });
+    return b;
+}
+
+// La tarifa por clic de cada plataforma y si el convenio está activo (cambiarlos pide parametros.editar)
+function conveniosAfiliacion(convenios) {
+    llenar('tabla-convenios',
+        el('thead', {}, celdas(['Plataforma', 'Tarifa por clic', 'Activo', ''], 'th')),
+        el('tbody', {}, ...convenios.map((c) => {
+            const tarifa = el('input', { class: 'campo__input tabla-convenios__tarifa', type: 'number', min: '0', step: '10',
+                value: String(c.tarifa_clic), 'aria-label': `Tarifa por clic de ${c.nombre}` });
+            const activo = el('input', { type: 'checkbox', 'aria-label': `Convenio con ${c.nombre} activo` });
+            activo.checked = c.activo;
+            const mensaje = el('span', { class: 'suave', 'aria-live': 'polite' });
+            const guardar = el('button', { class: 'boton boton--chico boton--secundario', type: 'button' }, 'Guardar');
+            guardar.addEventListener('click', async () => {
+                guardar.disabled = true;
+                try {
+                    await admin.guardarConvenio(c.fuente, Number(tarifa.value), activo.checked);
+                    await cargarAfiliacion();
+                } catch (error) {
+                    mensaje.textContent = error.status === 403 ? 'No tenés permiso para cambiar los convenios.' : error.message;
+                    guardar.disabled = false;
+                }
+            });
+            return celdas([c.nombre, tarifa, activo, el('span', { class: 'tabla-convenios__acciones' }, guardar, mensaje)]);
+        })));
+}
+
+function mostrarAfiliacion(a) {
+    esteMesAfiliacion(a.este_mes);
+    mesesAfiliacion(a.evolucion);
+    mesesCerradosAfiliacion(a.evolucion);
+    conveniosAfiliacion(a.convenios);
+}
+
+async function cargarAfiliacion() {
+    try {
+        mostrarAfiliacion(await admin.afiliacion());
+    } catch {
+        // Sin el back nuevo (o sin permiso) la pestaña no se muestra
+        document.querySelector('[data-pestana-boton="afiliaciones"]').hidden = true;
+        if (pestana === 'afiliaciones') {
+            pestana = 'resumen';
+            mostrarPestana();
+        }
+    }
+}
+
 // ---------- Pestañas y período (los botones se arman acá, no en el HTML) ----------
 
 function boton(texto, activo, alTocar) {
@@ -646,4 +769,5 @@ async function cargar() {
 if (sesion.requerirPermiso('metricas.ver')) {
     armarControles();
     cargar();
+    cargarAfiliacion(); // no depende del período: se pide una vez
 }
