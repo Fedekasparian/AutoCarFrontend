@@ -2,6 +2,7 @@
 // compensación, días para reclamar y precio de la inspección. GET y PUT /api/admin/parametros.
 // Los campos salen de la base: si se agrega un parámetro, aparece solo. El back valida los límites otra vez.
 import * as api from '../api/parametros.js';
+import * as admin from '../api/admin.js';
 import * as formato from '../servicios/formato.js';
 import * as formularios from '../servicios/formularios.js';
 import * as sesion from '../servicios/sesion.js';
@@ -12,7 +13,7 @@ const campos = document.getElementById('campos');
 const listaCambios = document.getElementById('cambios');
 const aviso = document.getElementById('aviso');
 
-const UNIDADES = { porcentaje: '%', pesos: '$', dias: 'días', veces: 'veces', horas: 'horas', puntos: 'puntos' };
+const UNIDADES = { porcentaje: '%', pesos: '$', dias: 'días', veces: 'veces', horas: 'horas', puntos: 'puntos', autos: 'autos' };
 let actuales = {}; // clave → valor que tiene hoy, para mandar solo lo que cambió
 
 // Un valor con su unidad: "23 %", "$100.000", "15 días"
@@ -237,4 +238,30 @@ async function iniciar() {
     }
 }
 
-if (sesion.requerirPermiso('parametros.editar')) iniciar();
+// El ranking de Explorar usa el precio de cada publicación contra autos parecidos de otros sitios. Se calcula al aprobar
+// cada una y una vez por día cuando termina el scraper; este botón lo hace ahora (por ejemplo, después de cambiar datos)
+function botonPreciosMercado() {
+    const resultado = el('span', { class: 'suave', 'aria-live': 'polite' });
+    const boton = el('button', { class: 'boton boton--secundario', type: 'button' }, 'Actualizar precios contra el mercado');
+    boton.addEventListener('click', async () => {
+        boton.disabled = true;
+        resultado.textContent = 'Calculando…';
+        try {
+            const r = await admin.actualizarPreciosMercado();
+            resultado.textContent = `Listo: ${r.autos} publicaciones de ${r.modelos} modelos.`;
+        } catch (error) {
+            resultado.textContent = error.message;
+        } finally {
+            boton.disabled = false;
+        }
+    });
+    document.getElementById('contenido').append(el('section', { class: 'recuadro pila', 'aria-labelledby': 't-precios-mercado' },
+        el('h2', { class: 'titulo-seccion', id: 't-precios-mercado' }, 'Ranking de Explorar'),
+        el('p', { class: 'campo__ayuda' }, 'Explorar ordena con la misma fórmula de "para vos", con el precio de cada publicación contra autos parecidos de MercadoLibre, Kavak y Autocosmos. Se calcula al aprobar cada publicación y una vez por día, cuando termina el scraper. Con este botón se calcula ahora.'),
+        el('p', { class: 'acciones-fila' }, boton, ' ', resultado)));
+}
+
+if (sesion.requerirPermiso('parametros.editar')) {
+    iniciar();
+    botonPreciosMercado();
+}

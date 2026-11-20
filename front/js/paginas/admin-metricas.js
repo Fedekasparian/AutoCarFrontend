@@ -452,8 +452,9 @@ function esteMesAfiliacion(m) {
     document.getElementById('afiliacion-mes-titulo').textContent = `Lo que se va a cobrar en ${nombreMes(m.mes, true)}`;
     llenar('tabla-afiliacion-mes',
         el('thead', {}, celdas(['Socio', 'Tipo', 'Clics', 'Válidos', 'Tarifa', 'A cobrar'], 'th')),
-        el('tbody', {}, ...m.filas.map((f) => celdas([f.nombre, 'Plataforma', n(f.clics), n(f.validos),
-            f.activo ? `${pesos(f.tarifa_clic)} / clic` : 'Sin convenio activo', pesos(f.monto)])),
+        el('tbody', {}, ...m.filas.map((f) => celdas(f.tipo === 'empresa'
+            ? [f.nombre, 'Empresa', '—', '—', 'Abono mensual', pesos(f.monto)]
+            : [f.nombre, 'Plataforma', n(f.clics), n(f.validos), f.activo ? `${pesos(f.tarifa_clic)} / clic` : 'Sin convenio activo', pesos(f.monto)])),
         celdas([el('strong', {}, 'Total del mes'), '', n(m.clics), n(m.validos), '', el('strong', {}, pesos(m.total))])));
     document.getElementById('afiliacion-cierre').textContent = m.dias_al_cierre
         ? `Faltan ${m.dias_al_cierre} ${m.dias_al_cierre === 1 ? 'día' : 'días'} para el cierre del mes.`
@@ -492,8 +493,9 @@ function mesesCerradosAfiliacion(evolucion) {
         const fila = celdas([nombreMes(m.mes, true), n(m.validos), pesos(m.de_clics), pesos(m.de_abonos), pesos(m.total), estado, ver]);
         if (!abierto) return [fila];
         const detalle = el('table', { class: 'tabla tabla-cobros' },
-            el('thead', {}, celdas(['Socio', 'Válidos', 'Monto', ''], 'th')),
-            el('tbody', {}, ...m.filas.map((f) => celdas([f.nombre, n(f.validos), pesos(f.monto), cobroDe(m, f)]))));
+            el('thead', {}, celdas(['Socio', 'Tipo', 'Clics válidos', 'Monto', ''], 'th')),
+            el('tbody', {}, ...m.filas.map((f) => celdas([f.nombre, f.tipo === 'empresa' ? 'Abono' : 'Clics',
+                f.tipo === 'empresa' ? '—' : n(f.validos), pesos(f.monto), cobroDe(m, f)]))));
         return [fila, el('tr', { class: 'tabla-cobros__fila' }, el('td', { colspan: '7' }, detalle))];
     });
     llenar('tabla-afiliacion-meses',
@@ -508,7 +510,7 @@ function cobroDe(m, f) {
     b.addEventListener('click', async () => {
         b.disabled = true;
         try {
-            mostrarAfiliacion(await admin.cobrarAfiliacion(f.fuente, mesCorto(m.mes)));
+            mostrarAfiliacion(await admin.cobrarAfiliacion(f.tipo, f.socio, mesCorto(m.mes)));
         } catch (error) {
             b.replaceWith(el('span', { class: 'campo__error' }, error.status === 403 ? 'No tenés permiso para marcar cobros.' : error.message));
         }
