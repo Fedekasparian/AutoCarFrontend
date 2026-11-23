@@ -29,13 +29,13 @@ window.modoAutoCar = (() => {
     return {
         actual: () => raiz.dataset.modo,
         // Pasa al otro modo y lo recuerda en este navegador. Con la clase modo-cambiando los colores se funden en
-        // 200 ms (ver base-visual.css); solo al tocar el botón, no al abrir la página
+        // 500 ms (ver base-visual.css); solo al tocar el botón, no al abrir la página
         cambiar() {
             elegido = raiz.dataset.modo === 'oscuro' ? 'claro' : 'oscuro';
             try { localStorage.setItem('autocar-modo', elegido); } catch { /* Vale solo para esta página. */ }
             raiz.classList.add('modo-cambiando');
             clearTimeout(fundido);
-            fundido = setTimeout(() => raiz.classList.remove('modo-cambiando'), 250);
+            fundido = setTimeout(() => raiz.classList.remove('modo-cambiando'), 550);
             aplicar();
             document.dispatchEvent(new CustomEvent('autocar:modo'));
         },

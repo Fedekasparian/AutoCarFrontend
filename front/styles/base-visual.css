@@ -128,27 +128,27 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 
 /* ---------- 5. Modo oscuro ---------- */
 /* js/tema.js pone data-modo="oscuro" en <html> si el sistema está en oscuro o si el usuario lo eligió con el botón */
-/* Grises neutros (sin azul) y el aqua más apagado; sombras cortas y la barra sin vidrio */
+/* Verde petróleo oscuro (va con el aqua de la marca); sombras cortas y la barra sin vidrio */
 :root[data-modo="oscuro"]{
     color-scheme: dark;
-    --marca-tinta: #e8e8e8;
-    --marca-papel: #161616;
-    --marca-blanco: #1f1f1f;
-    --marca-tenue: #282828;
-    --marca-linea: #343434;
-    --marca-gris: #a8a8a8;
-    --marca-acento: #57c2b6;
-    --marca-hover: #6ccfc4;
+    --marca-tinta: #e3ecea;
+    --marca-papel: #0f1a1a;
+    --marca-blanco: #172423;
+    --marca-tenue: #1f2e2d;
+    --marca-linea: #2b3b3a;
+    --marca-gris: #a3b5b2;
+    --marca-acento: #5fd0c2;
+    --marca-hover: #7adbcf;
     --marca-error: #f08a8f;
     --marca-exito: #6fc79b;
     --marca-aviso: #e3b860;
-    --color-placeholder: #8a8a8a;
-    --color-borde: #5e5e5e;
+    --color-placeholder: #869996;
+    --color-borde: #587170;
     --color-principal-oscuro: #ffffff;
     --color-error: var(--marca-error);
 
-    --panel-oscuro: #1c1c1c;
-    --anillo-foco: 0 0 0 3px rgb(87 194 182 / .4);
+    --panel-oscuro: #132120;
+    --anillo-foco: 0 0 0 3px rgb(95 208 194 / .4);
     --sombra-1: 0 1px 2px rgb(0 0 0 / .35);
     --sombra-2: 0 4px 12px rgb(0 0 0 / .35);
     --sombra-3: 0 12px 32px rgb(0 0 0 / .5);
@@ -156,9 +156,9 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 /* Sin :where: tienen que ganarle a la barra de vidrio de la sección 6, que viene después */
 :root[data-modo="oscuro"] .con-barra .barra{ background: var(--marca-blanco); backdrop-filter: none; -webkit-backdrop-filter: none; }
 :root[data-modo="oscuro"] .marca-nav{ background: var(--marca-papel); backdrop-filter: none; -webkit-backdrop-filter: none; }
-/* Al tocar el botón de modo (js/tema.js pone la clase por 250 ms): fondos, letras y bordes se funden en 200 ms */
+/* Al tocar el botón de modo (js/tema.js pone la clase por 550 ms): fondos, letras y bordes se funden en 500 ms */
 .modo-cambiando, .modo-cambiando *, .modo-cambiando *::before, .modo-cambiando *::after{
-    transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease, fill 200ms ease, stroke 200ms ease !important;
+    transition: background-color 500ms ease, color 500ms ease, border-color 500ms ease, fill 500ms ease, stroke 500ms ease !important;
 }
 @media (prefers-reduced-motion: reduce){
     .modo-cambiando, .modo-cambiando *, .modo-cambiando *::before, .modo-cambiando *::after{ transition: none !important; }
@@ -365,8 +365,8 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
     .vista-buscar .grilla-vehiculos{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
-:where(:root[data-modo="oscuro"]) .ficha-favorito{ background: rgb(20 20 20 / .78); color: #fff; }
-:where(:root[data-modo="oscuro"]) .ficha-favorito:hover{ background: rgb(20 20 20 / .92); }
+:where(:root[data-modo="oscuro"]) .ficha-favorito{ background: rgb(15 26 26 / .78); color: #fff; }
+:where(:root[data-modo="oscuro"]) .ficha-favorito:hover{ background: rgb(15 26 26 / .92); }
 @media (prefers-reduced-motion: reduce){
     .grilla-vehiculos--entra > li, .ficha--saliendo, .chip-filtro, .ficha-favorito--late svg{ animation: none; }
     .ficha-esqueleto__imagen, .ficha-esqueleto__linea{ animation: none; }
@@ -509,8 +509,8 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
     .barra-accion__texto span{ overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: var(--marca-gris); }
 }
 
-:where(:root[data-modo="oscuro"]) .galeria__boton{ background: rgb(20 20 20 / .78); color: #fff; }
-:where(:root[data-modo="oscuro"]) .galeria__boton:hover{ background: rgb(20 20 20 / .95); }
+:where(:root[data-modo="oscuro"]) .galeria__boton{ background: rgb(15 26 26 / .78); color: #fff; }
+:where(:root[data-modo="oscuro"]) .galeria__boton:hover{ background: rgb(15 26 26 / .95); }
 :where(:root[data-modo="oscuro"]) .etiqueta--buen_precio, :where(:root[data-modo="oscuro"]) .rango__ahorro{ background: #12392a; color: #8ee6b4; }
 :where(:root[data-modo="oscuro"]) .etiqueta--caro{ background: #47200f; color: #ffb795; }
 @media (prefers-reduced-motion: reduce){
