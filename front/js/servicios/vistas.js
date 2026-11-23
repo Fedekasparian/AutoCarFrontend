@@ -49,8 +49,9 @@ export function insigniaEmpresa(empresa, enlace = false) {
         : el('span', { class: 'insignia-empresa' }, ...contenido);
 }
 
+// v.recomendado {puesto, mensaje}: los primeros de "Más relevantes" en Explorar, con otro fondo y por qué
 export function fichaVehiculo(v) {
-    return el('li', {},
+    return el('li', v.recomendado ? { class: 'ficha--recomendada' } : {},
         el('a', { class: 'ficha-vehiculo', href: ruta(`vehiculo.html?id=${v.id}`) },
             imagenVehiculo(v, 'ficha-vehiculo__imagen'),
             v.estado === 'vendido'
@@ -61,6 +62,10 @@ export function fichaVehiculo(v) {
                 el('span', { class: 'ficha-vehiculo__titulo' }, formato.titulo(v)),
                 // Concesionaria aprobada: su nombre con la insignia (sin logo; no es "patrocinado": compite igual)
                 v.empresa ? insigniaEmpresa(v.empresa) : null,
+                v.recomendado
+                    ? el('span', { class: 'ficha-vehiculo__recomendado' },
+                        el('strong', {}, 'Te lo recomendamos'), ' ', v.recomendado.mensaje)
+                    : null,
                 el('span', { class: 'ficha-vehiculo__lugar' },
                     `${formato.km(v.kilometraje)} · ${formato.combustible(v.combustible)}`),
                 v.localidad || v.transmision
