@@ -47,15 +47,11 @@
 @media print { .portada-auto__escena { min-height:340px; } .busqueda-principal { display:none; } }
 
 /* ===== Portada viva (rediseño nov. 2026). Para volver atrás alcanza con revertir su commit. ===== */
-/* Título que entra palabra por palabra, ceja y acciones */
+/* Título (quieto), ceja y acciones */
 .portada-auto__texto .portada-auto__ceja { max-width:none; margin:0 0 16px; font-size:15px; font-weight:600; color:var(--marca-acento); animation:portada-aparece var(--dur-lenta) var(--curva-suave) both; }
 .portada-auto h1 .linea { display:block; }
-.portada-auto h1 .palabra { --i:0; display:inline-block; animation:palabra-entra .75s var(--curva-suave) both; animation-delay:calc(var(--i) * 90ms + 120ms); }
-/* Cada palabra del título entra un poco después (antes era style="--i:N" en el HTML; la CSP no deja estilos en línea) */
-.portada-auto h1 .palabra--1 { --i:1; } .portada-auto h1 .palabra--2 { --i:2; } .portada-auto h1 .palabra--3 { --i:3; }
 .portada-auto__texto > p:not(.portada-auto__ceja) { max-width:380px; animation:portada-aparece var(--dur-lenta) var(--curva-suave) .55s both; }
 .portada-auto__acciones { display:flex; flex-wrap:wrap; gap:8px 28px; animation:portada-aparece var(--dur-lenta) var(--curva-suave) .7s both; }
-@keyframes palabra-entra { from { opacity:0; transform:translateY(.45em); filter:blur(6px); } }
 @keyframes portada-aparece { from { opacity:0; transform:translateY(10px); } }
 
 /* Luz aqua que se mueve lento detrás del texto */

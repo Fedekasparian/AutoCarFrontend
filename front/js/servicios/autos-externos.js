@@ -114,7 +114,7 @@ export function fila(a, { i = 0, id = null, aviso = null, extra = null, puesto =
     const li = el('li', atributos,
         el('span', { class: 'fila__cuerpo' },
             el('span', { class: 'resultado__arriba' },
-                puesto ? el('span', { class: 'resultado__puesto', 'aria-label': `Recomendado número ${puesto}` }, String(puesto)) : null,
+                puesto ? el('span', { class: 'resultado__puesto' }, el('span', { class: 'solo-lector' }, 'Recomendado número '), String(puesto)) : null,
                 sitio(a.fuente),
                 aviso && !(aviso.tipo === 'reservado' && a.reservado) ? el('span', { class: `novedad__tipo novedad--${aviso.tipo}` }, TIPOS_AVISO[aviso.tipo] ?? aviso.tipo) : null,
                 a.reservado ? el('span', { class: 'etiqueta etiqueta--oscura' }, 'Reservado') : null),
