@@ -48,7 +48,7 @@
 
 /* ===== Portada viva (rediseño nov. 2026). Para volver atrás alcanza con revertir su commit. ===== */
 /* Título que entra palabra por palabra, ceja y acciones */
-.portada-auto__texto .portada-auto__ceja { max-width:none; margin:0 0 16px; font-size:12px; font-weight:600; color:var(--marca-acento); animation:portada-aparece var(--dur-lenta) var(--curva-suave) both; }
+.portada-auto__texto .portada-auto__ceja { max-width:none; margin:0 0 16px; font-size:15px; font-weight:600; color:var(--marca-acento); animation:portada-aparece var(--dur-lenta) var(--curva-suave) both; }
 .portada-auto h1 .linea { display:block; }
 .portada-auto h1 .palabra { --i:0; display:inline-block; animation:palabra-entra .75s var(--curva-suave) both; animation-delay:calc(var(--i) * 90ms + 120ms); }
 /* Cada palabra del título entra un poco después (antes era style="--i:N" en el HTML; la CSP no deja estilos en línea) */
@@ -91,7 +91,7 @@
 /* Línea que une los pasos en escritorio */
 .pasos-portada__paso:not(:last-child)::after { content:''; position:absolute; top:52px; right:-21px; width:22px; height:2px; background:var(--marca-acento); }
 .pasos-portada__icono { width:52px; height:52px; padding:10px; margin-bottom:6px; border-radius:14px; background:var(--marca-tenue); color:var(--marca-tinta); }
-.pasos-portada__numero { font-size:12px; font-weight:700; color:var(--marca-gris); }
+.pasos-portada__numero { font-size:13px; font-weight:700; color:var(--marca-gris); }
 .pasos-portada h3 { font-size:21px; letter-spacing:-.02em; }
 .pasos-portada p { font-size:15px; line-height:1.6; color:var(--marca-gris); }
 /* Con JS, los trazos se dibujan cuando la sección entra en pantalla (sin JS se ven completos) */
@@ -110,7 +110,7 @@
   .pasos-portada__paso:not(:last-child)::after { top:auto; bottom:-15px; right:auto; left:52px; width:2px; height:16px; }
 }
 @media (max-width:767px) {
-  .portada-auto__texto .portada-auto__ceja { margin-bottom:10px; font-size:11px; }
+  .portada-auto__texto .portada-auto__ceja { margin-bottom:10px; font-size:14px; }
   .portada-auto__acciones { margin-top:10px; }
   .cifras { margin-top:16px; }
   .cifras__lista li { padding:16px; }

@@ -535,7 +535,7 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 }
 .vista-previa{ display: none; }
 @media (min-width: 1100px){ .vista-previa:not([hidden]){ display: grid; gap: 12px; } }
-.vista-previa__titulo{ margin: 0; font-size: 13px; font-weight: 700; color: var(--marca-gris); }
+.vista-previa__titulo{ margin: 0; font-size: 14px; font-weight: 700; color: var(--marca-gris); }
 .ficha-vehiculo--previa{ box-shadow: var(--sombra-2); }
 .ficha-vehiculo--previa .ficha-vehiculo__cuerpo > *{ transition: color var(--dur-media); }
 .ficha-vehiculo__imagen--vacia{
@@ -830,7 +830,7 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .destacado::before{ content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--marca-linea); }
 .destacado--mejor_relacion{ border-color: color-mix(in srgb, var(--marca-acento) 70%, var(--marca-linea)); box-shadow: var(--sombra-2); }
 .destacado--mejor_relacion::before{ background: var(--marca-acento); }
-.destacado__titulo{ font-size: 12px; font-weight: 700; color: var(--marca-gris); }
+.destacado__titulo{ font-size: 13px; font-weight: 700; color: var(--marca-gris); }
 .destacado--mejor_relacion .destacado__titulo::before{ content: "★ "; color: color-mix(in srgb, var(--marca-acento) 50%, var(--marca-tinta)); }
 .destacado__precio{ font-family: var(--fuente-titulos); font-size: 26px; letter-spacing: -.5px; }
 .destacado__auto{ font-weight: 600; }
@@ -1541,7 +1541,7 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
     color: var(--marca-tinta); animation: ficha-entra var(--dur-media) var(--curva-salida) both;
 }
 .resultado__mensaje-titulo{
-    display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800;
+    display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700;
     color: color-mix(in srgb, var(--marca-acento) 40%, var(--marca-tinta));
 }
 .resultado__mensaje-titulo::before{
