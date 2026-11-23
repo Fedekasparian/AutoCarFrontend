@@ -2,6 +2,7 @@
 // compensación, días para reclamar y precio de la inspección. GET y PUT /api/admin/parametros.
 // Los campos salen de la base: si se agrega un parámetro, aparece solo. El back valida los límites otra vez.
 import * as api from '../api/parametros.js';
+import * as admin from '../api/admin.js';
 import * as formato from '../servicios/formato.js';
 import * as formularios from '../servicios/formularios.js';
 import * as sesion from '../servicios/sesion.js';
@@ -12,7 +13,7 @@ const campos = document.getElementById('campos');
 const listaCambios = document.getElementById('cambios');
 const aviso = document.getElementById('aviso');
 
-const UNIDADES = { porcentaje: '%', pesos: '$', dias: 'días', veces: 'veces', horas: 'horas', puntos: 'puntos' };
+const UNIDADES = { porcentaje: '%', pesos: '$', dias: 'días', veces: 'veces', horas: 'horas', puntos: 'puntos', autos: 'autos' };
 let actuales = {}; // clave → valor que tiene hoy, para mandar solo lo que cambió
 
 // Un valor con su unidad: "23 %", "$100.000", "15 días"
@@ -126,7 +127,7 @@ function comoSeCalcula() {
             el('li', {}, el('strong', {}, 'Kilómetros: '), '(km típicos de los parecidos − km del auto) ÷ km típicos ÷ 0,5. La mitad de km (o menos) suma 1.'),
             el('li', {}, el('strong', {}, 'Días publicado: '), 'días desde que apareció ÷ 60. Con 60 días o más suma 1 (hay margen para negociar).'),
             el('li', {}, el('strong', {}, 'Año: '), '(año del auto − año típico de la búsqueda) ÷ 5. 5 años más nuevo suma 1; 5 más viejo resta 1.')),
-        el('p', {}, 'Da entre −1 y 1. "Recomendado" ordena de mayor a menor y el motivo que ve el comprador son las dos cosas que más suman. Ejemplo para "Familia" (2, 3, 1, 1): un auto 10 % más barato (0,5), con 25 % menos km (0,5), 30 días publicado (0,5) y del año típico (0) da (2×0,5 + 3×0,5 + 1×0,5 + 1×0) ÷ 7 = 0,43.'),
+        el('p', {}, 'Da entre −1 y 1. "Más recomendados" ordena de mayor a menor. Los primeros 5 llevan un mensaje con el perfil y lo que más sumó ("Como lo buscás para la familia, priorizamos pocos kilómetros: …"); el resto, las dos cosas que más suman. Ejemplo para "Familia" (2, 3, 1, 1): un auto 10 % más barato (0,5), con 25 % menos km (0,5), 30 días publicado (0,5) y del año típico (0) da (2×0,5 + 3×0,5 + 1×0,5 + 1×0) ÷ 7 = 0,43.'),
         el('p', {}, 'Si un perfil tiene todos los pesos en 0, sus autos no llevan puntaje y se ordenan por la diferencia con el precio típico.'));
 }
 
@@ -185,7 +186,7 @@ function rankingAutos(pesos) {
     });
     caja.replaceChildren(
         el('h2', { id: 'ranking-autos-titulo' }, 'Cómo se arma el ranking de autos recomendados'),
-        el('p', { class: 'campo__ayuda' }, 'En el metabuscador, "Recomendado" ordena los autos por el puntaje de la fórmula de arriba, con los pesos del tipo de usuario del comprador ("¿Para qué buscás el auto?"). Cada porcentaje es qué parte del puntaje decide esa cosa (su peso ÷ la suma de los pesos de ese perfil). Un comprador sin perfil ve los autos ordenados por la diferencia con el precio típico.'),
+        el('p', { class: 'campo__ayuda' }, 'En el metabuscador, "Más recomendados" ordena los autos por el puntaje de la fórmula de arriba, con los pesos del tipo de usuario del comprador ("¿Para qué buscás el auto?"). Cada porcentaje es qué parte del puntaje decide esa cosa (su peso ÷ la suma de los pesos de ese perfil). Un comprador sin perfil ve los autos ordenados por la diferencia con el precio típico.'),
         el('ul', { class: 'perfiles-pesos' }, ...perfiles));
     return caja;
 }
@@ -237,4 +238,30 @@ async function iniciar() {
     }
 }
 
-if (sesion.requerirPermiso('parametros.editar')) iniciar();
+// El ranking de Explorar usa el precio de cada publicación contra autos parecidos de otros sitios. Se calcula al aprobar
+// cada una y una vez por día cuando termina el scraper; este botón lo hace ahora (por ejemplo, después de cambiar datos)
+function botonPreciosMercado() {
+    const resultado = el('span', { class: 'suave', 'aria-live': 'polite' });
+    const boton = el('button', { class: 'boton boton--secundario', type: 'button' }, 'Actualizar precios contra el mercado');
+    boton.addEventListener('click', async () => {
+        boton.disabled = true;
+        resultado.textContent = 'Calculando…';
+        try {
+            const r = await admin.actualizarPreciosMercado();
+            resultado.textContent = `Listo: ${r.autos} publicaciones de ${r.modelos} modelos.`;
+        } catch (error) {
+            resultado.textContent = error.message;
+        } finally {
+            boton.disabled = false;
+        }
+    });
+    document.getElementById('contenido').append(el('section', { class: 'recuadro pila', 'aria-labelledby': 't-precios-mercado' },
+        el('h2', { class: 'titulo-seccion', id: 't-precios-mercado' }, 'Ranking de Explorar'),
+        el('p', { class: 'campo__ayuda' }, 'Explorar ordena con la misma fórmula de "para vos", con el precio de cada publicación contra autos parecidos de MercadoLibre, Kavak y Autocosmos. Se calcula al aprobar cada publicación y una vez por día, cuando termina el scraper. Con este botón se calcula ahora.'),
+        el('p', { class: 'acciones-fila' }, boton, ' ', resultado)));
+}
+
+if (sesion.requerirPermiso('parametros.editar')) {
+    iniciar();
+    botonPreciosMercado();
+}

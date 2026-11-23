@@ -4,6 +4,7 @@
 //   moderador → Explorar · Moderar · Reportes · Reclamos · Cuenta
 //   admin     → Moderar · Usuarios · Estadísticas · Panel · Cuenta (talleres, reportes, reclamos y contacto, en el Panel)
 //   mecanico  → Explorar · Mi taller · Cuenta
+//   empresa   → Explorar · Mi empresa · Publicar · Mensajes · Cuenta (una concesionaria vende, no compra)
 // Las cuentas del equipo y las de los talleres no compran ni venden: no ven Búsquedas, Publicar ni Mensajes.
 (() => {
     let usuario = null;
@@ -14,7 +15,7 @@
         // Sin almacenamiento: no hay sesión que mirar.
     }
     const rol = usuario?.rol;
-    if (!['admin', 'moderador', 'mecanico'].includes(rol)) return;
+    if (!['admin', 'moderador', 'mecanico', 'empresa'].includes(rol)) return;
 
     const base = document.currentScript.src;
     const url = (ruta) => new URL(`../pages/${ruta}`, base).href;
@@ -25,9 +26,11 @@
             ['Reportes', 'admin/admin-soporte.html'], ['Reclamos', 'admin/admin-reclamos.html', ['talleres/verificacion.html']]],
         admin: [['Moderar', 'admin/admin-moderar.html'], ['Usuarios', 'admin/admin-usuarios.html'],
             ['Estadísticas', 'admin/admin-metricas.html'],
-            ['Panel', 'admin/admin.html', ['admin/admin-talleres.html', 'admin/admin-soporte.html', 'admin/admin-reclamos.html',
+            ['Panel', 'admin/admin.html', ['admin/admin-talleres.html', 'admin/admin-empresas.html', 'admin/admin-soporte.html', 'admin/admin-reclamos.html',
                 'admin/admin-parametros.html', 'admin/admin-fallas.html', 'admin/admin-vehiculos.html', 'talleres/verificacion.html']]],
         mecanico: [EXPLORAR, ['Mi taller', 'talleres/taller.html', ['talleres/taller-verificacion.html']]],
+        empresa: [EXPLORAR, ['Mi empresa', 'vehiculos/empresa-panel.html', ['vehiculos/empresa.html']],
+            ['Publicar', 'vehiculos/mis-publicaciones.html', ['vehiculos/publicar.html']], ['Mensajes', 'operaciones/mensajes.html']],
     }[rol];
     const aqui = window.location.pathname;
     const esAqui = (ruta) => new URL(url(ruta)).pathname === aqui;
@@ -80,8 +83,10 @@
         // Portada (index.html): el acceso a lo del rol en el menú de arriba, antes de "Ingresar"
         document.querySelectorAll('.marca-nav nav').forEach((nav) => {
             const enlace = document.createElement('a');
-            enlace.href = url(rol === 'mecanico' ? 'talleres/taller.html' : 'admin/admin.html');
-            enlace.textContent = rol === 'mecanico' ? 'Mi taller' : 'Panel';
+            const [destino, texto] = { mecanico: ['talleres/taller.html', 'Mi taller'], empresa: ['vehiculos/empresa-panel.html', 'Mi empresa'] }[rol]
+                ?? ['admin/admin.html', 'Panel'];
+            enlace.href = url(destino);
+            enlace.textContent = texto;
             nav.insertBefore(enlace, nav.querySelector('.nav-ingreso'));
         });
     }

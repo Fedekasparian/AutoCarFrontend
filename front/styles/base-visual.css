@@ -128,28 +128,40 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 
 /* ---------- 5. Modo oscuro ---------- */
 /* js/tema.js pone data-modo="oscuro" en <html> si el sistema está en oscuro o si el usuario lo eligió con el botón */
+/* Verde petróleo oscuro (va con el aqua de la marca); sombras cortas y la barra sin vidrio */
 :root[data-modo="oscuro"]{
     color-scheme: dark;
-    --marca-tinta: #e6eef1;
-    --marca-papel: #0b111d;
-    --marca-blanco: #131c2c;
-    --marca-tenue: #1b2638;
-    --marca-linea: #2a374b;
-    --marca-gris: #a3b4c2;
-    --marca-acento: #69e6d8;
-    --marca-hover: #8aeee3;
-    --marca-error: #ff8f94;
-    --marca-exito: #74d6a4;
-    --marca-aviso: #f0c36a;
-    --color-placeholder: #8292a3;
-    --color-borde: #5d6e82;
+    --marca-tinta: #e3ecea;
+    --marca-papel: #0f1a1a;
+    --marca-blanco: #172423;
+    --marca-tenue: #1f2e2d;
+    --marca-linea: #2b3b3a;
+    --marca-gris: #a3b5b2;
+    --marca-acento: #5fd0c2;
+    --marca-hover: #7adbcf;
+    --marca-error: #f08a8f;
+    --marca-exito: #6fc79b;
+    --marca-aviso: #e3b860;
+    --color-placeholder: #869996;
+    --color-borde: #587170;
     --color-principal-oscuro: #ffffff;
     --color-error: var(--marca-error);
 
-    --panel-oscuro: #16223a;
-    --sombra-1: 0 1px 2px rgb(0 0 0 / .4);
-    --sombra-2: 0 12px 28px -10px rgb(0 0 0 / .6), 0 2px 6px rgb(0 0 0 / .3);
-    --sombra-3: 0 28px 64px -16px rgb(0 0 0 / .75);
+    --panel-oscuro: #132120;
+    --anillo-foco: 0 0 0 3px rgb(95 208 194 / .4);
+    --sombra-1: 0 1px 2px rgb(0 0 0 / .35);
+    --sombra-2: 0 4px 12px rgb(0 0 0 / .35);
+    --sombra-3: 0 12px 32px rgb(0 0 0 / .5);
+}
+/* Sin :where: tienen que ganarle a la barra de vidrio de la sección 6, que viene después */
+:root[data-modo="oscuro"] .con-barra .barra{ background: var(--marca-blanco); backdrop-filter: none; -webkit-backdrop-filter: none; }
+:root[data-modo="oscuro"] .marca-nav{ background: var(--marca-papel); backdrop-filter: none; -webkit-backdrop-filter: none; }
+/* Al tocar el botón de modo (js/tema.js pone la clase por 550 ms): fondos, letras y bordes se funden en 500 ms */
+.modo-cambiando, .modo-cambiando *, .modo-cambiando *::before, .modo-cambiando *::after{
+    transition: background-color 500ms ease, color 500ms ease, border-color 500ms ease, fill 500ms ease, stroke 500ms ease !important;
+}
+@media (prefers-reduced-motion: reduce){
+    .modo-cambiando, .modo-cambiando *, .modo-cambiando *::before, .modo-cambiando *::after{ transition: none !important; }
 }
 /* Paneles de marca: siguen oscuros con letra blanca */
 :where(:root[data-modo="oscuro"]) .hero, :where(:root[data-modo="oscuro"]) .acceso-relato, :where(:root[data-modo="oscuro"]) .portada-auto__escena{ background: var(--panel-oscuro); color: var(--sobre-panel); }
@@ -353,8 +365,8 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
     .vista-buscar .grilla-vehiculos{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
-:where(:root[data-modo="oscuro"]) .ficha-favorito{ background: rgb(19 27 45 / .78); color: #fff; }
-:where(:root[data-modo="oscuro"]) .ficha-favorito:hover{ background: rgb(19 27 45 / .92); }
+:where(:root[data-modo="oscuro"]) .ficha-favorito{ background: rgb(15 26 26 / .78); color: #fff; }
+:where(:root[data-modo="oscuro"]) .ficha-favorito:hover{ background: rgb(15 26 26 / .92); }
 @media (prefers-reduced-motion: reduce){
     .grilla-vehiculos--entra > li, .ficha--saliendo, .chip-filtro, .ficha-favorito--late svg{ animation: none; }
     .ficha-esqueleto__imagen, .ficha-esqueleto__linea{ animation: none; }
@@ -497,8 +509,8 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
     .barra-accion__texto span{ overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: var(--marca-gris); }
 }
 
-:where(:root[data-modo="oscuro"]) .galeria__boton{ background: rgb(19 27 45 / .78); color: #fff; }
-:where(:root[data-modo="oscuro"]) .galeria__boton:hover{ background: rgb(19 27 45 / .95); }
+:where(:root[data-modo="oscuro"]) .galeria__boton{ background: rgb(15 26 26 / .78); color: #fff; }
+:where(:root[data-modo="oscuro"]) .galeria__boton:hover{ background: rgb(15 26 26 / .95); }
 :where(:root[data-modo="oscuro"]) .etiqueta--buen_precio, :where(:root[data-modo="oscuro"]) .rango__ahorro{ background: #12392a; color: #8ee6b4; }
 :where(:root[data-modo="oscuro"]) .etiqueta--caro{ background: #47200f; color: #ffb795; }
 @media (prefers-reduced-motion: reduce){
@@ -523,7 +535,7 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 }
 .vista-previa{ display: none; }
 @media (min-width: 1100px){ .vista-previa:not([hidden]){ display: grid; gap: 12px; } }
-.vista-previa__titulo{ margin: 0; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--marca-gris); }
+.vista-previa__titulo{ margin: 0; font-size: 14px; font-weight: 700; color: var(--marca-gris); }
 .ficha-vehiculo--previa{ box-shadow: var(--sombra-2); }
 .ficha-vehiculo--previa .ficha-vehiculo__cuerpo > *{ transition: color var(--dur-media); }
 .ficha-vehiculo__imagen--vacia{
@@ -797,34 +809,11 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
     .sitios__pista{ grid-column: 1 / -1; grid-row: 2; }
 }
 
-/* Novedades como cifras */
-.novedades{ display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
-.novedades[hidden]{ display: none; }
-.novedades__cifra{ display: grid; gap: 2px; padding: 14px 16px; border-radius: 14px; background: var(--marca-blanco); border: 1px solid var(--marca-linea); }
-.novedades__cifra strong{ font-family: var(--fuente-titulos); font-size: 28px; line-height: 1; }
-.novedades__cifra span{ font-size: 13px; color: var(--marca-gris); }
-.novedades__cifra--nuevos strong{ color: #2f855a; }
-.novedades__cifra--bajaron strong{ color: #2b6cb0; }
-.novedades__cifra--retirados strong{ color: var(--marca-gris); }
-/* "Nuevos" y "bajaron" se tocan para ver cuáles son: el botón ocupa toda la cifra */
-.novedades__cifra:has(.novedades__boton){ padding: 0; }
-.novedades__boton{ display: grid; gap: 2px; width: 100%; padding: 14px 16px; border: 0; border-radius: inherit; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
-.novedades__boton:hover, .novedades__boton[aria-expanded="true"]{ background: var(--marca-tenue); }
-.novedades__boton:focus-visible{ outline: 2px solid currentColor; outline-offset: 2px; }
-.novedades__boton span::after{ content: " ›"; }
-.novedades__boton[aria-expanded="true"] span::after{ content: " ⌄"; }
-.novedades-detalle[hidden]{ display: none; }
 .resultado__antes{ display: block; font-size: 13px; color: var(--marca-gris); }
-/* Cuáles son las novedades sin ver: una fila por auto, con el tipo como pastilla */
-.novedades-sin-ver__titulo{ margin: 4px 0 8px; font-family: var(--fuente-titulos); font-size: 18px; }
-.novedades-sin-ver__lista{ display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
-.novedad{ display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 10px 14px; border: 1px solid var(--marca-linea); border-radius: 12px; background: var(--marca-blanco); font-size: 14px; }
-.novedad__auto{ font-weight: 600; }
-.novedad__detalle{ color: var(--marca-gris); }
-.novedad .boton-link{ margin-left: auto; }
+/* El tipo de novedad sin ver de un auto, como pastilla en su fila */
 .novedad__tipo{ display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: #edf2f7; color: var(--marca-gris); }
-.novedad--nuevo .novedad__tipo, .novedad__tipo.novedad--nuevo{ background: #d6f5e3; color: #17603a; }
-.novedad--bajo .novedad__tipo, .novedad__tipo.novedad--bajo{ background: #dbeafe; color: #1e4e8c; }
+.novedad__tipo.novedad--nuevo{ background: #d6f5e3; color: #17603a; }
+.novedad__tipo.novedad--bajo{ background: #dbeafe; color: #1e4e8c; }
 .resultado{ scroll-margin-top: 96px; }
 .resultado:target{ outline: 2px solid var(--marca-acento); outline-offset: 2px; border-radius: 12px; }
 
@@ -841,7 +830,7 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .destacado::before{ content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--marca-linea); }
 .destacado--mejor_relacion{ border-color: color-mix(in srgb, var(--marca-acento) 70%, var(--marca-linea)); box-shadow: var(--sombra-2); }
 .destacado--mejor_relacion::before{ background: var(--marca-acento); }
-.destacado__titulo{ font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--marca-gris); }
+.destacado__titulo{ font-size: 13px; font-weight: 700; color: var(--marca-gris); }
 .destacado--mejor_relacion .destacado__titulo::before{ content: "★ "; color: color-mix(in srgb, var(--marca-acento) 50%, var(--marca-tinta)); }
 .destacado__precio{ font-family: var(--fuente-titulos); font-size: 26px; letter-spacing: -.5px; }
 .destacado__auto{ font-weight: 600; }
@@ -881,8 +870,6 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .resumen-busqueda[hidden]{ display: none; }
 
 :where(:root[data-modo="oscuro"]) .sitio{ color: #fff; background: color-mix(in srgb, var(--color-sitio, var(--sitio-otro)) 26%, transparent); }
-:where(:root[data-modo="oscuro"]) .novedades__cifra--nuevos strong{ color: #68d391; }
-:where(:root[data-modo="oscuro"]) .novedades__cifra--bajaron strong{ color: #63b3ed; }
 @media (prefers-reduced-motion: reduce){
     .sitios__franja, .destacado, .resumen-busqueda, .busqueda-guardada__novedades::before{ animation: none; }
 }
@@ -1503,3 +1490,164 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .perfil-pesos__item{ display: grid; grid-template-columns: auto 1fr auto 64px; align-items: center; gap: 8px; }
 .perfil-pesos__peso{ color: var(--marca-gris); font-size: 13px; text-align: right; }
 .perfil-pesos__nada{ margin: 0; color: var(--marca-gris); font-size: 14px; }
+
+/* =====================================================================
+   Metabuscador: "Más recomendados" (los primeros 5 con su mensaje), la franja de novedades de los resultados y la
+   página de novedades (gráfico por día y bajas de precio). Ver js/paginas/meta-busqueda-resultados.js y -novedades.js
+   ===================================================================== */
+.novedades-franja{
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin: 0; padding: 12px 16px;
+    border: 1px solid var(--marca-linea); border-radius: 14px; background: var(--marca-blanco); font-size: 14px; color: var(--marca-gris);
+}
+.novedades-franja__texto{ font-weight: 600; color: var(--marca-tinta); }
+.novedades-franja__cifras{ display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.novedades-franja__cifra strong{ font-family: var(--fuente-titulos); font-size: 18px; color: var(--marca-tinta); }
+.novedades-franja__cifra--nuevos strong{ color: #2f855a; }
+.novedades-franja__cifra--bajaron strong{ color: #2b6cb0; }
+.novedades-franja__sin-ver{ padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: var(--marca-acento); color: var(--sobre-acento); }
+.novedades-franja__ver{ margin-left: auto; }
+@media (max-width: 599px){ .novedades-franja__ver{ margin-left: 0; } }
+
+.recomendados-intro{ margin: 0; font-size: 15px; color: var(--marca-gris); }
+.recomendados-intro strong{ color: var(--marca-tinta); }
+.recomendados-intro[hidden]{ display: none; }
+/* Explorar: los primeros de "Más relevantes" con el mismo aqua suave y una línea con por qué */
+.ficha--recomendada .ficha-vehiculo{
+    background: color-mix(in srgb, var(--marca-acento) 12%, var(--marca-blanco));
+    border-color: color-mix(in srgb, var(--marca-acento) 40%, var(--marca-linea));
+}
+.ficha-vehiculo__recomendado{ font-size: 13px; line-height: 1.45; color: var(--marca-tinta); }
+.ficha-vehiculo__recomendado strong{ display: block; font-size: 13px; }
+#explorar-intro{ margin: 0 0 12px; }
+
+/* Los 5 primeros: un bloque aparte con fondo aqua suave; "Otros autos" queda con el fondo normal */
+.recomendados[hidden], .otros-autos[hidden]{ display: none; }
+.recomendados{
+    margin: 0; border-radius: 12px; overflow: hidden;
+    background: color-mix(in srgb, var(--marca-acento) 12%, var(--marca-blanco));
+    border: 1px solid color-mix(in srgb, var(--marca-acento) 40%, var(--marca-linea));
+}
+.recomendados .resultado{ padding-inline: 16px; }
+.recomendados .resultado:last-child{ border-bottom: 0; }
+.otros-autos{ margin: 24px 0 0; font-size: 18px; }
+.resultado__puesto{
+    display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%;
+    background: var(--marca-tinta); color: var(--marca-blanco); font-size: 12px; font-weight: 700;
+}
+.resultado__mensaje{
+    display: grid; gap: 4px; margin-top: 10px; padding: 12px 16px; border-radius: 12px;
+    border: 1px solid color-mix(in srgb, var(--marca-acento) 55%, var(--marca-linea));
+    background: color-mix(in srgb, var(--marca-acento) 22%, var(--marca-blanco));
+    color: var(--marca-tinta); animation: ficha-entra var(--dur-media) var(--curva-salida) both;
+}
+.resultado__mensaje-titulo{
+    display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700;
+    color: color-mix(in srgb, var(--marca-acento) 40%, var(--marca-tinta));
+}
+.resultado__mensaje-titulo::before{
+    content: "★"; display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%;
+    background: var(--marca-acento); color: var(--sobre-acento); font-size: 11px; letter-spacing: 0;
+}
+.resultado__mensaje-texto{ font-size: 15px; line-height: 1.5; }
+.resultado__mensaje-texto strong{ font-weight: 700; }
+:where(:root[data-modo="oscuro"]) .resultado__mensaje-titulo{ color: var(--marca-acento); }
+@media (prefers-reduced-motion: reduce){ .resultado__mensaje{ animation: none; } }
+.vista-meta-busqueda-resultados .ver-todo{ justify-self: center; width: auto; }
+
+/* Novedades por día: una columna apilada por día (nuevos abajo, después bajaron y ya no están) */
+.leyenda-dias{ display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0 0 12px; padding: 0; list-style: none; font-size: 13px; color: var(--marca-gris); }
+.leyenda-dias__item::before{ content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 3px; background: var(--color-tramo); vertical-align: -1px; }
+.leyenda-dias__item--nuevo, .dias__tramo--nuevo{ --color-tramo: #2f855a; }
+.leyenda-dias__item--bajo, .dias__tramo--bajo{ --color-tramo: #2b6cb0; }
+.leyenda-dias__item--retirado, .dias__tramo--retirado{ --color-tramo: #a0aec0; }
+.dias{ display: grid; grid-template-columns: repeat(var(--columnas, 30), minmax(0, 1fr)); gap: 3px; height: 180px; margin: 0; padding: 0; list-style: none; }
+.dias[hidden]{ display: none; }
+.dias__dia{ display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 4px; min-width: 0; }
+.dias__columna{
+    display: flex; flex-direction: column-reverse; min-height: 0; border-bottom: 2px solid var(--marca-linea);
+    transform-origin: bottom; animation: dias-crece .6s var(--curva-salida) both; animation-delay: calc(var(--n, 0) * 15ms);
+}
+.dias__tramo{ display: block; height: var(--alto); background: var(--color-tramo); }
+.dias__tramo:last-child{ border-radius: 3px 3px 0 0; }
+.dias__fecha{ font-size: 10px; text-align: center; white-space: nowrap; color: var(--marca-gris); font-variant-numeric: tabular-nums; }
+.dias__fecha--oculta{ visibility: hidden; }
+@keyframes dias-crece{ from{ transform: scaleY(0); } to{ transform: scaleY(1); } }
+
+/* Bajó de precio: el precio anterior tachado y una barrita con cuánto bajó */
+.baja{ display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 13px; color: var(--marca-gris); }
+.baja__barra{ position: relative; width: 64px; height: 6px; border-radius: 3px; background: var(--marca-linea); overflow: hidden; }
+.baja__barra::after{ content: ""; position: absolute; inset: 0 auto 0 0; width: var(--pct); border-radius: inherit; background: #2b6cb0; }
+.baja__pct{ color: #2b6cb0; }
+
+:where(:root[data-modo="oscuro"]) .novedades-franja__cifra--nuevos strong{ color: #68d391; }
+:where(:root[data-modo="oscuro"]) .novedades-franja__cifra--bajaron strong,
+:where(:root[data-modo="oscuro"]) .baja__pct{ color: #63b3ed; }
+:where(:root[data-modo="oscuro"]) .leyenda-dias__item--nuevo, :where(:root[data-modo="oscuro"]) .dias__tramo--nuevo{ --color-tramo: #68d391; }
+:where(:root[data-modo="oscuro"]) .leyenda-dias__item--bajo, :where(:root[data-modo="oscuro"]) .dias__tramo--bajo{ --color-tramo: #63b3ed; }
+:where(:root[data-modo="oscuro"]) .baja__barra::after{ background: #63b3ed; }
+@media (prefers-reduced-motion: reduce){ .dias__columna{ animation: none; } }
+
+/* =====================================================================
+   Admin > Afiliaciones: evolución mes a mes (columnas apiladas: clics y abonos), estado de cobro y convenios
+   ===================================================================== */
+.leyenda-meses--clics{ --color-tramo: var(--serie-1, #2b6cb0); }
+.leyenda-meses--abonos{ --color-tramo: var(--serie-2, #2f855a); }
+.meses{ display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6px; height: 220px; margin: 0; padding: 0; list-style: none; }
+.meses__mes{ display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 4px; min-width: 0; text-align: center; }
+.meses__valor{ min-height: 16px; font-size: 11px; font-weight: 700; color: var(--marca-tinta); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.meses__columna{
+    display: flex; flex-direction: column-reverse; min-height: 0; border-bottom: 2px solid var(--marca-linea);
+    transform-origin: bottom; animation: dias-crece .6s var(--curva-salida) both; animation-delay: calc(var(--n, 0) * 30ms);
+}
+.meses__tramo{ display: block; height: var(--alto); }
+.meses__tramo--clics{ background: var(--serie-1, #2b6cb0); }
+.meses__tramo--abonos{ background: var(--serie-2, #2f855a); }
+.meses__columna{ border-radius: 4px 4px 0 0; overflow: hidden; }
+.meses__nombre{ font-size: 11px; color: var(--marca-gris); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.meses__mes--actual .meses__columna{ opacity: .55; }
+.meses__mes--actual .meses__nombre{ font-weight: 700; color: var(--marca-tinta); }
+@media (max-width: 599px){ .meses{ gap: 3px; } .meses__valor{ font-size: 9px; } .meses__nombre{ font-size: 9px; } }
+
+.estado-cobro{ display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.estado-cobro--cobrado{ background: #d6f5e3; color: #17603a; }
+.estado-cobro--pendiente{ background: #fdecc8; color: #8a5a00; }
+.estado-cobro--en_curso{ background: var(--marca-tenue); color: var(--marca-gris); }
+.tabla-cobros__fila > td{ padding: 0 0 12px 24px; background: var(--marca-tenue); }
+.tabla-cobros{ width: 100%; }
+.tabla-convenios__tarifa{ width: 120px; min-height: 36px; }
+.tabla-convenios__acciones{ display: inline-flex; align-items: center; gap: 10px; }
+:where(:root[data-modo="oscuro"]) .estado-cobro--cobrado{ background: color-mix(in srgb, #68d391 25%, transparent); color: #9ae6b4; }
+:where(:root[data-modo="oscuro"]) .estado-cobro--pendiente{ background: color-mix(in srgb, #f6ad55 25%, transparent); color: #fbd38d; }
+@media (prefers-reduced-motion: reduce){ .meses__columna{ animation: none; } }
+
+/* =====================================================================
+   Empresas (concesionarias): la insignia en las fichas y el detalle, "Sumá tu concesionaria", la vitrina y el panel
+   ===================================================================== */
+.insignia-empresa{
+    display: inline-flex; align-items: center; gap: 4px; max-width: 100%; font-size: 12px; font-weight: 600; color: var(--marca-tinta);
+    text-decoration: none;
+}
+.insignia-empresa__sello{
+    display: inline-grid; place-items: center; flex: none; width: 16px; height: 16px; border-radius: 50%;
+    background: var(--marca-acento); color: var(--sobre-acento); font-size: 10px; font-weight: 800;
+}
+.insignia-empresa__nombre{ overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.insignia-empresa__texto{ flex: none; color: var(--marca-gris); font-weight: 500; }
+a.insignia-empresa:hover .insignia-empresa__nombre{ text-decoration: underline; }
+.insignia-empresa--grande{ margin: 0; font-size: 14px; }
+.insignia-empresa--grande .insignia-empresa__sello{ width: 20px; height: 20px; font-size: 12px; margin-right: 4px; }
+.ficha-vehiculo .insignia-empresa{ margin-top: 2px; }
+
+.beneficios-empresa{ display: grid; gap: 8px; margin: 0; padding-left: 20px; line-height: 1.5; }
+.vitrina{ display: grid; gap: 12px; }
+.vitrina[hidden]{ display: none; }
+
+.panel-empresa__barra{ display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.panel-empresa__barra p{ margin: 0; }
+.mas-vista{ display: grid; gap: 6px; border-left: 4px solid var(--marca-acento); }
+.mas-vista[hidden]{ display: none; }
+.mas-vista p{ margin: 0; font-size: 16px; }
+.dias--visitas .dias__tramo--visitas{ background: var(--serie-1, #1f9e8f); border-radius: 3px 3px 0 0; }
+.vista-empresa-panel .dias{ height: 160px; }
+.dias--visitas{ gap: 2px; }
+@media (max-width: 599px){ .dias--visitas{ gap: 1px; } }

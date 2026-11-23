@@ -72,6 +72,17 @@
           <option value="hibrido">Híbrido</option>
           <option value="electrico">Eléctrico</option>
         </select>
+        <label class="solo-lector" for="f-vendedor">Vendedor</label>
+        <select class="campo__input" id="f-vendedor" name="vendedor">
+          <option value="">Vendedor</option>
+          <option value="particular">Particulares</option>
+          <option value="empresa">Concesionarias</option>
+        </select>
+        <label class="solo-lector" for="f-orden">Ordenar</label>
+        <select class="campo__input" id="f-orden" name="orden">
+          <option value="">Más relevantes</option>
+          <option value="recientes">Más recientes</option>
+        </select>
       </fieldset>
       <p class="resultados__barra">
         <span class="suave" id="resultados-total" aria-live="polite"></span>
@@ -82,6 +93,8 @@
     <!-- Grilla de publicaciones: la arma js/paginas/catalogo.js con GET /api/vehiculos
          (foto, precio, modelo, km y combustible; ver fichaVehiculo en js/servicios/vistas.js).
          Si no hay resultados, después de la grilla se muestra el estado vacío. -->
+    <!-- "Más relevantes": según qué perfil está ordenado y el link para cambiarlo (lo arma js/paginas/catalogo.js) -->
+    <p class="recomendados-intro" id="explorar-intro" hidden></p>
     <ul class="grilla-vehiculos" id="resultados" role="list"></ul>
 
     <nav class="paginacion" id="paginacion" aria-label="Páginas de resultados"></nav>

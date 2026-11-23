@@ -56,6 +56,11 @@ function mostrar(v) {
         $('vendedor-foto').replaceWith(vistas.avatar(v.vendedor));
         $('vendedor-nombre').textContent = v.vendedor.nombre;
         $('vendedor-desde').textContent = `En AutoCar desde ${formato.fecha(v.vendedor.desde)}`;
+        // Concesionaria: su insignia, que lleva a su vitrina con todos sus autos
+        if (v.empresa) {
+            $('vendedor-nombre').textContent = v.empresa.nombre;
+            $('vendedor-desde').after(document.createElement('br'), vistas.insigniaEmpresa(v.empresa, true));
+        }
         $('vehiculo-vendedor').hidden = false;
     }
 

@@ -1,6 +1,6 @@
 // Rutas de administración. Cada una pide un permiso en el back (ver routes.php): vehiculos.moderar,
 // vehiculos.gestionar, usuarios.ver, usuarios.editar o metricas.ver.
-import { get, patch, del } from './cliente.js';
+import { get, post, put, patch, del } from './cliente.js';
 
 // Igual que el listado público, pero incluye los vendidos y trae 15 por página.
 export const listar = (filtros) => get('/api/admin/vehiculos', filtros);
@@ -45,7 +45,27 @@ export const solicitudesTaller = (estado) => get('/api/admin/solicitudes-taller'
 export const resolverSolicitudTaller = (id, resolucion) =>
     patch(`/api/admin/solicitudes-taller/${encodeURIComponent(id)}`, resolucion);
 
+// Solicitudes de "Sumá tu concesionaria" → {items: [{usuario_id, razon_social, cuit, localidad, telefono, sitio_web, estado, ...}]}
+export const solicitudesEmpresa = (estado) => get('/api/admin/solicitudes-empresa', { estado });
+
+// {aprobar: true} o {aprobar: false, motivo} → {solicitud}. id = el del usuario de la empresa.
+export const resolverSolicitudEmpresa = (id, resolucion) =>
+    patch(`/api/admin/solicitudes-empresa/${encodeURIComponent(id)}`, resolucion);
+
+// Recalcula el precio contra el mercado de todas las publicaciones (ranking de Explorar) → {autos, modelos}
+export const actualizarPreciosMercado = () => post('/api/admin/precios-mercado');
+
 // dias: 7, 30 o 90 (el período de resumen, serie y embudo; sin indicar, 30)
+// Afiliación con las plataformas (convenio simulado) → {convenios, este_mes: {mes, dias_al_cierre, filas, total, ...},
+// evolucion: [{mes, en_curso, estado: en_curso|pendiente|cobrado, total, de_clics, de_abonos, filas}]}
+export const afiliacion = () => get('/api/admin/afiliacion');
+
+// Tarifa por clic y si está activo el convenio de una plataforma → {convenios}
+export const guardarConvenio = (fuente, tarifaClic, activo) => put('/api/admin/afiliacion/convenios', { fuente, tarifa_clic: tarifaClic, activo });
+
+// Marca cobrado lo de un socio (tipo plataforma o empresa) en un mes cerrado ("AAAA-MM") → el panel actualizado
+export const cobrarAfiliacion = (tipo, socio, mes) => post('/api/admin/afiliacion/cobros', { tipo, socio, mes });
+
 export const metricas = (dias) => get('/api/admin/metricas', dias ? { dias } : undefined);
 
 // Fondo de garantía (solo paga reclamos; pago simulado) → {fondo: {saldo, aportes, franquicias, devoluciones,

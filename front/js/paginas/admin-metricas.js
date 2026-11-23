@@ -14,9 +14,9 @@ const n = (valor) => numero.format(valor);
 const pesos = (v) => formato.precio(v);
 const porcentaje = (parte, total) => (total ? Math.round((parte / total) * 100) : 0);
 
-const PESTANAS = [['resumen', 'Resumen'], ['plata', 'Plata'], ['inspecciones', 'Inspecciones'], ['embudo', 'Recomendaciones'], ['metabuscador', 'Metabuscador'], ['usuarios', 'Usuarios'], ['plataforma', 'Publicaciones']];
+const PESTANAS = [['resumen', 'Resumen'], ['plata', 'Plata'], ['inspecciones', 'Inspecciones'], ['embudo', 'Recomendaciones'], ['metabuscador', 'Metabuscador'], ['afiliaciones', 'Afiliaciones'], ['usuarios', 'Usuarios'], ['plataforma', 'Publicaciones']];
 // "Ordenar por" del metabuscador y qué peso de la fórmula de "Recomendados" (Parámetros) tiene que ver con cada uno
-const ORDENES = { recomendado: 'Recomendado', precio: 'Menor precio', km: 'Menos km', nuevos: 'Más nuevos' };
+const ORDENES = { recomendado: 'Más recomendados', precio: 'Menor precio', km: 'Menos km', nuevos: 'Más nuevos' };
 const PESO_DEL_ORDEN = { precio: 'el precio', km: 'los kilómetros', nuevos: 'el año' };
 const COLOR_CONCLUSION = { Recomendable: 'barras__barra--ok', 'Con reparos': 'barras__barra--observado', 'No recomendable': 'barras__barra--falla' };
 const PERIODOS = { 7: '7 días', 30: '30 días', 90: '3 meses' };
@@ -61,8 +61,9 @@ function tarjeta(valor, texto, formatear = n, comparar = {}) {
 
 // Barras horizontales de una sola serie, de mayor a menor: el largo es la cantidad y al lado va el número y qué
 // parte del total es (cada barra es un <li> con su texto, así se lee igual sin ver el gráfico).
-// clases: {nombre: 'barras__barra--ok'} para pintar una fila con el color de su estado; formatear: pesos para montos
-function barras(pares, vacio = 'Todavía no hay datos', clases = {}, formatear = n) {
+// clases: {nombre: 'barras__barra--ok'} para pintar una fila con el color de su estado; formatear: pesos para montos;
+// conParte: false cuando sumar los valores no tiene sentido (un promedio por persona, por ejemplo)
+function barras(pares, vacio = 'Todavía no hay datos', clases = {}, formatear = n, conParte = true) {
     const filas = pares.filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
     if (!filas.length) return [el('li', { class: 'barras__vacio' }, vacio)];
     const maximo = Math.max(...filas.map(([, v]) => v), 1);
@@ -71,9 +72,9 @@ function barras(pares, vacio = 'Todavía no hay datos', clases = {}, formatear =
         const barra = el('span', { class: `barras__barra ${clases[nombre] ?? ''}`, 'aria-hidden': 'true' });
         barra.style.setProperty('--largo', `${(valor / maximo) * 100}%`);
         barra.style.setProperty('--n', String(i));
-        return el('li', { class: 'barras__fila', title: `${nombre}: ${formatear(valor)} (${porcentaje(valor, total)} %)` },
+        return el('li', { class: 'barras__fila', title: `${nombre}: ${formatear(valor)}${conParte ? ` (${porcentaje(valor, total)} %)` : ''}` },
             el('span', { class: 'barras__nombre' }, nombre), barra,
-            el('span', { class: 'barras__valor' }, formatear(valor), el('span', { class: 'barras__parte' }, `${porcentaje(valor, total)} %`)));
+            el('span', { class: 'barras__valor' }, formatear(valor), conParte ? el('span', { class: 'barras__parte' }, `${porcentaje(valor, total)} %`) : null));
     });
 }
 
@@ -237,11 +238,35 @@ function tablaEmbudo(origenes) {
 
 // Recomendaciones: botones Todos / cada tipo de usuario y la tabla de ese segmento. En "Todos" las columnas de
 // "ordenaron" son la suma de los tipos de usuario (cada comprador tiene un solo tipo).
+// Cuánta ganancia dejó cada recomendación y cuánto por persona en cada paso (viene calculado del back: conGanancia)
+function tablaGanancia(origenes) {
+    const o = (x) => (x === null || x === undefined ? '—' : pesos(x));
+    const mejor = Math.max(...origenes.map((x) => x.por_vio ?? 0));
+    return [
+        el('thead', {}, celdas(['Recomendación', 'Ganancia', 'Por persona que la vio', 'Por persona que tocó "Mandale un mecánico"', 'Por inspección pagada'], 'th')),
+        el('tbody', {}, ...origenes.map((x) => {
+            const tr = celdas([ORIGENES[x.origen] ?? x.origen, pesos(x.ganancia ?? 0), o(x.por_vio), o(x.por_toco), o(x.por_pago)]);
+            if (mejor > 0 && x.por_vio === mejor) tr.classList.add('tabla-embudo__mejor');
+            return tr;
+        })),
+    ];
+}
+
+function mostrarEmbudo(origenes, quien = null) {
+    llenar('tabla-embudo', ...tablaEmbudo(origenes));
+    llenar('tabla-ganancia-embudo', ...tablaGanancia(origenes));
+    llenar('barras-ganancia-embudo', ...barras(origenes.map((x) => [ORIGENES[x.origen] ?? x.origen, x.por_vio ?? 0]),
+        'Todavía no hay ganancia de inspecciones firmadas en este período', {}, pesos, false));
+    document.getElementById('ganancia-embudo-titulo').textContent = quien
+        ? `Cuánta ganancia deja cada recomendación · ${quien}`
+        : 'Cuánta ganancia deja cada recomendación';
+}
+
 function embudoPorPerfil(m) {
     const pp = m.por_perfil;
     document.getElementById('embudo-perfil').hidden = !pp;
     if (!pp) {
-        llenar('tabla-embudo', ...tablaEmbudo(m.embudo.origenes));
+        mostrarEmbudo(m.embudo.origenes);
         return;
     }
     if (segmentoEmbudo !== 'todos' && !pp.embudo.some((f) => f.uso === segmentoEmbudo)) segmentoEmbudo = 'todos';
@@ -259,7 +284,7 @@ function embudoPorPerfil(m) {
     document.getElementById('tabla-embudo-titulo').textContent = fila
         ? `Qué recomendación funciona mejor · ${fila.nombre}`
         : 'Qué recomendación funciona mejor';
-    llenar('tabla-embudo', ...tablaEmbudo(origenes));
+    mostrarEmbudo(origenes, fila?.nombre);
 }
 
 // El informe de plata del período, como un estado de resultados chico: ganancia (la comisión completa de AutoCar,
@@ -344,6 +369,24 @@ function plataPorPerfil(m, textoPeriodo) {
     llenar('barras-plata-perfil', ...barras(pp.plata.map((f) => [f.nombre, Math.max(f.neta, 0)]), 'Todavía no hay ganancia neta en este período', {}, pesos));
 }
 
+// Cuánto le cuesta decidirse a cada tipo de usuario: interacciones (buscar, cambiar el orden, tocar "Mandale un
+// mecánico") y días desde la primera hasta pagar, en mediana de los compradores
+const decimal = (v) => String(v).replace('.', ',');
+function valorPorPerfil(v) {
+    document.getElementById('valor-figura').hidden = !v;
+    if (!v) return;
+    const t = v.total;
+    const o = (x, f = n) => (x === null ? '—' : f(x));
+    llenar('kpis-valor',
+        tarjeta(t.interacciones_hasta_comprar === null ? null : decimal(t.interacciones_hasta_comprar), 'Interacciones hasta comprar (mediana)'),
+        tarjeta(t.dias_hasta_comprar === null ? null : `${decimal(t.dias_hasta_comprar)} días`, 'De la primera interacción a pagar (mediana)'));
+    llenar('tabla-valor',
+        el('thead', {}, celdas(['Tipo de usuario', 'Interacciones', 'Usuarios activos', 'Compradores', 'Interacciones hasta comprar', 'Días hasta comprar'], 'th')),
+        el('tbody', {}, ...v.por_uso.map((f) => celdas([f.nombre, n(f.interacciones), n(f.activos),
+            f.compradores_sin_interacciones ? `${n(f.compradores)} (${n(f.compradores_sin_interacciones)} sin interacciones)` : n(f.compradores),
+            o(f.interacciones_hasta_comprar, decimal), o(f.dias_hasta_comprar, decimal)]))));
+}
+
 // Gráfico: por cada tipo de usuario, dos barras (buscaron en el metabuscador y, de esos, pagaron la inspección),
 // con el largo relativo al grupo que más buscó. Primero el total. Cada barra lleva su número al lado.
 function buscaronYCompraron(mb) {
@@ -392,7 +435,132 @@ function sugerenciasOrden(ordenes) {
             el('a', { href: 'admin-parametros.html' }, 'Parámetros'), '.'));
     return items.length
         ? items
-        : [el('li', { class: 'barras__vacio' }, 'Ningún perfil prefiere otro orden que "Recomendado": la fórmula de "Recomendados" parece acertar (o todavía no hay datos).')];
+        : [el('li', { class: 'barras__vacio' }, 'Ningún perfil prefiere otro orden que "Más recomendados": la fórmula de "Recomendados" parece acertar (o todavía no hay datos).')];
+}
+
+// ---------- Afiliaciones: lo que se cobra a las plataformas por los clics (convenio simulado) ----------
+
+const nombreMes = (mes, largo = false) => new Date(`${mes}T12:00:00`).toLocaleDateString('es-AR', { month: largo ? 'long' : 'short', year: 'numeric' });
+const mesCorto = (mes) => mes.slice(0, 7); // "2026-10-01" → "2026-10", como lo pide la API
+const ESTADO_MES = { en_curso: 'En curso', pendiente: 'Falta cobrar', cobrado: 'Cobrado' };
+
+function esteMesAfiliacion(m) {
+    llenar('kpis-afiliacion',
+        tarjeta(m.total, `A cobrar en ${nombreMes(m.mes, true)}`, pesos),
+        tarjeta(m.de_clics, `De clics a plataformas (${n(m.validos)} válidos de ${n(m.clics)})`, pesos),
+        tarjeta(m.de_abonos, 'De abonos de empresas', pesos));
+    document.getElementById('afiliacion-mes-titulo').textContent = `Lo que se va a cobrar en ${nombreMes(m.mes, true)}`;
+    llenar('tabla-afiliacion-mes',
+        el('thead', {}, celdas(['Socio', 'Tipo', 'Clics', 'Válidos', 'Tarifa', 'A cobrar'], 'th')),
+        el('tbody', {}, ...m.filas.map((f) => celdas(f.tipo === 'empresa'
+            ? [f.nombre, 'Empresa', '—', '—', 'Abono mensual', pesos(f.monto)]
+            : [f.nombre, 'Plataforma', n(f.clics), n(f.validos), f.activo ? `${pesos(f.tarifa_clic)} / clic` : 'Sin convenio activo', pesos(f.monto)])),
+        celdas([el('strong', {}, 'Total del mes'), '', n(m.clics), n(m.validos), '', el('strong', {}, pesos(m.total))])));
+    document.getElementById('afiliacion-cierre').textContent = m.dias_al_cierre
+        ? `Faltan ${m.dias_al_cierre} ${m.dias_al_cierre === 1 ? 'día' : 'días'} para el cierre del mes.`
+        : 'Hoy cierra el mes.';
+}
+
+// Una columna por mes, partida en clics y abonos, con el alto relativo al mes que más se cobró
+function mesesAfiliacion(evolucion) {
+    const maximo = Math.max(...evolucion.map((m) => m.total), 0);
+    llenar('meses-afiliacion', ...evolucion.map((m, i) => {
+        const columna = el('span', { class: 'meses__columna', 'aria-hidden': 'true' },
+            ...[['clics', m.de_clics], ['abonos', m.de_abonos]].map(([clase, valor]) => {
+                const tramo = el('span', { class: `meses__tramo meses__tramo--${clase}` });
+                tramo.style.setProperty('--alto', `${maximo ? (valor / maximo) * 100 : 0}%`);
+                return tramo;
+            }));
+        const li = el('li', { class: `meses__mes${m.en_curso ? ' meses__mes--actual' : ''}`, title: `${nombreMes(m.mes)}: ${pesos(m.total)}` },
+            el('span', { class: 'meses__valor', 'aria-hidden': 'true' }, m.total ? pesosCorto(m.total) : ''),
+            columna,
+            el('span', { class: 'meses__nombre', 'aria-hidden': 'true' }, nombreMes(m.mes)),
+            el('span', { class: 'solo-lector' }, `${nombreMes(m.mes, true)}: ${pesos(m.total)}${m.en_curso ? ' (en curso)' : ''}`));
+        li.style.setProperty('--n', String(i));
+        return li;
+    }));
+}
+
+// Los meses cerrados, del más nuevo al más viejo; al tocar uno se ve cada socio y se marca cobrado
+let mesAbierto = null;
+function mesesCerradosAfiliacion(evolucion) {
+    const cerrados = evolucion.filter((m) => !m.en_curso).reverse();
+    const filas = cerrados.flatMap((m) => {
+        const abierto = mesAbierto === m.mes;
+        const ver = el('button', { class: 'boton-link', type: 'button', 'aria-expanded': String(abierto) }, abierto ? 'Ocultar' : 'Ver por socio');
+        ver.addEventListener('click', () => { mesAbierto = abierto ? null : m.mes; mesesCerradosAfiliacion(evolucion); });
+        const estado = el('span', { class: `estado-cobro estado-cobro--${m.estado}` }, ESTADO_MES[m.estado]);
+        const fila = celdas([nombreMes(m.mes, true), n(m.validos), pesos(m.de_clics), pesos(m.de_abonos), pesos(m.total), estado, ver]);
+        if (!abierto) return [fila];
+        const detalle = el('table', { class: 'tabla tabla-cobros' },
+            el('thead', {}, celdas(['Socio', 'Tipo', 'Clics válidos', 'Monto', ''], 'th')),
+            el('tbody', {}, ...m.filas.map((f) => celdas([f.nombre, f.tipo === 'empresa' ? 'Abono' : 'Clics',
+                f.tipo === 'empresa' ? '—' : n(f.validos), pesos(f.monto), cobroDe(m, f)]))));
+        return [fila, el('tr', { class: 'tabla-cobros__fila' }, el('td', { colspan: '7' }, detalle))];
+    });
+    llenar('tabla-afiliacion-meses',
+        el('thead', {}, celdas(['Mes', 'Clics válidos', 'De clics', 'De abonos', 'Total', 'Estado', ''], 'th')),
+        el('tbody', {}, ...(filas.length ? filas : [el('tr', {}, el('td', { colspan: '7' }, 'Todavía no hay meses cerrados.'))])));
+}
+
+function cobroDe(m, f) {
+    if (f.cobrado_at) return el('span', { class: 'estado-cobro estado-cobro--cobrado' }, `Cobrado el ${new Date(f.cobrado_at).toLocaleDateString('es-AR')}`);
+    if (!f.monto) return el('span', { class: 'suave' }, 'Nada que cobrar');
+    const b = el('button', { class: 'boton boton--chico', type: 'button' }, 'Marcar cobrado');
+    b.addEventListener('click', async () => {
+        b.disabled = true;
+        try {
+            mostrarAfiliacion(await admin.cobrarAfiliacion(f.tipo, f.socio, mesCorto(m.mes)));
+        } catch (error) {
+            b.replaceWith(el('span', { class: 'campo__error' }, error.status === 403 ? 'No tenés permiso para marcar cobros.' : error.message));
+        }
+    });
+    return b;
+}
+
+// La tarifa por clic de cada plataforma y si el convenio está activo (cambiarlos pide parametros.editar)
+function conveniosAfiliacion(convenios) {
+    llenar('tabla-convenios',
+        el('thead', {}, celdas(['Plataforma', 'Tarifa por clic', 'Activo', ''], 'th')),
+        el('tbody', {}, ...convenios.map((c) => {
+            const tarifa = el('input', { class: 'campo__input tabla-convenios__tarifa', type: 'number', min: '0', step: '10',
+                value: String(c.tarifa_clic), 'aria-label': `Tarifa por clic de ${c.nombre}` });
+            const activo = el('input', { type: 'checkbox', 'aria-label': `Convenio con ${c.nombre} activo` });
+            activo.checked = c.activo;
+            const mensaje = el('span', { class: 'suave', 'aria-live': 'polite' });
+            const guardar = el('button', { class: 'boton boton--chico boton--secundario', type: 'button' }, 'Guardar');
+            guardar.addEventListener('click', async () => {
+                guardar.disabled = true;
+                try {
+                    await admin.guardarConvenio(c.fuente, Number(tarifa.value), activo.checked);
+                    await cargarAfiliacion();
+                } catch (error) {
+                    mensaje.textContent = error.status === 403 ? 'No tenés permiso para cambiar los convenios.' : error.message;
+                    guardar.disabled = false;
+                }
+            });
+            return celdas([c.nombre, tarifa, activo, el('span', { class: 'tabla-convenios__acciones' }, guardar, mensaje)]);
+        })));
+}
+
+function mostrarAfiliacion(a) {
+    esteMesAfiliacion(a.este_mes);
+    mesesAfiliacion(a.evolucion);
+    mesesCerradosAfiliacion(a.evolucion);
+    conveniosAfiliacion(a.convenios);
+}
+
+async function cargarAfiliacion() {
+    try {
+        mostrarAfiliacion(await admin.afiliacion());
+    } catch {
+        // Sin el back nuevo (o sin permiso) la pestaña no se muestra
+        document.querySelector('[data-pestana-boton="afiliaciones"]').hidden = true;
+        if (pestana === 'afiliaciones') {
+            pestana = 'resumen';
+            mostrarPestana();
+        }
+    }
 }
 
 // ---------- Pestañas y período (los botones se arman acá, no en el HTML) ----------
@@ -518,6 +686,7 @@ function mostrar(m) {
         pasoEmbudo('Pagaron la inspección ("compró")', emb.pagaron, emb.vieron, emb.vieron ? `${conversion} % de los que vieron` : null),
         pasoEmbudo('Ya tienen la inspección firmada', emb.firmadas, emb.vieron, null));
     embudoPorPerfil(m);
+    valorPorPerfil(m.por_perfil?.valor);
     document.getElementById('sin-origen').textContent = m.embudo.sin_origen
         ? `Además, ${n(m.embudo.sin_origen)} inspecciones del período se pidieron sin dato de dónde venían (anteriores a que empezáramos a medirlo).`
         : '';
@@ -602,4 +771,5 @@ async function cargar() {
 if (sesion.requerirPermiso('metricas.ver')) {
     armarControles();
     cargar();
+    cargarAfiliacion(); // no depende del período: se pide una vez
 }

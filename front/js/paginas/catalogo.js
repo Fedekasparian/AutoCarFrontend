@@ -6,8 +6,10 @@ import * as corazones from '../servicios/corazones.js';
 import * as formato from '../servicios/formato.js';
 import * as vistas from '../servicios/vistas.js';
 import { ruta } from '../servicios/rutas.js';
+import { PERFILES } from '../servicios/perfil.js';
 
-const FILTROS = ['q', 'marca', 'combustible', 'precio_max', 'page'];
+// orden: sin valor = "Más relevantes" (el mismo cálculo que el metabuscador, con el perfil de quien mira); recientes = los más nuevos
+const FILTROS = ['q', 'marca', 'combustible', 'precio_max', 'vendedor', 'orden', 'page'];
 
 const params = new URLSearchParams(window.location.search);
 const filtros = Object.fromEntries(FILTROS.map((f) => [f, params.get(f) || '']));
@@ -60,6 +62,7 @@ function chipsDeFiltros() {
         marca: (v) => v,
         combustible: (v) => formato.combustible(v),
         precio_max: (v) => `Hasta ${formato.precio(Number(v))}`,
+        vendedor: (v) => (v === 'empresa' ? 'Solo concesionarias' : 'Solo particulares'),
     };
     const activos = Object.keys(textos).filter((f) => filtros[f]);
     if (!activos.length) return;
@@ -93,6 +96,19 @@ async function cargarMarcas() {
     }
 }
 
+// "Más relevantes": arriba de la grilla, según qué está ordenado y el link a "¿Para qué buscás el auto?"
+function introRecomendados(r) {
+    const caja = document.getElementById('explorar-intro');
+    if (!caja) return;
+    caja.hidden = r.orden !== 'relevantes' || !r.items.length;
+    if (caja.hidden) return;
+    const nombre = PERFILES.find((p) => p.uso === r.perfil)?.titulo;
+    const cambiar = el('a', { href: ruta('preferencias.html') }, nombre ? 'Cambiar' : 'Contanos para qué buscás el auto');
+    caja.replaceChildren(...(nombre
+        ? [el('strong', {}, 'Ordenados para vos'), ` según lo que nos contaste: "${nombre}". `, cambiar]
+        : [el('strong', {}, 'Ordenados por mejor precio frente a autos parecidos'), '. ', cambiar, ' y te los ordenamos para vos.']));
+}
+
 function textoTotal(cantidad) {
     const base = cantidad === 1 ? '1 publicación' : `${cantidad} publicaciones`;
     return filtros.q ? `${base} para "${filtros.q}"` : base;
@@ -117,6 +133,7 @@ async function cargarListado() {
         estado.remove();
         grilla.removeAttribute('aria-busy');
         total.textContent = textoTotal(r.total);
+        introRecomendados(r);
         if (!r.items.length) {
             grilla.replaceChildren();
             grilla.after(vistas.aviso('No hay publicaciones con estos filtros.',

@@ -19,11 +19,13 @@ function mostrar(usuario) {
     document.getElementById('enlace-admin').hidden = !sesion.vePanel();
     // Los mecánicos de la red (rol mecanico) entran a su panel desde acá
     document.getElementById('enlace-taller').hidden = usuario.rol !== 'mecanico';
+    // Las concesionarias (rol empresa) entran a su panel desde acá; publican, pero no compran
+    document.getElementById('enlace-empresa').hidden = usuario.rol !== 'empresa';
     // El equipo y los talleres no compran ni venden: sin favoritos, publicaciones ni inspecciones pedidas
     const compra = usuario.rol === 'usuario';
     ['favoritos.html', 'mis-publicaciones.html', 'mis-inspecciones.html', 'preferencias.html?volver=cuenta.html'].forEach((pagina) => {
         const fila = document.querySelector(`.lista-filas a[href$="${pagina}"]`)?.closest('li');
-        if (fila) fila.hidden = !compra;
+        if (fila) fila.hidden = !(compra || (usuario.rol === 'empresa' && pagina === 'mis-publicaciones.html'));
     });
     // Lo que contestó en "¿Para qué buscás el auto?" (las opciones las manda el back)
     if (compra) mostrarPreferencias();

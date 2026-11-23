@@ -1,15 +1,18 @@
 // Reporte de una búsqueda guardada (meta-busqueda-resultados.html?id=N) con GET /api/meta-busquedas/{id}:
-// precio de referencia, novedades y los autos de todas las fuentes, cada uno con "Mandale un mecánico".
-// "Recomendado" (sin orden en la URL) lo decide el back: si eligió para qué busca el auto, según su perfil
-// (para_vos, cada auto trae el motivo); si no, por la diferencia con el precio típico.
+// precio típico por sitio, una franja con las novedades (el detalle está en meta-busqueda-novedades.html) y los autos
+// de todas las fuentes, cada uno con "Mandale un mecánico".
+// "Más recomendados" (sin orden en la URL) lo decide el back: si eligió para qué busca el auto, según su perfil
+// (para_vos); si no, por la diferencia con el precio típico. En ese orden se ven primero los 5 más recomendados,
+// cada uno con por qué se le recomienda, y "Ver listado completo" muestra el resto (queda en la URL: ?todo=1).
 import * as api from '../api/metabusqueda.js';
 import * as formato from '../servicios/formato.js';
-import * as insp from '../servicios/inspecciones.js';
 import * as sesion from '../servicios/sesion.js';
 import * as vistas from '../servicios/vistas.js';
 import { criterios } from '../servicios/metabusqueda.js';
 import { ruta } from '../servicios/rutas.js';
 import { boton, confirmacion } from '../servicios/acciones.js';
+import { PERFILES } from '../servicios/perfil.js';
+import { usarCotizacion, precio, precioOriginal, sitio, acciones, fila, idFila } from '../servicios/autos-externos.js';
 import * as eventos from '../api/eventos.js';
 
 const { el } = vistas;
@@ -17,80 +20,14 @@ const params = new URLSearchParams(window.location.search);
 const id = params.get('id');
 const $ = (idElemento) => document.getElementById(idElemento);
 
-// Valores de Comparables::etiqueta() del back (distintos de los del comparador de una publicación)
-const ETIQUETAS = { barato: 'Buen precio', normal: 'En precio', caro: 'Caro' };
-const dolares = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 });
+const TOP = 5; // cuántos se muestran primero, con su mensaje, en "Más recomendados"
+let todo = params.get('todo') === '1';
 
-// La lista no mezcla monedas: los autos publicados en dólares se muestran en pesos con la cotización del admin
-// (parámetro cotizacion_dolar, viene en el reporte) y abajo, chico, el precio original del aviso.
-let cotizacion = null;
-
-function precio(a) {
-    if (a.precio === null) return 'Sin precio';
-    if (a.moneda !== 'USD') return formato.precio(a.precio);
-    return cotizacion ? formato.precio(Math.round(a.precio * cotizacion)) : `US$ ${dolares.format(a.precio)}`;
-}
-
-const precioOriginal = (a) => (a.moneda === 'USD' && a.precio !== null && cotizacion
-    ? el('span', { class: 'resultado__original' }, `Publicado en US$ ${dolares.format(a.precio)}`)
-    : null);
-
-// "Mandale un mecánico" con el link y los datos del aviso fijos; los de AutoCar se abren en su publicación.
-// Un auto reservado no tiene precio a la vista y ya tiene a alguien comprándolo: no se ofrece la inspección.
-// origen (para las estadísticas): de dónde se tocó el botón; va en el link y la pantalla del pedido lo manda.
-function acciones(a, origen = 'metabuscador') {
-    if (a.fuente === 'autocar') {
-        return [el('a', { class: 'boton boton--chico', href: ruta(`vehiculo.html?id=${a.id}`) }, 'Ver publicación')];
-    }
-    const verEnSitio = el('a', { class: 'boton-link', href: a.url, target: '_blank', rel: 'noopener noreferrer' }, `Ver en ${insp.fuente(a.fuente)}`);
-    if (a.reservado) {
-        return [verEnSitio, el('span', { class: 'suave' }, 'Reservado: no se puede pedir inspección')];
-    }
-    const pedido = new URLSearchParams({ url: a.url, titulo: `${a.marca} ${a.modelo}${a.version ? ` ${a.version}` : ''}` });
-    if (a.anio) pedido.set('anio', a.anio);
-    if (a.km !== null) pedido.set('km', a.km);
-    // En pesos: si el aviso está en dólares, con la misma cotización que la lista
-    if (a.precio !== null && a.moneda === 'ARS') pedido.set('precio', a.precio);
-    if (a.precio !== null && a.moneda === 'USD' && cotizacion) pedido.set('precio', Math.round(a.precio * cotizacion));
-    if (a.ubicacion) pedido.set('localidad', a.ubicacion);
-    // Para mostrar qué mecánicos ya revisaron uno igual (no se manda en el pedido: ahí vale lo que elija en la lista)
-    pedido.set('marca', a.marca);
-    pedido.set('modelo', a.modelo);
-    pedido.set('origen', origen);
-    eventos.registrar('mostrado', origen, a.url);
-    return [
-        verEnSitio,
-        el('a', { class: 'boton boton--chico', href: ruta(`pedir-inspeccion.html?${pedido}`) }, 'Mandale un mecánico'),
-    ];
-}
-
-// La etiqueta del metabuscador con el mismo color que la del comparador de una publicación
-const COLOR_ETIQUETA = { barato: 'buen_precio', normal: 'en_precio', caro: 'caro' };
-const etiquetaPrecio = (a) => {
-    const texto = ETIQUETAS[a.etiqueta?.valor];
-    return texto
-        ? el('span', { class: `etiqueta etiqueta--${COLOR_ETIQUETA[a.etiqueta.valor]}`, title: CRITERIO }, texto)
-        : null;
-};
-// Abajo del precio, chico: contra qué se comparó (el orden por precio no mira el año ni los km, la etiqueta sí)
-const CRITERIO = 'Se compara con autos del mismo modelo y sitio, de año (±2) y kilómetros (±30 %) parecidos.';
-function comparacion(a) {
-    const e = a.etiqueta;
-    if (!ETIQUETAS[e?.valor] || e.diferencia_pct === null) return null;
-    const pct = String(Math.abs(e.diferencia_pct)).replace('.', ',');
-    const relacion = e.diferencia_pct < 0 ? `${pct} % menos que` : e.diferencia_pct > 0 ? `${pct} % más que` : 'Igual que';
-    return el('span', { class: 'resultado__comparacion', title: CRITERIO },
-        `${relacion} ${e.comparables} autos parecidos (año y km)`);
-}
-// El sitio como una pastilla de color (solo el nombre: sin logos de otras marcas)
-const sitio = (fuente) => el('span', { class: `sitio sitio--${fuente}` }, insp.fuente(fuente));
-
-// ---------- Novedades sin ver: cuáles son, no solo cuántas ----------
+// ---------- Novedades sin ver: el aviso de cada auto en su fila y cuántas hay en la franja ----------
 // Al abrir la búsqueda sus avisos quedan vistos; por eso se guardan en la sesión del navegador y siguen
 // apareciendo al cambiar de página u orden en esta pestaña.
-const TIPOS_AVISO = { nuevo: 'Nuevo', bajo: 'Bajó de precio', reservado: 'Reservado', retirado: 'Ya no está' };
 let avisos = [];
-const idFila = (autoId) => `auto-${autoId.replace(/[^\w-]/g, '-')}`;
+const avisoDe = (a) => avisos.find((v) => v.auto_id === a.id); // el más nuevo primero
 
 async function traerAvisos() {
     const clave = `avisos-busqueda-${id}`;
@@ -107,56 +44,17 @@ async function traerAvisos() {
     }
 }
 
-function detalleAviso(a) {
-    if (a.tipo !== 'bajo' || !a.precio_anterior || !a.precio_actual) return null;
-    const pct = Math.round((1 - a.precio_actual / a.precio_anterior) * 100);
-    return el('span', { class: 'novedad__detalle' }, `bajó un ${pct} %`);
-}
-
-function mostrarAvisos(items) {
-    const caja = $('novedades-sin-ver');
-    if (!avisos.length) { caja.hidden = true; return; }
-    const enPagina = new Set(items.map((a) => a.id));
-    $('novedades-lista').replaceChildren(...avisos.map((a) => el('li', { class: `novedad novedad--${a.tipo}` },
-        el('span', { class: 'novedad__tipo' }, TIPOS_AVISO[a.tipo] ?? a.tipo),
-        el('span', { class: 'novedad__auto' }, `${a.marca} ${a.modelo}${a.version ? ` ${a.version}` : ''} ${a.anio}`),
-        sitio(a.fuente),
-        detalleAviso(a),
-        enPagina.has(a.auto_id) ? el('a', { class: 'boton-link', href: `#${idFila(a.auto_id)}` }, 'Ver en la lista') : null)));
-    caja.hidden = false;
-}
-
-// extra: una línea más abajo del precio (en la lista de novedades, cuánto salía antes). Esa lista no lleva id
-// en la fila: el id es del auto en el listado de abajo ("Ver en la lista" lleva ahí).
-function fila(a, i, extra = null) {
-    const datos = [a.km !== null ? formato.km(a.km) : null, a.ubicacion].filter(Boolean).join(' · ');
-    const aviso = avisos.find((v) => v.auto_id === a.id); // el más nuevo primero
-    const li = el('li', extra ? { class: 'fila resultado' } : { class: 'fila resultado', id: idFila(a.id) },
-        el('span', { class: 'fila__cuerpo' },
-            el('span', { class: 'resultado__arriba' }, sitio(a.fuente),
-                aviso && !(aviso.tipo === 'reservado' && a.reservado) ? el('span', { class: `novedad__tipo novedad--${aviso.tipo}` }, TIPOS_AVISO[aviso.tipo] ?? aviso.tipo) : null,
-                a.reservado ? el('span', { class: 'etiqueta etiqueta--oscura' }, 'Reservado') : null),
-            el('span', { class: 'fila__titulo' }, `${a.marca} ${a.modelo} ${a.anio ?? ''}`.trim(),
-                a.version ? el('span', { class: 'suave' }, ` · ${a.version}`) : null),
-            el('span', { class: 'fila__meta' }, datos),
-            el('span', { class: 'resultado__precio' }, el('strong', {}, precio(a)), ' ', etiquetaPrecio(a), precioOriginal(a), comparacion(a)),
-            extra,
-            a.para_vos ? el('span', { class: 'resultado__para-vos' }, a.para_vos.motivo) : null),
-        el('span', { class: 'fila__acciones' }, ...acciones(a, a.para_vos ? 'para_vos' : 'metabuscador')));
-    li.style.setProperty('--n', String(i));
-    return li;
-}
-
-// Precio típico por sitio, todos en la misma escala: franja del 25 % al 75 % y una marca en la mediana
+// Precio típico por sitio, todos en la misma escala: franja del 25 % al 75 % y una marca en la mediana.
+// Es la única referencia de precio de la página: se muestra aunque haya un solo sitio con autos suficientes.
 function mostrarSitios(referencia) {
     const grupos = referencia.filter((g) => g.moneda === 'ARS' && g.suficiente);
     const caja = $('sitios');
-    if (grupos.length < 2) { caja.hidden = true; return; }
+    if (!grupos.length) { caja.hidden = true; return; }
     const desde = Math.min(...grupos.map((g) => g.p25)) * 0.95;
     const hasta = Math.max(...grupos.map((g) => g.p75)) * 1.05;
     const pos = (v) => `${(((v - desde) / (hasta - desde)) * 100).toFixed(1)}%`;
     caja.replaceChildren(
-        el('p', { class: 'sitios__titulo' }, 'Precio típico en cada sitio'),
+        el('p', { class: 'sitios__titulo' }, grupos.length > 1 ? 'Precio típico en cada sitio' : 'Precio típico'),
         ...grupos.sort((a, b) => a.mediana - b.mediana).map((g) => {
             const pista = el('span', { class: 'sitios__pista', 'aria-hidden': 'true' },
                 el('span', { class: 'sitios__franja' }), el('span', { class: 'sitios__mediana' }));
@@ -171,58 +69,27 @@ function mostrarSitios(referencia) {
     caja.hidden = false;
 }
 
-// "Nuevos" y "bajaron de precio" se pueden tocar y muestran cuáles son (vienen en novedades.items del reporte).
-// "Ya no están" es solo la cifra: esos autos ya no se pueden ver ni inspeccionar.
-const DETALLE_NOVEDAD = {
-    nuevos: { tipo: 'nuevo', titulo: 'Autos nuevos desde la corrida anterior' },
-    bajaron: { tipo: 'bajo', titulo: 'Autos que bajaron de precio' },
-};
-let novedadAbierta = null;
-
-// Cuánto salía antes, en la misma moneda del aviso
-function precioAnterior(c) {
-    if (!c.precio_anterior || !c.precio_actual) return null;
-    const pct = Math.round((1 - c.precio_actual / c.precio_anterior) * 100);
-    const antes = c.auto.moneda === 'USD' ? `US$ ${dolares.format(c.precio_anterior)}` : formato.precio(c.precio_anterior);
-    return el('span', { class: 'resultado__antes' }, `Antes ${antes} · bajó un ${pct} %`);
-}
-
-function mostrarDetalleNovedad(n, clave) {
-    const caja = $('novedades-detalle');
-    novedadAbierta = novedadAbierta === clave ? null : clave; // tocar la misma cifra otra vez la cierra
-    $('novedades-cifras').querySelectorAll('button').forEach((b) => {
-        b.setAttribute('aria-expanded', String(b.dataset.novedad === novedadAbierta));
-    });
-    if (!novedadAbierta) { caja.hidden = true; return; }
-    const { tipo, titulo } = DETALLE_NOVEDAD[novedadAbierta];
-    const cambios = n.items.filter((c) => c.tipo === tipo);
-    // Los que más bajaron primero; los nuevos, del más barato al más caro
-    if (tipo === 'bajo') cambios.sort((a, b) => (a.precio_actual / a.precio_anterior) - (b.precio_actual / b.precio_anterior));
-    else cambios.sort((a, b) => (a.auto.precio ?? Infinity) - (b.auto.precio ?? Infinity));
-    $('novedades-detalle-titulo').textContent = `${titulo} (${cambios.length})`;
-    $('novedades-detalle-lista').replaceChildren(...cambios.map((c, i) =>
-        fila(c.auto, i, tipo === 'bajo' ? precioAnterior(c) : el('span', { class: 'resultado__antes' }, 'Nuevo en esta corrida'))));
-    caja.hidden = false;
-}
-
+// Una sola franja con las cifras de la última corrida y el link a la página de novedades (con el gráfico y cuáles son)
 function mostrarNovedades(n) {
-    const caja = $('novedades-cifras');
-    if (!n?.disponible) { caja.hidden = true; return; }
-    caja.replaceChildren(...[['nuevos', n.nuevos, 'nuevos'], ['bajaron', n.bajaron, 'bajaron de precio'], ['retirados', n.retirados, 'ya no están']]
-        .map(([clase, valor, texto]) => {
-            const contenido = [el('strong', {}, String(valor)), el('span', {}, texto)];
-            const li = el('li', { class: `novedades__cifra novedades__cifra--${clase}` });
-            if (DETALLE_NOVEDAD[clase] && valor > 0 && Array.isArray(n.items)) {
-                const b = el('button', { class: 'novedades__boton', type: 'button', 'data-novedad': clase,
-                    'aria-expanded': 'false', 'aria-controls': 'novedades-detalle' }, ...contenido);
-                b.addEventListener('click', () => mostrarDetalleNovedad(n, clase));
-                li.append(b);
-            } else {
-                li.append(...contenido);
-            }
-            return li;
-        }));
-    caja.hidden = false;
+    const caja = $('novedades');
+    if (!n?.disponible) {
+        caja.replaceChildren('Las novedades (autos nuevos y bajas de precio) aparecen a partir de la segunda corrida diaria.');
+        caja.classList.remove('novedades-franja--con-datos');
+        return;
+    }
+    const cifra = (valor, texto, clase) => el('span', { class: `novedades-franja__cifra novedades-franja__cifra--${clase}` },
+        el('strong', {}, String(valor)), ` ${texto}`);
+    // replaceChildren escribe "null" si le llega un null: lo que no va se filtra antes
+    caja.replaceChildren(...[
+        el('span', { class: 'novedades-franja__texto' }, 'Desde la corrida anterior'),
+        el('span', { class: 'novedades-franja__cifras' },
+            cifra(n.nuevos, n.nuevos === 1 ? 'nuevo' : 'nuevos', 'nuevos'),
+            cifra(n.bajaron, 'bajaron de precio', 'bajaron'),
+            cifra(n.retirados, 'ya no están', 'retirados')),
+        avisos.length ? el('span', { class: 'novedades-franja__sin-ver' }, `${avisos.length} sin ver`) : null,
+        el('a', { class: 'boton boton--chico boton--secundario novedades-franja__ver', href: ruta(`meta-busqueda-novedades.html?id=${id}`) }, 'Ver novedades'),
+    ].filter(Boolean));
+    caja.classList.add('novedades-franja--con-datos');
 }
 
 const DESTACADOS = [['mejor_relacion', 'Mejor relación precio y km'], ['mas_barato', 'El más barato'], ['menos_usado', 'El menos usado']];
@@ -244,35 +111,89 @@ function mostrarDestacados(d) {
     caja.hidden = false;
 }
 
+// ---------- "Más recomendados": los primeros 5 con su mensaje ----------
+
+// Solo en ese orden y en la primera página
+const enRecomendados = () => !params.get('orden') && (Number(params.get('page')) || 1) <= 1;
+
+// Sin perfil, el orden es por la diferencia con el precio típico: el mensaje dice eso, sin inventar un perfil
+function mensajeSinPerfil(a) {
+    const d = a.etiqueta?.diferencia_pct;
+    if (d === null || d === undefined || d >= 0) return null;
+    return `Está ${String(Math.abs(d)).replace('.', ',')} % por debajo del precio típico de ${a.etiqueta.comparables} autos parecidos.`;
+}
+
+function introRecomendados(perfil, cuantos) {
+    const caja = $('recomendados-intro');
+    const cambiar = el('a', { href: ruta('preferencias.html') }, perfil ? 'Cambiar' : 'Contanos para qué buscás el auto');
+    const nombre = PERFILES.find((p) => p.uso === perfil)?.titulo;
+    caja.replaceChildren(...(nombre
+        ? [el('strong', {}, `Los ${cuantos} más recomendados para vos`), ` según lo que nos contaste: "${nombre}". `, cambiar]
+        : [el('strong', {}, `Los ${cuantos} con mejor precio frente a autos parecidos`), '. ', cambiar, ' y te los ordenamos para vos.']));
+    caja.hidden = false;
+}
+
+function mostrarResultados(r) {
+    const res = r.resultados;
+    const conTop = enRecomendados() && res.items.length > 0;
+    const top = conTop ? res.items.slice(0, TOP) : [];
+    const resto = conTop ? res.items.slice(TOP) : res.items;
+    const verTodo = !conTop || todo || res.total <= TOP;
+
+    // Los primeros van en su propia lista, numerados y con su mensaje. Con perfil, sus clics cuentan como "para vos"
+    // (la recomendación con mensaje); el resto, como metabuscador: así el embudo del admin mide si el mensaje convence
+    $('recomendados').replaceChildren(...top.map((a, i) => fila(a, {
+        i, id: idFila(a.id), aviso: avisoDe(a), puesto: i + 1,
+        mensaje: r.perfil ? a.para_vos?.mensaje : mensajeSinPerfil(a),
+        motivo: a.para_vos?.motivo,
+        origen: r.perfil && a.para_vos ? 'para_vos' : 'metabuscador',
+    })));
+    $('recomendados').hidden = !conTop;
+    $('recomendados').classList.add('lista-filas--entra');
+
+    // "Otros autos": siguen en el mismo orden, pero sin números
+    const filas = verTodo
+        ? resto.map((a, i) => fila(a, { i: i + top.length, id: idFila(a.id), aviso: avisoDe(a), motivo: a.para_vos?.motivo }))
+        : [];
+    $('resultados').replaceChildren(...filas);
+    $('resultados').classList.add('lista-filas--entra');
+    $('otros-autos').textContent = `Otros autos (${res.total - top.length})`;
+    $('otros-autos').hidden = !(conTop && verTodo && filas.length);
+
+    $('recomendados-intro').hidden = true;
+    if (conTop) introRecomendados(r.perfil, top.length);
+
+    // "Ver listado completo": muestra el resto sin volver a pedir nada y lo deja en la URL (al volver, sigue así)
+    $('ver-todo')?.remove();
+    if (!verTodo) {
+        const b = boton(`Ver listado completo (${res.total} autos)`, () => {
+            todo = true;
+            const url = new URL(window.location.href);
+            url.searchParams.set('todo', '1');
+            window.history.replaceState(null, '', url);
+            mostrarResultados(r);
+            document.getElementById(idFila(res.items[TOP].id))?.querySelector('a')?.focus();
+        }, 'boton boton--secundario ver-todo', 'ver-todo');
+        $('recomendados').after(b);
+    }
+    $('paginacion').replaceWith(Object.assign(verTodo ? vistas.paginacion(res.pagina, res.paginas) : el('nav'), { id: 'paginacion' }));
+}
+
 function mostrar(r) {
     const b = r.busqueda;
-    cotizacion = r.cotizacion_dolar || null;
+    usarCotizacion(r.cotizacion_dolar);
     $('titulo').textContent = criterios(b);
     document.title = `${b.marca} ${b.modelo} - AutoCar`;
 
-    // La referencia en pesos del sitio con más autos (cada sitio trae la suya)
-    const ref = r.referencia.filter((g) => g.moneda === 'ARS' && g.suficiente)
-        .sort((a, b) => b.cantidad - a.cantidad)[0];
-    $('referencia').textContent = ref
-        ? `Precio típico en ${insp.fuente(ref.fuente)}: ${formato.precio(ref.mediana)} (la mitad de ${ref.cantidad} autos está entre ${formato.precio(ref.p25)} y ${formato.precio(ref.p75)}).`
-        : 'Todavía no hay suficientes autos para calcular un precio típico.';
-    const n = r.novedades;
-    $('novedades').textContent = n && n.disponible
-        ? `Desde la corrida anterior: ${n.nuevos} nuevos, ${n.bajaron} bajaron de precio y ${n.retirados} ya no están.`
-        : 'Las novedades (autos nuevos y bajas de precio) aparecen a partir de la segunda corrida diaria.';
     $('aclaracion').textContent = r.aclaracion;
     mostrarSitios(r.referencia);
-    mostrarNovedades(n);
+    mostrarNovedades(r.novedades);
     mostrarDestacados(r.destacados);
     $('resumen').hidden = false;
 
-    const res = r.resultados;
-    $('resultados').replaceChildren(...res.items.map((a, i) => fila(a, i)));
-    mostrarAvisos(res.items);
-    $('resultados').classList.add('lista-filas--entra');
-    $('estado').replaceChildren(res.items.length ? '' : vistas.aviso('No hay autos con estos filtros.',
+    mostrarResultados(r);
+    $('estado').replaceChildren(r.resultados.items.length ? '' : vistas.aviso('No hay autos con estos filtros.',
         'Probá con otro sitio o sacá algún criterio. La búsqueda queda guardada: si aparece un auto, te avisamos.'));
-    $('paginacion').replaceWith(Object.assign(vistas.paginacion(res.pagina, res.paginas), { id: 'paginacion' }));
     $('filtros').hidden = false;
     // Al final de la página, "Borrar esta búsqueda" (una sola vez, aunque se vuelva a mostrar el reporte)
     if (!$('borrar')) {
@@ -309,7 +230,7 @@ async function cargar() {
 
 // Orden y sitio van en la URL (así la paginación los conserva) y se vuelve a la página 1
 const filtros = $('filtros');
-// "Ordenar por" son radios (sin valor = Recomendado) y "Sitio" un select: los dos se leen igual con .value
+// "Ordenar por" son radios (sin valor = Más recomendados) y "Sitio" un select: los dos se leen igual con .value
 ['orden', 'fuente'].forEach((campo) => {
     filtros.elements[campo].value = params.get(campo) || '';
 });
