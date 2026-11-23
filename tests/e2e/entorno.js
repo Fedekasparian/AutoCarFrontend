@@ -33,7 +33,15 @@ export async function pagarPedido(page) {
     await page.waitForURL(/mercadopago\.com|mis-inspecciones\.html\?nueva=\d+/, { timeout: 90_000 });
     if (!/mercadopago\.com/.test(page.url())) return Number(new URL(page.url()).searchParams.get('nueva'));
 
-    await page.getByRole('button', { name: /Tarjeta/ }).click();
+    // Mercado Pago muestra dos versiones de "cómo pagar": con botones, o con opciones y "Continuar"
+    const opcion = page.getByRole('radio', { name: /Tarjeta/ });
+    await expect(page.getByRole('button', { name: /Tarjeta/ }).or(opcion)).toBeVisible({ timeout: 60_000 });
+    if (await opcion.count()) {
+        await opcion.check({ force: true });
+        await page.getByRole('button', { name: 'Continuar' }).click();
+    } else {
+        await page.getByRole('button', { name: /Tarjeta/ }).click();
+    }
     // Número, vencimiento y código van en campos seguros (iframes de Mercado Pago): hay que tipearlos tecla por tecla
     const seguro = page.frameLocator('iframe[src*="secure-fields"]');
     await seguro.nth(0).locator('#cardNumber').pressSequentially(TARJETA_PRUEBA.numero, { delay: 40 });
