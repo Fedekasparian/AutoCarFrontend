@@ -1,5 +1,7 @@
 # Pendientes de AutoCar
 
+> **23/11/2026: se sacaron los reclamos, el fondo de garantía y el historial por patente** (back migraciones `034` y `035`). El informe firmado reduce el riesgo antes de comprar, no lo elimina: la decisión es del comprador y no hay reclamo después. El ranking de mecánicos pasa a ser por experiencia (inspecciones firmadas). Lo de abajo que habla de reclamos, fondo, franquicia, tope o historial quedó como registro de lo que se hizo y ya no está en el sitio.
+
 Lista viva de lo que falta. Cuando alguien toma un ítem, pone su nombre; cuando lo termina, lo tacha (`~~así~~`) o lo borra con el PR que lo resuelve.
 El plan completo del enfoque del mecánico está en [`modelo-de-negocio/PLAN.md`](modelo-de-negocio/PLAN.md).
 
@@ -159,7 +161,7 @@ Decidido el 14/11: el comprador no tiene plan pago. **Publicar es gratis y sin l
 - [x] ~~**Talleres de demo en producción**~~ (11/11): 5 talleres aprobados (`*@autocar.test`: Acosta, Benítez, Gómez, Medina, Ferreyra), 3 compradores y 15 inspecciones firmadas, 3 por mecánico. Ya se puede pedir una inspección sobre la URL pública. Son distintos de los de la `007`, que sigue solo en dev.
 - [x] ~~**Firestore prod (`autocar-9897d`)**~~: cargado desde el 11/11 por la corrida del workflow `Scraper` (sin el historial de dev) y actualizado todos los días.
 - [x] ~~**Corrida diaria** del scraper~~: GitHub Actions, todos los días desde el 12/11. `diario.bat` en la PC queda para correrla a mano (su `.env` necesita `MARCAS_URL`).
-- [ ] **Ranking con historia, en dev y en prod**: hoy en prod los 5 tienen 3 firmadas, 5,0 y ningún reclamo, así que en la demo nadie baja en el ranking. `bin/demo-historial.php` busca los emails de la `007` (`mecanicoN@demo.autocar.com.ar`): en dev anda pero todavía no se corrió; en prod falla porque esos usuarios no existen. Para prod hay que adaptarlo a los talleres `*@autocar.test` o cargar un par de reclamos desde el sitio.
+- [x] ~~**Ranking con historia, en dev y en prod**~~: ya no aplica (23/11). El ranking es por experiencia; `bin/demo-historial.php` carga inspecciones firmadas de demo en dev.
 
 ## Presentación y defensa
 

@@ -1,5 +1,7 @@
 # Plan de trabajo: el mecánico que firma
 
+> **23/11/2026: se sacaron los reclamos, el fondo de garantía y el historial por patente** (back migraciones `034` y `035`, devolución del profe). El informe firmado reduce el riesgo antes de comprar, no lo elimina: la decisión es del comprador y no hay reclamo después. El ranking de mecánicos es por experiencia (inspecciones firmadas). Las tareas de abajo que hablan de reclamos (B8, F5), fondo o historial quedan como registro de lo que se hizo; las reglas de la sección 7 ya están al día.
+
 **Actualizado el 17/11/2026.** Las decisiones del 14/11 (precio, parámetros, patente, auto vendido, planes) están en [`ideas-14-11-2026/decisiones-14-11-2026.md`](../ideas-14-11-2026/decisiones-14-11-2026.md) y la lista viva de lo que falta, en [`PENDIENTES.md`](../PENDIENTES.md). Este archivo es el plan de todo el grupo hasta la defensa del **30/11**: qué vamos a hacer, qué ya está, qué falta, quién lo hace y en qué orden. El modelo de negocio completo (por qué, quién gana y cómo se sustenta) está en el [README](README.md).
 
 ---
@@ -164,22 +166,21 @@ inspeccion             N──0..1 vehiculo   (solo si el auto es de AutoCar)
 | El comprador elige al mecánico. Si el link es de un auto de AutoCar y quien pide la inspección es el dueño de la publicación → **409 `vehiculo_propio`** | B4 |
 | El mecánico no puede inspeccionar su propio auto ni un auto que publicó él → 409 | B4 |
 | Solo se pueden elegir mecánicos activos y con el perfil del taller completo → si no, 422 | B4 |
-| Precio: el del taller, entre **$ 70.000 y $ 150.000** (sugerido $ 100.000). Para el mecánico el **77 %** y para AutoCar el **23 %**, de los cuales **un tercio va al fondo de garantía** (con $ 100.000: $ 77.000, $ 23.000 y $ 8.000). Todos los números son parámetros que edita el admin | B4 (una función pura, con prueba) |
+| Precio: el del taller, entre **$ 70.000 y $ 150.000** (sugerido $ 100.000). Para el mecánico el **77 %** y para AutoCar el **23 %** (con $ 100.000: $ 77.000 y $ 23.000). Sin fondo de garantía desde el 23/11. Todos los números son parámetros que edita el admin | B4 (una función pura, con prueba) |
 | Estados: `pedida` → `aceptada` → `firmada`. Desde `pedida` puede pasar a `rechazada` (por el mecánico) o `cancelada` (por el comprador), y en los dos casos el pago queda `reembolsado` | B5, B6 |
 | Se firma solo con los 10 ítems completos y una conclusión. Al firmar, el pago pasa a `liberado` | B7 |
 | El informe firmado no se puede cambiar (409). La huella es el SHA-256 del informe (ítems, conclusión, resumen, mecánico y fecha) | B7 |
-| El comprador puede reclamar hasta **15 días** después de la firma, una sola vez por inspección | B8 |
-| Si el reclamo procede: el pago queda `reembolsado` y la **compensación tiene un tope de 3 veces el precio** (si se pide más, 422) | B8 |
-| **Ranking:** puntaje = 5 × (1 − 2 × reclamos que procedieron ÷ inspecciones firmadas), con mínimo 0. Con menos de 3 inspecciones firmadas se muestra "Nuevo en la red" en lugar del puntaje. Orden: puntaje y después cantidad de inspecciones. **No depende de ningún pago** | B3 (una función pura, con prueba) |
+| **Sin reclamo después de la firma** (23/11): el informe reduce el riesgo, no lo elimina, y la decisión de comprar es del comprador | — |
+| **Ranking por experiencia:** más inspecciones firmadas primero; con menos de 3 se muestra "Nuevo en la red" y va después. Al pedir la de un auto, primero los que revisaron ese modelo, después la marca. **No depende de ningún pago** | B3 (una función pura, con prueba) |
 | Mercado Pago no se integra por ahora (se decide al final): el pago es **simulado** y se guarda el desglose. En pantalla se aclara | B4 |
 
 ### 7.1 Alcance de la inspección (N3)
 
-Se muestra en `pedir-inspeccion.html` antes de confirmar (con una casilla obligatoria) y en el formulario de reclamo. El texto está en `front/js/servicios/inspecciones.js` (`ALCANCE`).
+Se muestra en `pedir-inspeccion.html` antes de confirmar (con una casilla obligatoria) y en el informe firmado. El texto está en `front/js/servicios/inspecciones.js` (`ALCANCE`).
 
 - **Revisa, sin desarmar el auto:** los 10 ítems del checklist (sección 6).
 - **No cubre:** lo que sólo se ve desarmando (interior del motor o de la caja); fallas intermitentes que no aparecen el día de la revisión; lo que se rompa o se desgaste después; los papeles (deudas, multas, prendas, inhibiciones: se le dice al comprador qué trámites pedir); si el precio del aviso es justo.
-- **El reclamo procede** si el problema ya estaba el día de la revisión y se podía ver con el checklist. 15 días desde la firma, un reclamo por inspección, devolución + compensación de hasta 3 veces el precio.
+- **Sin reclamo:** el informe reduce el riesgo, no lo elimina; la decisión de comprar es del comprador (23/11).
 
 Es un supuesto; en un caso real se validaría con talleres (N2, opcional).
 
@@ -210,10 +211,10 @@ Cada uno tiene que poder explicar todo en la defensa, pero conviene que cada par
 | # | Decisión | Qué se decidió |
 |---|---|---|
 | D1 | Precio de la inspección y reparto | Sugerido $ 100.000 (antes $ 130.000), cada taller entre $ 70.000 y $ 150.000; 77 % para el mecánico y 23 % para AutoCar. Cambiado el 14/11; son parámetros. Supuesto; se validaría con talleres reales (N2, opcional) |
-| D2 | Plazo para reclamar | 15 días |
-| D3 | Tope de la compensación | 3 veces el precio de la inspección |
+| D2 | ~~Plazo para reclamar~~ | ~~15 días~~. Sin reclamos desde el 23/11 |
+| D3 | ~~Tope de la compensación~~ | ~~3 veces el precio~~. Sin reclamos desde el 23/11 |
 | D4 | ¿El metabuscador sigue en **Neon** o todo lo del scraper pasa a **Firestore**? | **Todo a Firestore (NoSQL)**, como sugirió el profe: comparador y metabuscador. Hecho el 08/11 (PR #3 del back). Neon queda para lo nuestro: usuarios, vehículos, chat, sesiones e inspecciones. Falta crear el proyecto de Firebase |
-| D5 | ¿Quién resuelve los reclamos? | El moderador y el admin (permiso `reclamos.resolver`) |
+| D5 | ~~¿Quién resuelve los reclamos?~~ | Sin reclamos desde el 23/11 (se borró el permiso `reclamos.resolver`) |
 
 ## 11. Qué dejamos de lado (y por qué)
 

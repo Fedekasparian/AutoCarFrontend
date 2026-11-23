@@ -1,5 +1,5 @@
-// Parámetros del negocio (permiso parametros.editar, el admin): comisión de AutoCar, parte al fondo, tope de la
-// compensación, días para reclamar y precio de la inspección. GET y PUT /api/admin/parametros.
+// Parámetros del negocio (permiso parametros.editar, el admin): comisión de AutoCar, precio de la inspección,
+// crédito por auto vendido, pesos de "para vos" y mínimo del ranking de mecánicos. GET y PUT /api/admin/parametros.
 // Los campos salen de la base: si se agrega un parámetro, aparece solo. El back valida los límites otra vez.
 import * as api from '../api/parametros.js';
 import * as admin from '../api/admin.js';
@@ -131,25 +131,20 @@ function comoSeCalcula() {
         el('p', {}, 'Si un perfil tiene todos los pesos en 0, sus autos no llevan puntaje y se ordenan por la diferencia con el precio típico.'));
 }
 
-// Cómo se arma el ranking de los mecánicos (Inspecciones\Ranking del back), con los valores de hoy de Parámetros
-// (ranking_*, se cambian en los campos de arriba). El 5 es fijo: el sitio dibuja cinco estrellas.
+// Cómo se arma el ranking de los mecánicos (Inspecciones\Ranking del back), con el mínimo de hoy de Parámetros
+// (ranking_minimo_firmadas, se cambia en el campo de arriba). Por experiencia: sin reclamos desde el 23/11.
 function rankingMecanicos(parametros) {
     const valor = Object.fromEntries(parametros.map((p) => [p.clave, p.valor]));
-    const veces = valor.ranking_veces_reclamo ?? 2;
     const minimo = valor.ranking_minimo_firmadas ?? 3;
-    const buena = valor.ranking_especialidad_buena ?? 2.5;
     const coma = (x) => String(Number(x.toFixed(2))).replace('.', ',');
-    const ejemplo = Math.max(0, 5 * (1 - (veces * 1) / 10));
     const caja = document.getElementById('ranking-mecanicos') ?? el('section', { class: 'pila', id: 'ranking-mecanicos', 'aria-labelledby': 'ranking-titulo' });
     caja.replaceChildren(
         el('h2', { id: 'ranking-titulo' }, 'Cómo se arma el ranking de los mecánicos'),
-        el('p', { class: 'campo__ayuda' }, 'Sale solo de cómo trabajó cada mecánico, nunca de un pago. Los números se cambian en los campos "Ranking de mecánicos" de arriba.'),
-        el('p', { class: 'formula__cuenta' }, `Puntaje = 5 × (1 − ${coma(veces)} × reclamos que procedieron ÷ inspecciones firmadas), con mínimo 0`),
+        el('p', { class: 'campo__ayuda' }, 'Sale de la experiencia de cada mecánico, nunca de un pago. El mínimo se cambia en el campo "Ranking de mecánicos" de arriba.'),
+        el('p', { class: 'formula__cuenta' }, 'Orden = inspecciones firmadas, de más a menos'),
         el('ul', {},
-            el('li', {}, `Con menos de ${coma(minimo)} inspecciones firmadas no tiene puntaje: aparece como "Nuevo en la red" y va al final.`),
-            el('li', {}, `Ejemplo: 10 firmadas y 1 reclamo que procedió → 5 × (1 − ${coma(veces)} × 1 ÷ 10) = ${coma(ejemplo)}.`),
-            el('li', {}, 'Orden del ranking general: mayor puntaje primero; si empatan, el que más firmó.'),
-            el('li', {}, `Al pedir una inspección de un auto, primero van los buenos en ese modelo, después los buenos en esa marca, después los que no revisaron ninguno y al final los que tuvieron reclamos en esos autos. "Bueno" = la misma cuenta, pero solo con las inspecciones de ese modelo (o de la marca), con ${coma(buena)} o más.`)));
+            el('li', {}, `Con menos de ${coma(minimo)} inspecciones firmadas aparece como "Nuevo en la red" y va después.`),
+            el('li', {}, 'Al pedir una inspección de un auto, primero van los que revisaron ese modelo, después los que revisaron esa marca y después el resto; en cada grupo, el que más revisó primero.')));
     return caja;
 }
 

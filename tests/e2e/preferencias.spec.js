@@ -62,7 +62,7 @@ test('el admin cambia un parámetro y queda anotado', async ({ page }) => {
     await expect(page).not.toHaveURL(/login\.html/);
 
     await page.goto(pagina('pages/admin/admin-parametros.html'));
-    const dias = page.locator('#dias_reclamo');
+    const dias = page.locator('#dias_presupuesto');
     await expect(dias).toBeVisible();
     const original = await dias.inputValue();
     const nuevo = original === '16' ? '17' : '16';
@@ -79,7 +79,7 @@ test('el admin cambia un parámetro y queda anotado', async ({ page }) => {
     await expect(page.locator('#cambios li').first()).toContainText(`${original} días → ${nuevo} días`);
 
     // Lo deja como estaba
-    await page.locator('#dias_reclamo').fill(original);
+    await page.locator('#dias_presupuesto').fill(original);
     await page.click('#form-parametros button[type="submit"]');
     await expect(page.locator('#cambios li').first()).toContainText(`${nuevo} días → ${original} días`);
 });

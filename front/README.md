@@ -32,8 +32,7 @@ El back es una API JSON en PHP ([AutoCarBackend](https://github.com/MateoPonti/A
 | `admin-vehiculos.html` | `GET /api/admin/vehiculos`, `DELETE /api/admin/vehiculos/{id}` | Listado con vendidos, editar y eliminar |
 | `pedir-inspeccion.html` | `GET /api/mecanicos`, `POST /api/inspecciones` | "Mandale un mecánico": link del aviso (llega con `?url=` desde el detalle), ranking de mecánicos por localidad, desglose del precio y confirmar (pago simulado) |
 | `mis-inspecciones.html` | `GET /api/mis-inspecciones` | Inspecciones pedidas, con el estado y el paso siguiente |
-| `verificacion.html?id=N` | `GET /api/inspecciones/{id}`, `POST .../cancelar`, `POST .../reclamo` | Detalle para el comprador: turno, cancelar mientras está pedida, informe firmado, trámites para pedir antes de pagar y reclamo dentro de los 15 días |
-| `admin-reclamos.html` | `GET /api/admin/reclamos`, `PATCH /api/admin/reclamos/{id}` | Cola de reclamos (permiso `reclamos.resolver`): procede con compensación hasta el tope, o no procede |
+| `verificacion.html?id=N` | `GET /api/inspecciones/{id}`, `POST .../cancelar` | Detalle para el comprador: turno, cancelar mientras está pedida, informe firmado, qué cubre (reduce el riesgo, no lo elimina: no hay reclamo después) y trámites para pedir antes de pagar |
 | `taller.html` | `GET/PUT /api/mecanico/perfil`, `GET /api/mecanico/inspecciones?estado=`, `PATCH /api/mecanico/inspecciones/{id}` | Panel del mecánico (permiso `verificaciones.realizar`): perfil del taller con el desglose del precio y bandeja de pedidos, por revisar y firmadas. Aceptar con fecha de turno o rechazar con motivo |
 | `taller-verificacion.html?id=N` | `GET /api/inspecciones/{id}`, `PUT /api/mecanico/inspecciones/{id}/informe`, `POST /api/mecanico/inspecciones/{id}/firma` | Checklist de 10 ítems (`js/servicios/inspecciones.js`, los mismos códigos que el back), borrador, conclusión y firma. Firmada, se ve sólo para leer con el firmante y la fecha (la huella SHA-256 queda en el back, no se muestra) |
 
@@ -64,14 +63,14 @@ La lista viva está en [`../PENDIENTES.md`](../PENDIENTES.md).
 | `mensajes.html` | `/mensajes` | Conversaciones |
 | `conversacion.html` | `/mensajes/:id` | Conversación |
 | `preferencias.html` | `/cuenta/preferencias` | "¿Para qué buscás el auto?" (`PUT /api/me/preferencias`). Obligatoria para las cuentas personales: `js/navegacion.js` las trae acá hasta que contestan y aceptan la política de privacidad |
-| `talleres.html` | `/talleres` | Mecánicos de la red: ranking público (`GET /api/mecanicos`) y filtro por localidad. El mecánico se pide desde un auto |
-| `verificacion.html` | `/verificacion/:id` | Informe de verificación, con el historial del auto (las inspecciones anteriores de la misma patente, `anteriores` en `GET /api/inspecciones/{id}`) |
+| `talleres.html` | `/talleres` | Mecánicos de la red: ranking público por experiencia (`GET /api/mecanicos`, inspecciones firmadas) y filtro por localidad. El mecánico se pide desde un auto |
+| `verificacion.html` | `/verificacion/:id` | Informe de verificación (sin historial por patente desde el 23/11) |
 | `talleres-adherirse.html` | `/talleres/adherirse` | Alta de un taller |
 | `taller.html` | `/taller` | Panel del mecánico |
 | `taller-verificacion.html` | `/taller/verificacion/:id` | Inspección con el checklist. Al cargar la patente el mecánico ve si el auto ya se revisó antes |
 | `como-funciona.html` | `/como-funciona` | Cómo funciona para quien compra, vende o es mecánico; los números salen de `GET /api/parametros` |
 | `legales.html` | `/legales` | Términos y política de privacidad (se acepta al registrarse) |
-| `admin-parametros.html` | `/admin/parametros` | Parámetros del negocio (`GET/PUT /api/admin/parametros`, permiso `parametros.editar`): comisión, fondo, tope, días de reclamo y precio de la inspección, con historial de cambios (las fallas de internet se cargan en `admin-fallas.html`) |
+| `admin-parametros.html` | `/admin/parametros` | Parámetros del negocio (`GET/PUT /api/admin/parametros`, permiso `parametros.editar`): comisión, precio de la inspección, crédito, pesos de "para vos" y mínimo del ranking, con historial de cambios (las fallas de internet se cargan en `admin-fallas.html`) |
 | `admin-fallas.html` | `/admin/fallas` | Fallas típicas de internet (idea B, permiso `parametros.editar`): cargarlas con la fuente (`POST /api/admin/fallas-tipicas`) y ver las que ya tiene cada modelo (`GET /api/fallas-tipicas`) |
 | `contacto.html` | `/ayuda/contacto` | Contacto (`POST /api/contacto`, sin cuenta) |
 | `reportar.html` | `/reportes/nuevo` | Reportar publicación (`?vehiculo=N`) o usuario (`?usuario=N`) |

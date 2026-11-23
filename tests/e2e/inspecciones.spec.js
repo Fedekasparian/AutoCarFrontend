@@ -1,17 +1,15 @@
 // F9: el recorrido de la demo de inspecciones, de punta a punta y con tres navegadores a la vez
-// (comprador, mecánico y admin), como se muestra el 30/11:
-//   ranking → pedir → aceptar → checklist y firma → informe → reclamo → resolución.
+// (comprador, mecánico y otro taller), como se muestra el 30/11:
+//   ranking → pedir → aceptar → checklist y firma → informe (sin reclamo ni historial: se sacaron el 23/11).
 // Además: foto obligatoria de cada falla, marca y modelo (obligatorios para firmar), una falla típica que propone el mecánico (idea B) y el costo total
 // con el presupuesto de otro taller de la red (idea A).
 // Escribe datos: corre contra dev o local, nunca contra producción.
 //
 // Necesita los datos de demo del back (database/demo-inspecciones.sql). Usa al mecánico 5 (Luján) para no
-// tocar al mecánico 1, que es el de la demo en vivo. El reclamo se resuelve "no procede" para no bajarlo en el
-// ranking; el tope de la compensación se prueba antes, sin guardar.
+// tocar al mecánico 1, que es el de la demo en vivo.
 //
 // Variables:
 //   E2E_MECANICO_EMAIL / E2E_MECANICO_PASSWORD / E2E_MECANICO_TALLER  (por defecto, el mecánico 5 de la demo)
-//   E2E_ADMIN_EMAIL / E2E_ADMIN_PASSWORD  (alguien con reclamos.resolver; sin ellas se saltea la resolución)
 import { test, expect } from '@playwright/test';
 import { pagina, soloFueraDeProduccion, emailNuevo, PASSWORD, contestarPreferencias } from './entorno.js';
 
@@ -22,7 +20,6 @@ const MECANICO = {
     password: process.env.E2E_MECANICO_PASSWORD || 'mecanico-demo', // la del seed de demo-inspecciones.sql
     taller: process.env.E2E_MECANICO_TALLER || 'Medina Mecánica (demo)',
 };
-const ADMIN = { email: process.env.E2E_ADMIN_EMAIL, password: process.env.E2E_ADMIN_PASSWORD };
 
 // Patente propia de cada corrida (formato Mercosur) y una foto de la chapa de 1×1 píxel
 const patente = `AE${String(Date.now() % 1000).padStart(3, '0')}ZZ`;
@@ -58,7 +55,7 @@ function turnoDeManana() {
     return `${d.getFullYear()}-${dosCifras(d.getMonth() + 1)}-${dosCifras(d.getDate())}T10:00`;
 }
 
-test('recorrido de la demo: pedir, aceptar, firmar, reclamar y resolver', async ({ browser }) => {
+test('recorrido de la demo: pedir, aceptar, firmar y ver el informe', async ({ browser }) => {
     test.setTimeout(360_000); // tres sesiones (en WebKit local tarda ~3 min) y, en dev, Render puede estar dormido
     const titulo = `E2E Volkswagen Gol ${Date.now()}`;
     const falla = `E2E pintura que se descascara ${Date.now()}`;
@@ -129,9 +126,8 @@ test('recorrido de la demo: pedir, aceptar, firmar, reclamar y resolver', async 
         await mecanico.setInputFiles('#foto-frenos', { name: 'frenos.png', mimeType: 'image/png', buffer: CHAPA });
         await expect(mecanico.locator('#foto-frenos-estado')).toContainText('cargada');
         await mecanico.fill('#patente', patente.toLowerCase());
-        // Al cargar la patente se guarda el borrador y aparece si el auto ya se revisó (esta patente es nueva)
-        await mecanico.locator('#patente').blur();
-        await expect(mecanico.locator('#anteriores')).toContainText('primera inspección');
+        // Sin historial por patente: no se muestran inspecciones anteriores de ese auto
+        await expect(mecanico.locator('#anteriores')).toHaveCount(0);
         await mecanico.setInputFiles('#patente_foto', { name: 'chapa.png', mimeType: 'image/png', buffer: CHAPA });
         await expect(mecanico.locator('#patente_foto-estado')).toContainText('cargada');
 
@@ -150,12 +146,11 @@ test('recorrido de la demo: pedir, aceptar, firmar, reclamar y resolver', async 
         await mecanico.click('#confirmar-firma');
         await expect(mecanico.locator('#firmado')).toBeVisible();
         await expect(mecanico.locator('#firmado-datos')).toContainText(MECANICO.taller);
-        await expect(mecanico.locator('#firmado-anteriores')).toContainText('primera inspección');
         await expect(mecanico.locator('#firmado-datos')).not.toContainText(/[0-9a-f]{64}/); // la huella no se muestra
         await expect(mecanico.locator('#informe')).toBeHidden(); // firmado ya no se edita
     });
 
-    await test.step('el comprador ve el informe firmado y reclama', async () => {
+    await test.step('el comprador ve el informe firmado, qué cubre y que no hay reclamo después', async () => {
         await comprador.goto(pagina(`pages/talleres/verificacion.html?id=${id}`));
         await expect(comprador.locator('#informe')).toBeVisible();
         await expect(comprador.locator('#informe-conclusion')).toContainText('reparos');
@@ -163,9 +158,11 @@ test('recorrido de la demo: pedir, aceptar, firmar, reclamar y resolver', async 
         await expect(comprador.locator('#informe-firma')).not.toContainText(/[0-9a-f]{64}/);
         await expect(comprador.locator('#tramites')).toBeVisible();
 
-        // El informe trae el historial del auto (la patente es nueva: es la primera vez que se revisa)
-        await expect(comprador.locator('#anteriores')).toBeVisible();
-        await expect(comprador.locator('#anteriores')).toContainText('primera inspección');
+        // Sin historial por patente ni reclamo: el alcance avisa que el informe reduce el riesgo, no lo elimina
+        await expect(comprador.locator('#anteriores')).toHaveCount(0);
+        await expect(comprador.locator('#form-reclamo')).toHaveCount(0);
+        await expect(comprador.locator('#alcance details')).toBeAttached();
+        await expect(comprador.locator('#alcance')).toContainText('reduce el riesgo');
 
         // Idea A: la carrocería observada se le pidió a otros talleres; idea B: la falla que propuso el mecánico
         await expect(comprador.locator('#costo')).toBeVisible();
@@ -176,14 +173,6 @@ test('recorrido de la demo: pedir, aceptar, firmar, reclamar y resolver', async 
         await expect(comprador.locator('#fallas')).toBeVisible();
         await expect(comprador.locator('#fallas-lista')).toContainText(falla);
 
-        await expect(comprador.locator('#form-reclamo')).toBeVisible();
-        await expect(comprador.locator('#reclamo-alcance details')).toBeAttached();
-        await comprador.selectOption('#item_codigo', 'estructura');
-        await comprador.fill('#descripcion', 'Tenía un golpe en el zócalo derecho y el informe no lo marca.');
-        await comprador.click('#form-reclamo button[type="submit"]');
-        await expect(comprador.locator('#reclamo-datos')).toBeVisible();
-        await expect(comprador.locator('#reclamo-datos')).toContainText('En revisión');
-        await expect(comprador.locator('#form-reclamo')).toBeHidden(); // un solo reclamo
     });
 
     await test.step('otro taller de la red presupuesta el arreglo y entra en el costo total', async () => {
@@ -228,36 +217,6 @@ test('recorrido de la demo: pedir, aceptar, firmar, reclamar y resolver', async 
         await intruso.context().close();
     });
 
-    await test.step('el admin resuelve el reclamo', async () => {
-        if (!ADMIN.email || !ADMIN.password) {
-            test.info().annotations.push({ type: 'salteado', description: 'Sin E2E_ADMIN_EMAIL y E2E_ADMIN_PASSWORD no se prueba la resolución.' });
-            return;
-        }
-        const admin = await (await browser.newContext()).newPage();
-        await ingresar(admin, ADMIN);
-        await admin.goto(pagina('pages/admin/admin-reclamos.html'));
-        const tarjeta = admin.locator('article', { hasText: titulo });
-        await tarjeta.getByRole('button', { name: 'Resolver' }).click();
-
-        // La compensación no puede pasar el tope (3 veces el precio): no se guarda
-        await admin.check('#decision-procede');
-        const tope = Number(await admin.locator('#compensacion').getAttribute('max'));
-        expect(tope).toBeGreaterThan(0);
-        await admin.fill('#compensacion', String(tope + 1000));
-        await admin.fill('#respuesta', 'Prueba del tope');
-        await admin.click('#form-resolver button[type="submit"]');
-        await expect(admin.locator('#compensacion-error')).not.toBeEmpty();
-
-        await admin.check('#decision-no');
-        await admin.fill('#respuesta', 'El golpe no se veía sin levantar el auto: queda fuera del alcance.');
-        await admin.click('#form-resolver button[type="submit"]');
-        await expect(tarjeta).toBeHidden();
-
-        await comprador.reload();
-        await expect(comprador.locator('#reclamo-datos')).toContainText('No procede');
-        await expect(comprador.locator('#reclamo-datos')).toContainText('fuera del alcance');
-        await admin.context().close();
-    });
 
     await comprador.context().close();
     await mecanico.context().close();

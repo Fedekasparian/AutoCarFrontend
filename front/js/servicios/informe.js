@@ -100,62 +100,6 @@ export const datosFirma = (i) => filasDatos([
     ['Fecha', formato.fechaHora(i.firmada_at)],
 ]);
 
-// "hace 3 meses": así se ve enseguida si un informe anterior es viejo
-function hace(iso) {
-    const dias = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
-    if (dias < 1) return 'hoy';
-    if (dias === 1) return 'ayer';
-    if (dias < 31) return `hace ${dias} días`;
-    const meses = Math.floor(dias / 30);
-    if (meses < 12) return meses === 1 ? 'hace 1 mes' : `hace ${meses} meses`;
-    const anios = Math.floor(meses / 12);
-    return anios === 1 ? 'hace 1 año' : `hace ${anios} años`;
-}
-
-// La conclusión con el color de los resultados: verde, ámbar o rojo
-const TONO_CONCLUSION = { recomendable: 'ok', con_reparos: 'observado', no_recomendable: 'falla' };
-
-// Una inspección anterior del mismo auto: cuándo, con cuántos km, qué concluyó y qué ítems no estaban OK
-function filaAnterior(a) {
-    const datos = [a.titulo, a.anio, a.kilometraje !== null ? formato.km(a.kilometraje) : null, a.taller]
-        .filter(Boolean).join(' · ');
-    const fallas = a.fallas.length
-        ? a.fallas.map((f) => el('span', { class: `etiqueta resultado resultado--${f.resultado}` },
-            `${insp.nombreItem(f.codigo)}: ${insp.resultado(f.resultado).toLowerCase()}`))
-        : [el('span', { class: 'etiqueta resultado resultado--ok' }, 'Todo OK')];
-    return el('li', { class: 'historial-auto__item' },
-        el('p', { class: 'historial-auto__cabeza' },
-            el('strong', {}, hace(a.firmada_at)),
-            el('span', { class: 'historial-auto__fecha' }, formato.fecha(a.firmada_at)),
-            el('span', { class: `etiqueta resultado resultado--${TONO_CONCLUSION[a.conclusion] || 'sin'}` }, insp.conclusion(a.conclusion))),
-        el('p', { class: 'historial-auto__datos' }, datos),
-        el('p', { class: 'historial-auto__fallas' }, ...fallas),
-        a.reclamo_procedente
-            ? el('p', { class: 'historial-auto__reclamo' }, 'Hubo un reclamo que procedió: al mecánico se le pasó algo.')
-            : null);
-}
-
-// El historial del auto que trae el informe (las otras inspecciones de la misma patente, GET /api/inspecciones/{id}).
-// No se busca por patente: lo ven el comprador que pagó esta inspección y el mecánico. Si el aviso dice menos km
-// que una inspección anterior, se avisa arriba: es la señal más clara de km bajados.
-export function historialAuto(i) {
-    const anteriores = i.anteriores || [];
-    if (!anteriores.length) {
-        return [el('p', { class: 'campo__ayuda' }, 'Es la primera inspección de este auto en AutoCar.')];
-    }
-    const maximo = Math.max(...anteriores.map((a) => a.kilometraje ?? 0));
-    const kmBajados = i.kilometraje !== null && i.kilometraje < maximo;
-    return [
-        kmBajados ? el('p', { class: 'historial-auto__alerta', role: 'note' },
-            el('strong', {}, 'Ojo con los km. '),
-            `El aviso dice ${formato.km(i.kilometraje)}, pero en una inspección anterior tenía ${formato.km(maximo)}.`) : null,
-        el('p', { class: 'campo__ayuda' }, anteriores.length === 1
-            ? 'Este auto ya se revisó una vez en AutoCar:'
-            : `Este auto ya se revisó ${anteriores.length} veces en AutoCar:`),
-        el('ol', { class: 'historial-auto', role: 'list' }, ...anteriores.map(filaAnterior)),
-    ].filter(Boolean);
-}
-
 // Para el comprador: qué pasa con la inspección y qué sigue, en una línea.
 export function proximoPaso(i) {
     switch (i.estado) {
@@ -167,8 +111,6 @@ export function proximoPaso(i) {
     case 'no_realizada': return `El mecánico no la pudo hacer: ${i.motivo_rechazo}. Te devolvimos lo que pagaste.`;
     case 'caida': return i.motivo_rechazo || 'El auto se vendió antes del turno. Te devolvimos lo que pagaste.';
     case 'firmada':
-        if (i.reclamo) return `Informe ${insp.conclusion(i.conclusion)}. Reclamo: ${insp.estadoReclamo(i.reclamo.estado)}.`;
-        if (i.puede_reclamar) return `Informe ${insp.conclusion(i.conclusion)}. Podés reclamar hasta el ${formato.fecha(i.reclamo_hasta)}.`;
         return `Informe ${insp.conclusion(i.conclusion)}.`;
     default: return insp.estado(i.estado);
     }
@@ -179,9 +121,9 @@ export function etiquetaEstado(i) {
     return el('span', { class: `etiqueta etiqueta-insp etiqueta-insp--${i.estado}` }, insp.estado(i.estado));
 }
 
-// Qué revisa el mecánico y qué queda afuera (insp.ALCANCE), como <details> plegable.
-// plazo: {dias, tope} para reclamar (los de la inspección, o los parámetros de hoy si todavía no se pidió).
-export function bloqueAlcance(abierto, plazo) {
+// Qué revisa el mecánico y qué queda afuera (insp.ALCANCE), como <details> plegable, con el aviso de que el
+// informe reduce el riesgo pero no lo elimina.
+export function bloqueAlcance(abierto) {
     const lista = (items) => el('ul', { class: 'pila' }, ...items.map((t) => el('li', {}, t)));
     return el('details', { class: 'alcance', open: abierto },
         el('summary', {}, 'Qué revisa el mecánico y qué queda afuera'),
@@ -189,18 +131,18 @@ export function bloqueAlcance(abierto, plazo) {
         lista(insp.ALCANCE.cubre()),
         el('h3', { class: 'alcance__titulo' }, 'No cubre'),
         lista(insp.ALCANCE.noCubre),
-        el('p', { class: 'campo__ayuda' }, insp.textoReclamo(plazo.dias, plazo.tope)));
+        el('p', { class: 'campo__ayuda' }, insp.TEXTO_RIESGO));
 }
 
 // Link al aviso que se inspeccionó. Que el auto se venda o la publicación se dé de baja es lo normal: el informe
-// sigue valiendo y queda en la patente, así que en lugar de un link que da "no existe" se dice eso.
+// sigue valiendo, así que en lugar de un link que da "no existe" se dice eso.
 // - Publicación de AutoCar: el link se arma con su id (no con la URL guardada, que pudo ser de otro dominio)
 //   y si ya no está a la vista (aviso_publicado false), solo el texto.
 // - Aviso de otro sitio: no sabemos si sigue publicado, así que va el link con la aclaración.
 export function enlaceAviso(i, texto = `Ver en ${insp.fuente(i.fuente)}`, clase = null) {
     if (i.vehiculo_id) {
         if (i.aviso_publicado === false) {
-            return el('span', { class: 'suave' }, 'La publicación ya no está en AutoCar (se vendió o la dieron de baja). El informe sigue valiendo y queda en la patente.');
+            return el('span', { class: 'suave' }, 'La publicación ya no está en AutoCar (se vendió o la dieron de baja). El informe sigue valiendo.');
         }
         return el('a', { class: clase, href: ruta(`vehiculo.html?id=${i.vehiculo_id}`) }, texto);
     }

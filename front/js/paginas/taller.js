@@ -110,8 +110,7 @@ function describirPrecio() {
     }
     const d = insp.desglose(precio, valores);
     ayudaPrecio.textContent = `De cada inspección cobrás ${formato.precio(d.monto_mecanico)}. `
-        + `AutoCar se queda ${formato.precio(d.monto_autocar)}, de los que ${formato.precio(d.monto_fondo)} `
-        + 'van al fondo de garantía que paga los reclamos.';
+        + `AutoCar se queda ${formato.precio(d.monto_autocar)}.`;
 }
 
 function abrirPerfil() {
@@ -319,7 +318,7 @@ formularios.alEnviar(formPresupuesto, async ({ monto, detalle }) => {
 async function iniciar() {
     marcarPestanas();
     try {
-        // Comisión, fondo y rango del precio: parámetros que cambia el admin
+        // Comisión y rango del precio: parámetros que cambia el admin
         valores = await parametros.publicos();
         formPerfil.elements.precio_inspeccion.min = valores.precio_minimo;
         formPerfil.elements.precio_inspeccion.max = valores.precio_maximo;
