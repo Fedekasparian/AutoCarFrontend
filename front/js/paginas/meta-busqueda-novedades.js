@@ -72,10 +72,10 @@ function mostrarLista() {
         ? cambios.map((c, i) => fila(c.auto, {
             i,
             extra: pestana === 'bajo' ? baja(c)
-                : el('span', { class: 'resultado__antes' }, pestana === 'nuevo' ? 'Apareció en esta corrida' : 'Ya no está publicado: no se puede inspeccionar'),
+                : el('span', { class: 'resultado__antes' }, pestana === 'nuevo' ? 'Apareció en esta actualización' : 'Ya no está publicado: no se puede inspeccionar'),
             conAcciones: pestana !== 'retirado',
         }))
-        : [el('li', { class: 'suave' }, 'No hubo de estos en la última corrida.')]));
+        : [el('li', { class: 'suave' }, 'No hubo de estos en la última actualización.')]));
     $('lista').classList.add('lista-filas--entra');
 }
 
@@ -107,14 +107,14 @@ function mostrar(r) {
     corrida = r.corrida;
     const fechas = (corrida.actualizado || []).map((a) => a.fecha).filter(Boolean).sort();
     if (!corrida.disponible) {
-        $('corrida').textContent = 'Las novedades aparecen a partir de la segunda corrida diaria: todavía no hay con qué comparar.';
+        $('corrida').textContent = 'Las novedades aparecen a partir de la segunda actualización diaria: todavía no hay con qué comparar.';
         $('pestanas').hidden = true;
         $('lista').replaceChildren();
     } else {
         const cuando = fechas.length
             ? new Date(fechas.at(-1)).toLocaleString('es-AR', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
             : null;
-        $('corrida').textContent = cuando ? `Comparada con la corrida anterior. Última actualización: ${cuando} h.` : 'Comparada con la corrida anterior.';
+        $('corrida').textContent = cuando ? `Comparada con la actualización anterior, del ${cuando} h.` : 'Comparada con la actualización anterior.';
         mostrarPestanas();
     }
     $('novedades').hidden = false;

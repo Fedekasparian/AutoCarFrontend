@@ -69,11 +69,25 @@ function mostrarSitios(referencia) {
     caja.hidden = false;
 }
 
+// El precio típico por sitio y las novedades van plegados en "Ver comparación de precios y novedades" (cerrado),
+// así lo primero que se ve son los autos. El desplegable se arma acá (regla de la cátedra: nada de comportamiento en el
+// HTML) y, si hay avisos sin ver, el título lo dice para que no queden escondidos.
+function plegarComparacion() {
+    let plegable = $('comparacion');
+    if (!plegable) {
+        plegable = el('details', { class: 'comparacion', id: 'comparacion' }, el('summary', { class: 'comparacion__titulo' }));
+        $('resumen').prepend(plegable);
+        plegable.append($('sitios'), $('novedades'));
+    }
+    plegable.querySelector('summary').textContent = 'Ver comparación de precios y novedades'
+        + (avisos.length ? ` (${avisos.length} sin ver)` : '');
+}
+
 // Una sola franja con las cifras de la última corrida y el link a la página de novedades (con el gráfico y cuáles son)
 function mostrarNovedades(n) {
     const caja = $('novedades');
     if (!n?.disponible) {
-        caja.replaceChildren('Las novedades (autos nuevos y bajas de precio) aparecen a partir de la segunda corrida diaria.');
+        caja.replaceChildren('Las novedades (autos nuevos y bajas de precio) aparecen a partir de la segunda actualización diaria.');
         caja.classList.remove('novedades-franja--con-datos');
         return;
     }
@@ -81,7 +95,7 @@ function mostrarNovedades(n) {
         el('strong', {}, String(valor)), ` ${texto}`);
     // replaceChildren escribe "null" si le llega un null: lo que no va se filtra antes
     caja.replaceChildren(...[
-        el('span', { class: 'novedades-franja__texto' }, 'Desde la corrida anterior'),
+        el('span', { class: 'novedades-franja__texto' }, 'Desde la última actualización'),
         el('span', { class: 'novedades-franja__cifras' },
             cifra(n.nuevos, n.nuevos === 1 ? 'nuevo' : 'nuevos', 'nuevos'),
             cifra(n.bajaron, 'bajaron de precio', 'bajaron'),
@@ -96,7 +110,8 @@ const DESTACADOS = [['mejor_relacion', 'Mejor relación precio y km'], ['mas_bar
 function mostrarDestacados(d) {
     const caja = $('destacados');
     const items = DESTACADOS.filter(([clave]) => d?.[clave]);
-    if (!items.length) { caja.hidden = true; return; }
+    $('destacados-bloque').hidden = !items.length;
+    if (!items.length) return;
     caja.replaceChildren(...items.map(([clave, titulo]) => {
         const { auto: a, explicacion } = d[clave];
         return el('li', { class: `destacado destacado--${clave}` },
@@ -108,7 +123,6 @@ function mostrarDestacados(d) {
             el('span', { class: 'destacado__explicacion' }, explicacion),
             el('span', { class: 'destacado__pie' }, sitio(a.fuente), acciones(a, 'destacado').at(-1)));
     }));
-    caja.hidden = false;
 }
 
 // ---------- "Más recomendados": los primeros 5 con su mensaje ----------
@@ -174,7 +188,7 @@ function mostrarResultados(r) {
             mostrarResultados(r);
             document.getElementById(idFila(res.items[TOP].id))?.querySelector('a')?.focus();
         }, 'boton boton--secundario ver-todo', 'ver-todo');
-        $('recomendados').after(b);
+        $('destacados-bloque').after(b);
     }
     $('paginacion').replaceWith(Object.assign(verTodo ? vistas.paginacion(res.pagina, res.paginas) : el('nav'), { id: 'paginacion' }));
 }
@@ -188,6 +202,7 @@ function mostrar(r) {
     $('aclaracion').textContent = r.aclaracion;
     mostrarSitios(r.referencia);
     mostrarNovedades(r.novedades);
+    plegarComparacion();
     mostrarDestacados(r.destacados);
     $('resumen').hidden = false;
 
