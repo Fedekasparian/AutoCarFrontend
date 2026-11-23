@@ -49,11 +49,6 @@ export const conclusion = (valor) => CONCLUSIONES[valor] || valor;
 export const estado = (valor) => ESTADOS[valor] || valor;
 export const fuente = (valor) => FUENTES[valor] || valor;
 
-export const RECLAMOS = { abierto: 'En revisión', procede: 'Procede', no_procede: 'No procede' };
-export const estadoReclamo = (valor) => RECLAMOS[valor] || valor;
-export const MIN_DESCRIPCION = 10;
-export const MAX_DESCRIPCION = 1000;
-
 // De qué sitio es un link, para mostrarlo mientras el comprador lo pega (el back lo vuelve a decidir con
 // Inspecciones\Fuente). Devuelve null si no es un link http(s).
 const DOMINIOS = { 'mercadolibre.com.ar': 'mercadolibre', 'kavak.com': 'kavak', 'autocosmos.com.ar': 'autocosmos' };
@@ -72,18 +67,11 @@ export function fuenteDeUrl(texto, hostPropio = '') {
     return 'otro';
 }
 
-// Puntaje del ranking para mostrar: "4,5 de 5 · 12 firmadas" o "Nuevo en la red".
-export function puntaje(m) {
+// Experiencia del mecánico (el ranking es por inspecciones firmadas): "12 inspecciones firmadas" o
+// "Nuevo en la red · 1 inspección firmada" si todavía no llega al mínimo.
+export function experiencia(m) {
     const firmadas = m.firmadas === 1 ? '1 inspección firmada' : `${m.firmadas} inspecciones firmadas`;
-    if (m.nuevo || m.puntaje === null || m.puntaje === undefined) return `Nuevo en la red · ${firmadas}`;
-    return `${String(m.puntaje).replace('.', ',')} de 5 · ${firmadas}`;
-}
-
-// Reclamos que procedieron, siempre a la vista (también para los "Nuevo en la red", que no tienen puntaje).
-export function reclamosProcedentes(m) {
-    const n = m.reclamos_procedentes || 0;
-    if (n === 0) return 'Ningún reclamo procedió';
-    return n === 1 ? '1 reclamo procedió' : `${n} reclamos procedieron`;
+    return m.nuevo ? `Nuevo en la red · ${firmadas}` : firmadas;
 }
 
 // Qué tiene que pedir el comprador antes de pagar el auto (los papeles no los revisa el mecánico).
@@ -104,16 +92,14 @@ export const TRAMITES = [
 export const tituloAuto = (inspeccion) =>
     inspeccion.titulo || `Auto de ${fuente(inspeccion.fuente)}`;
 
-// Igual que Inspecciones\Precio::desglose: AutoCar se queda su comisión (redondeada a miles) y una parte de eso
-// va al fondo de garantía. El resto es del mecánico. Los porcentajes son parámetros que cambia el admin:
-// p = lo que devuelve GET /api/parametros ({comision_autocar, parte_fondo, ...}, 23 = 23 %).
-// Con $ 100.000, 23 % y un tercio al fondo: 77.000 / 23.000 (8.000 al fondo).
+// Igual que Inspecciones\Precio::desglose: AutoCar se queda su comisión (redondeada a miles) y el resto es del
+// mecánico. La comisión es un parámetro que cambia el admin: p = lo que devuelve GET /api/parametros
+// ({comision_autocar, ...}, 23 = 23 %). Con $ 100.000 y 23 %: 77.000 / 23.000.
 const redondear = (monto) => Math.round(monto / 1000) * 1000;
 
 export function desglose(precio, p) {
     const autocar = Math.min(precio, redondear(precio * p.comision_autocar / 100));
-    const fondo = Math.min(autocar, redondear(autocar * p.parte_fondo / 100));
-    return { precio, monto_mecanico: precio - autocar, monto_autocar: autocar, monto_fondo: fondo };
+    return { precio, monto_mecanico: precio - autocar, monto_autocar: autocar };
 }
 
 // Patente: igual que Inspecciones\Patente. Sin espacios, guiones ni puntos y en mayúsculas; vieja (ABC123) o
@@ -185,7 +171,7 @@ export const ARREGLABLES = ['carroceria', 'estructura', 'motor', 'transmision', 
 export const ORIGENES_FALLA = { internet: 'De internet', mecanicos: 'De los mecánicos', medido: 'Medido en inspecciones' };
 export const ESTADOS_FALLA = { confirmada: 'Confirmada', sin_confirmar: 'Sin confirmar', descartada: 'Descartada' };
 
-// Alcance de la inspección (N3): qué se considera "que se veía". Se muestra antes de pagar y al reclamar.
+// Alcance de la inspección (N3): qué revisa el mecánico y qué no. Se muestra antes de pagar y en el informe.
 // "Cubre" sale del checklist; lo demás queda escrito acá y en modelo-de-negocio/PLAN.md (sección 7).
 export const ALCANCE = {
     cubre: () => CHECKLIST.map((c) => `${c.nombre}: ${c.detalle.toLowerCase()}`),
@@ -198,8 +184,6 @@ export const ALCANCE = {
     ],
 };
 
-// Cuándo procede un reclamo. dias y tope: los de la inspección (o los parámetros de hoy, antes de pedirla).
-export const textoReclamo = (dias, tope) =>
-    'El reclamo procede si el problema ya estaba el día de la revisión y se podía ver con el checklist. '
-    + `Tenés ${dias} días desde la firma y un solo reclamo. Si procede, te devolvemos lo que pagaste y te `
-    + `compensamos con hasta ${tope} veces el precio de la inspección.`;
+// El informe reduce el riesgo, no lo elimina: no hay reclamo después de la firma (se sacó el 23/11).
+export const TEXTO_RIESGO = 'El informe te dice cómo está el auto el día de la revisión: reduce el riesgo, pero no '
+    + 'lo elimina. La decisión de comprar es tuya y no hay reclamo después de la firma.';

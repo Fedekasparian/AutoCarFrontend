@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inspección - AutoCar</title>
-  <meta name="description" content="Estado de la inspección, informe firmado por el mecánico y reclamo.">
+  <meta name="description" content="Estado de la inspección e informe firmado por el mecánico.">
   <link rel="stylesheet" href="../../styles/estilos.css">
   <script src="../../js/tema.js"></script><script src="../../js/barra-admin.js" defer></script><script src="../../js/navegacion.js" defer></script><link rel="stylesheet" href="../../styles/componentes.css">
   <link rel="stylesheet" href="../../styles/pantallas.css">
@@ -35,8 +35,8 @@
     </a>
     <h1 id="titulo">Inspección</h1>
   </header>
-  <!-- GET /api/inspecciones/{id}; cancelar: POST .../cancelar; reclamar: POST .../reclamo. Lo arma js/paginas/verificacion.js.
-       La ven el comprador, el mecánico asignado y quien resuelve reclamos; sólo el comprador cancela y reclama. -->
+  <!-- GET /api/inspecciones/{id}; cancelar: POST .../cancelar. Lo arma js/paginas/verificacion.js.
+       La ven el comprador y el mecánico asignado; sólo el comprador cancela. -->
   <main id="contenido" class="pantalla">
     <p class="recuadro" id="aviso" role="status" hidden></p>
     <div class="estado" id="estado"></div>
@@ -58,11 +58,6 @@
       <p class="campo__ayuda">El informe está firmado y cerrado: ya no se puede cambiar.</p>
     </section>
 
-    <section class="recuadro pila" id="anteriores" aria-labelledby="anteriores-titulo" hidden>
-      <h2 id="anteriores-titulo" class="titulo-seccion">Historial de este auto</h2>
-      <div class="pila" id="anteriores-lista"></div>
-    </section>
-
     <!-- Idea A: los presupuestos de otros talleres para cada arreglo y el total (js/servicios/informe.js, costoTotal) -->
     <section class="recuadro pila" id="costo" aria-labelledby="costo-titulo" hidden>
       <h2 id="costo-titulo" class="titulo-seccion">Costo total del auto</h2>
@@ -81,28 +76,8 @@
       <ul class="lista-filas" id="tramites-lista" role="list"></ul>
     </section>
 
-    <section class="recuadro pila" id="reclamo" aria-labelledby="reclamo-titulo" hidden>
-      <h2 id="reclamo-titulo" class="titulo-seccion">Reclamo</h2>
-      <dl class="datos" id="reclamo-datos" hidden></dl>
-      <form class="formulario" id="form-reclamo" novalidate hidden>
-        <p class="campo__ayuda" id="reclamo-plazo"></p>
-        <div id="reclamo-alcance"></div>
-        <p class="formulario__alerta" role="alert" tabindex="-1"></p>
-        <div class="campo">
-          <label class="campo__etiqueta" for="item_codigo">¿Sobre qué ítem?</label>
-          <select class="campo__input" id="item_codigo" name="item_codigo">
-            <option value="">General / no sé</option>
-          </select>
-        </div>
-        <div class="campo">
-          <label class="campo__etiqueta" for="descripcion">Qué pasó</label>
-          <textarea class="campo__input" id="descripcion" name="descripcion" rows="4" required minlength="10" maxlength="1000" placeholder="Tenía un golpe en el zócalo derecho y el informe no lo marca." aria-describedby="descripcion-ayuda descripcion-error"></textarea>
-          <span class="campo__ayuda" id="descripcion-ayuda">Se responde por lo que se veía sin desarmar el auto. AutoCar lo revisa con las pruebas (fotos, informe de otro taller).</span>
-          <span class="campo__error" id="descripcion-error"></span>
-        </div>
-        <button class="boton" type="submit">Enviar reclamo</button>
-      </form>
-    </section>
+    <!-- Qué revisó el mecánico y qué no: el informe reduce el riesgo, no lo elimina (no hay reclamo después de la firma) -->
+    <section class="pila" id="alcance" aria-label="Qué cubre el informe" hidden></section>
   </main>
 
 </body>

@@ -41,7 +41,7 @@ test('con perfil, los primeros de "Más recomendados" dicen por qué y se puede 
         await expect(page.locator('#recomendados-intro')).toContainText('Para la familia');
         const recomendados = page.locator('.resultado--recomendado');
         expect(await recomendados.count()).toBeLessThanOrEqual(5);
-        await expect(recomendados.first().locator('.resultado__puesto')).toHaveText('1');
+        await expect(recomendados.first().locator('.resultado__puesto')).toHaveText(/1$/); // "Recomendado número 1" para el lector
         // El mensaje, cuando lo hay, nombra el perfil
         const mensajes = await page.locator('.resultado__mensaje').allTextContents();
         for (const m of mensajes) expect(m).toContain('Como lo buscás para la familia');

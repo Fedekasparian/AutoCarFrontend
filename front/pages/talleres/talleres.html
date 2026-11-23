@@ -49,9 +49,8 @@
       <div class="campo">
         <label class="campo__etiqueta" for="orden-mecanicos">Ordenar por</label>
         <select class="campo__input" id="orden-mecanicos">
-          <option value="puntaje">Mejor puntaje</option>
+          <option value="experiencia">Más experiencia</option>
           <option value="precio">Menor precio</option>
-          <option value="firmadas">Más inspecciones</option>
         </select>
       </div>
     </div>
@@ -61,9 +60,9 @@
     <details class="recuadro" id="como-funciona">
       <summary>Cómo se arma el ranking</summary>
       <ul class="pila">
-        <li>El puntaje va de 0 a 5 y sale de las inspecciones firmadas y de los reclamos que procedieron. Nadie paga para subir.</li>
-        <li>Con menos de 3 inspecciones firmadas el mecánico figura como <strong>Nuevo en la red</strong>, sin puntaje.</li>
-        <li>Del precio, el 77 % es para el mecánico y el resto para AutoCar. Un tercio de esa parte va al fondo que paga los reclamos.</li>
+        <li>Por experiencia: primero los que más inspecciones firmaron en AutoCar. Nadie paga para subir.</li>
+        <li>Con menos de 3 inspecciones firmadas el mecánico figura como <strong>Nuevo en la red</strong> y va después.</li>
+        <li>Del precio, el 77 % es para el mecánico y el resto para AutoCar.</li>
       </ul>
     </details>
   </main>

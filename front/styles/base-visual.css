@@ -88,8 +88,8 @@ h2{ letter-spacing: -.02em; }
                 box-shadow var(--dur-media) var(--curva-suave),
                 background-color var(--dur-rapida) var(--curva-suave);
 }
-.campo__input:focus{ box-shadow: var(--anillo-foco); outline: none; }
-.campo__input:focus-visible{ outline: none; }
+.campo__input:focus{ box-shadow: var(--anillo-foco); outline: 2px solid transparent; }
+.campo__input:focus-visible{ outline: 2px solid transparent; }
 
 /* Fichas de vehículo: se elevan y la foto se acerca un poco */
 .ficha-vehiculo{
@@ -157,11 +157,11 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 :root[data-modo="oscuro"] .con-barra .barra{ background: var(--marca-blanco); backdrop-filter: none; -webkit-backdrop-filter: none; }
 :root[data-modo="oscuro"] .marca-nav{ background: var(--marca-papel); backdrop-filter: none; -webkit-backdrop-filter: none; }
 /* Al tocar el botón de modo (js/tema.js pone la clase por 550 ms): fondos, letras y bordes se funden en 500 ms */
-.modo-cambiando, .modo-cambiando *, .modo-cambiando *::before, .modo-cambiando *::after{
-    transition: background-color 500ms ease, color 500ms ease, border-color 500ms ease, fill 500ms ease, stroke 500ms ease !important;
+.modo-cambiando, .modo-cambiando *{
+    transition: background-color 500ms ease, color 500ms ease, border-color 500ms ease !important;
 }
 @media (prefers-reduced-motion: reduce){
-    .modo-cambiando, .modo-cambiando *, .modo-cambiando *::before, .modo-cambiando *::after{ transition: none !important; }
+    .modo-cambiando, .modo-cambiando *{ transition: none !important; }
 }
 /* Paneles de marca: siguen oscuros con letra blanca */
 :where(:root[data-modo="oscuro"]) .hero, :where(:root[data-modo="oscuro"]) .acceso-relato, :where(:root[data-modo="oscuro"]) .portada-auto__escena{ background: var(--panel-oscuro); color: var(--sobre-panel); }
@@ -296,7 +296,7 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .ficha-favorito svg{ fill: transparent; stroke: currentColor; stroke-width: 1.9; stroke-linejoin: round; transition: fill var(--dur-rapida), stroke var(--dur-rapida); }
 .ficha-favorito:hover{ transform: scale(1.08); background: #fff; }
 .ficha-favorito:active{ transform: scale(.9); }
-.ficha-favorito:focus-visible{ outline: none; box-shadow: var(--anillo-foco); }
+.ficha-favorito:focus-visible{ outline: 2px solid transparent; box-shadow: var(--anillo-foco); }
 .ficha-favorito[aria-pressed="true"] svg{ fill: #e5484d; stroke: #e5484d; }
 .ficha-favorito:disabled{ cursor: progress; }
 .ficha-favorito--late svg{ animation: corazon-late .5s var(--curva-rebote); }
@@ -390,7 +390,7 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 }
 .galeria__boton:hover{ background: #fff; transform: scale(1.06); }
 .galeria__boton:active{ transform: scale(.92); }
-.galeria__boton:focus-visible{ outline: none; box-shadow: var(--anillo-foco); }
+.galeria__boton:focus-visible{ outline: 2px solid transparent; box-shadow: var(--anillo-foco); }
 .galeria__boton--ampliar{ top: 14px; right: 14px; }
 .galeria__flecha{ top: 50%; margin-top: -22px; }
 .galeria__flecha--anterior{ left: 14px; }
@@ -416,7 +416,7 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .galeria__miniatura img{ display: block; width: 100%; height: 100%; object-fit: cover; }
 .galeria__miniatura:hover{ opacity: 1; transform: translateY(-2px); }
 .galeria__miniatura[aria-current="true"]{ opacity: 1; border-color: var(--marca-acento); }
-.galeria__miniatura:focus-visible{ outline: none; box-shadow: var(--anillo-foco); }
+.galeria__miniatura:focus-visible{ outline: 2px solid transparent; box-shadow: var(--anillo-foco); }
 
 /* Visor a pantalla completa */
 .visor{
@@ -434,7 +434,7 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 }
 .visor__boton:hover{ background: rgb(255 255 255 / .24); }
 .visor__boton:active{ transform: scale(.9); }
-.visor__boton:focus-visible{ outline: none; box-shadow: var(--anillo-foco); }
+.visor__boton:focus-visible{ outline: 2px solid transparent; box-shadow: var(--anillo-foco); }
 .visor__cerrar{ top: 12px; right: 12px; }
 .visor__flecha{ top: 50%; margin-top: -24px; }
 .visor__flecha--anterior{ left: 16px; }
@@ -624,7 +624,7 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .fotos-previa__primera{ left: 6px; padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
 .fotos-previa__sacar:hover{ background: #c2410c; transform: scale(1.1); }
 .fotos-previa__primera:hover{ background: var(--marca-tinta); }
-.fotos-previa__sacar:focus-visible, .fotos-previa__primera:focus-visible{ outline: none; box-shadow: var(--anillo-foco); }
+.fotos-previa__sacar:focus-visible, .fotos-previa__primera:focus-visible{ outline: 2px solid transparent; box-shadow: var(--anillo-foco); }
 .fotos-previa__nueva::after{
     content: "Nueva"; position: absolute; right: 8px; bottom: 8px; padding: 1px 6px; border-radius: 6px;
     background: rgb(255 255 255 / .88); color: #131b2d; font-size: 10px; font-weight: 700;
@@ -710,7 +710,7 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 }
 .pestana-estado:hover{ border-color: var(--marca-tinta); }
 .pestana-estado:active{ transform: scale(.96); }
-.pestana-estado:focus-visible{ outline: none; box-shadow: var(--anillo-foco); }
+.pestana-estado:focus-visible{ outline: 2px solid transparent; box-shadow: var(--anillo-foco); }
 .pestana-estado__cantidad{
     min-width: 24px; padding: 2px 7px; border-radius: 999px; background: var(--marca-tenue); font-size: 12px; text-align: center;
     transition: background-color var(--dur-media), color var(--dur-media);
@@ -860,7 +860,7 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 }
 .atajo:hover{ border-color: var(--marca-tinta); }
 .atajo:active{ transform: scale(.94); }
-.atajo:focus-visible{ outline: none; box-shadow: var(--anillo-foco); }
+.atajo:focus-visible{ outline: 2px solid transparent; box-shadow: var(--anillo-foco); }
 .atajo[aria-pressed="true"]{ background: var(--marca-acento); border-color: var(--marca-acento); color: var(--sobre-acento); }
 .resumen-busqueda{
     margin: 0; padding: 16px 18px; border-radius: 14px; border-left: 4px solid var(--marca-acento);
@@ -1076,7 +1076,7 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .inspeccion-fila{ display: grid; gap: 6px; padding: 16px 18px 18px; margin-bottom: 12px; border: 1px solid var(--marca-linea); border-radius: 16px; background: var(--marca-blanco); box-shadow: var(--sombra-1); }
 .inspeccion-fila > .fila{ padding: 0; border: 0; }
 
-/* Talleres: tarjetas con estrellas, precio y datos */
+/* Talleres: tarjetas con la experiencia, el precio y los datos */
 .talleres-filtros{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 280px)); gap: 12px; }
 .talleres-grilla{ display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
 .taller-tarjeta{
@@ -1087,7 +1087,7 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .taller-tarjeta:hover{ box-shadow: var(--sombra-2); transform: translateY(-3px); }
 .taller-tarjeta--primero{ border-color: color-mix(in srgb, var(--marca-acento) 70%, var(--marca-linea)); }
 .taller-tarjeta--primero::after{
-    content: "Mejor puntaje"; position: absolute; top: -10px; right: 16px; padding: 2px 10px; border-radius: 999px;
+    content: "Más experiencia"; position: absolute; top: -10px; right: 16px; padding: 2px 10px; border-radius: 999px;
     background: var(--marca-acento); color: var(--sobre-acento); font-size: 11px; font-weight: 800;
 }
 .taller-tarjeta__arriba{ display: flex; align-items: center; gap: 12px; }
@@ -1100,18 +1100,8 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .taller-tarjeta__puntaje{ display: flex; align-items: center; gap: 8px; }
 .taller-tarjeta__puntaje strong{ font-family: var(--fuente-titulos); font-size: 18px; }
 .taller-tarjeta__nuevo{ border: 0; background: color-mix(in srgb, var(--marca-acento) 20%, transparent); color: var(--marca-tinta); font-weight: 700; }
-.estrellas{
-    --puntaje: 0; position: relative; display: inline-block; font-size: 18px; line-height: 1; letter-spacing: 2px;
-    color: var(--marca-linea);
-}
-.estrellas::before{ content: "★★★★★"; }
-.estrellas::after{
-    content: "★★★★★"; position: absolute; inset: 0; width: calc(var(--puntaje) / 5 * 100%); overflow: hidden;
-    color: #f5b301; white-space: nowrap;
-}
 .taller-tarjeta__datos{ display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; font-size: 13px; color: var(--marca-gris); }
 .taller-tarjeta__datos strong{ color: var(--marca-tinta); }
-.taller-tarjeta__reclamos{ color: var(--falla); font-weight: 600; }
 .taller-tarjeta__pie{ display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 14px; border-top: 1px solid var(--marca-linea); }
 .taller-tarjeta__precio{ display: grid; font-size: 12px; color: var(--marca-gris); }
 .taller-tarjeta__precio strong{ font-family: var(--fuente-titulos); font-size: 20px; color: var(--marca-tinta); }
@@ -1172,7 +1162,6 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .reparto__tramo{ flex: 1 1 0; min-width: 4px; transform-origin: left; animation: rango-crece .9s var(--curva-salida) both; }
 .reparto--mecanicos{ background: var(--serie-1); }
 .reparto--autocar{ background: var(--serie-2); }
-.reparto--fondo{ background: var(--serie-3); }
 .reparto__leyenda{ display: grid; gap: 8px; margin: 14px 0 0; padding: 0; list-style: none; }
 .reparto__leyenda li{ display: grid; grid-template-columns: 12px minmax(0, 1fr) auto 48px; align-items: center; gap: 10px; font-size: 14px; color: var(--marca-tinta); }
 .reparto__muestra{ width: 12px; height: 12px; border-radius: 3px; }
@@ -1215,23 +1204,6 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .campos-fila > .orden{ grid-column: 1 / -1; }
 .resultado__original{ flex-basis: 100%; font-size: var(--tam-xs); color: var(--color-texto-suave); }
 .resultado__comparacion{ flex-basis: 100%; font-size: var(--tam-xs); color: var(--color-texto-suave); cursor: help; }
-
-/* Historial del auto en el informe: las inspecciones anteriores de la misma patente */
-.historial-auto{ display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
-.historial-auto__item{
-    display: grid; gap: 6px; padding: 12px 14px; border: 1px solid var(--marca-linea);
-    border-left: 4px solid var(--marca-acento); border-radius: 12px; background: var(--marca-blanco);
-}
-.historial-auto__item p{ margin: 0; }
-.historial-auto__cabeza{ display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.historial-auto__cabeza .etiqueta{ margin-left: auto; }
-.historial-auto__fecha, .historial-auto__datos{ font-size: 13px; color: var(--marca-gris); }
-.historial-auto__fallas{ display: flex; flex-wrap: wrap; gap: 6px; }
-.historial-auto__reclamo{ font-size: 13px; font-weight: 600; color: var(--falla); }
-.historial-auto__alerta{
-    margin: 0; padding: 12px 14px; border-radius: 12px; color: var(--falla);
-    background: color-mix(in srgb, var(--falla) 10%, transparent); border: 1px solid color-mix(in srgb, var(--falla) 35%, transparent);
-}
 
 /* Foto de la chapa en el checklist del mecánico: toda la caja abre la cámara; con la foto cargada, la muestra */
 .chapa{
@@ -1333,9 +1305,8 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 /* Tendencia: UNA serie por gráfico (línea con su área), total arriba, eje con números redondos y valor al pasar el mouse */
 .tendencia{ --color: var(--serie-1); display: grid; gap: 14px; }
 .tendencia--2{ --color: var(--serie-2); }
-.tendencia--perdida{ --color: var(--falla); }
 
-/* Informe de plata del admin: ganancia − pérdida = neta, como un estado de resultados chico */
+/* Informe de plata del admin: la ganancia del período */
 .informe-plata{ display: grid; gap: 12px; padding: 20px !important; border: 1px solid var(--marca-linea) !important; border-radius: 16px !important; background: var(--marca-blanco) !important; box-shadow: var(--sombra-1); }
 .informe-plata__titulo{ margin: 0; font-family: var(--fuente-titulos); font-size: 18px; color: var(--marca-tinta); }
 .informe-plata__frase{ margin: 0; font-size: 15px; line-height: 1.5; color: var(--marca-tinta); }
@@ -1344,11 +1315,8 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .informe-plata__fila dt{ display: grid; gap: 2px; font-weight: 600; color: var(--marca-tinta); }
 .informe-plata__detalle{ font-size: 12px; font-weight: 400; color: var(--marca-gris); }
 .informe-plata__fila dd{ display: grid; justify-items: end; gap: 2px; margin: 0 0 0 auto; font-family: var(--fuente-titulos); font-size: 20px; font-variant-numeric: tabular-nums; color: var(--marca-tinta); }
-.informe-plata__fila--ganancia dd{ color: var(--ok); }
-.informe-plata__fila--perdida dd{ color: var(--falla); }
 .informe-plata__fila--neta{ border-top: 2px solid var(--marca-tinta); border-bottom: 0; }
 .informe-plata__fila--neta dd{ font-size: 26px; font-weight: 700; }
-.informe-plata__fila--negativa dd{ color: var(--falla); }
 .informe-plata .variacion{ font-family: inherit; font-size: 12px; font-weight: 600; color: var(--marca-gris); }
 .informe-plata .variacion--buena{ color: var(--ok); }
 .informe-plata .variacion--mala{ color: var(--falla); }
@@ -1511,6 +1479,20 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .recomendados-intro{ margin: 0; font-size: 15px; color: var(--marca-gris); }
 .recomendados-intro strong{ color: var(--marca-tinta); }
 .recomendados-intro[hidden]{ display: none; }
+/* Metabuscador: los destacados, más chicos y debajo de los recomendados */
+.destacados-bloque[hidden]{ display: none; }
+.destacados-bloque{ display: grid; gap: 10px; }
+.destacados-bloque__titulo{ margin: 8px 0 0; font-size: 16px; }
+.destacados-bloque .destacado{ padding: 12px 14px; box-shadow: none; animation: none; }
+.destacados-bloque .destacado__precio{ font-size: 18px; }
+/* El desplegable con el precio típico por sitio y las novedades */
+.comparacion{ border: 1px solid var(--marca-linea); border-radius: 12px; padding: 0 16px; background: var(--marca-blanco); }
+.comparacion[open]{ padding-bottom: 16px; }
+.comparacion__titulo{ padding: 12px 0; font-weight: 600; cursor: pointer; }
+.comparacion > * + *{ margin-top: 12px; }
+/* "Más recomendados" ahora es un h2: mismo aspecto que antes */
+h2.recomendados-intro{ font-family: var(--fuente); font-size: 15px; font-weight: 400; letter-spacing: 0; }
+
 /* Explorar: los primeros de "Más relevantes" con el mismo aqua suave y una línea con por qué */
 .ficha--recomendada .ficha-vehiculo{
     background: color-mix(in srgb, var(--marca-acento) 12%, var(--marca-blanco));

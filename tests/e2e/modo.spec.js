@@ -17,7 +17,8 @@ test.describe('modo claro / oscuro', () => {
         await boton.click();
         await expect(raiz).toHaveAttribute('data-modo', 'oscuro');
         await expect(boton).toHaveAttribute('aria-label', 'Pasar a modo claro');
-        expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).not.toBe(fondoClaro);
+        // Los colores se funden en 500 ms: se espera a que el fondo cambie
+        await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).not.toBe(fondoClaro);
 
         await page.reload();
         await expect(raiz).toHaveAttribute('data-modo', 'oscuro');

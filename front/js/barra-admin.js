@@ -1,11 +1,13 @@
 // Barra de navegación según el rol. Es un script clásico (como tema.js) para cargarlo igual en todas las páginas.
 // Sólo muestra u oculta: el back vuelve a controlar cada permiso en cada pedido.
 //   usuario   → la barra del HTML: Explorar · Búsquedas · Publicar · Mensajes · Cuenta
-//   moderador → Explorar · Moderar · Reportes · Reclamos · Cuenta
-//   admin     → Moderar · Usuarios · Estadísticas · Panel · Cuenta (talleres, reportes, reclamos y contacto, en el Panel)
+//   moderador → Explorar · Moderar · Reportes · Cuenta
+//   admin     → Moderar · Usuarios · Estadísticas · Panel · Cuenta (talleres, reportes y contacto, en el Panel)
 //   mecanico  → Explorar · Mi taller · Cuenta
 //   empresa   → Explorar · Mi empresa · Publicar · Mensajes · Cuenta (una concesionaria vende, no compra)
 // Las cuentas del equipo y las de los talleres no compran ni venden: no ven Búsquedas, Publicar ni Mensajes.
+//   sin sesión → Explorar · Ingresar · Crear cuenta (lo mismo que la portada: así Explorar se ve igual con y sin
+//                sesión, y no hay links que llevan al ingreso sin avisar)
 (() => {
     let usuario = null;
     try {
@@ -15,6 +17,34 @@
         // Sin almacenamiento: no hay sesión que mirar.
     }
     const rol = usuario?.rol;
+
+    // Sin sesión: de la barra del usuario quedan Explorar y "Cuenta", que pasa a ser "Ingresar"; se suma "Crear cuenta"
+    // con el mismo ícono. Lo demás (Búsquedas, Publicar, Mensajes) pide sesión: se ve después de ingresar.
+    if (!usuario) {
+        const visitante = () => {
+            const lista = document.querySelector('.barra__lista');
+            if (!lista) return;
+            const de = (pagina) => Array.from(lista.children).find((li) => li.querySelector(`a[href$="${pagina}"]`));
+            const explorar = de('home.html');
+            const cuenta = de('cuenta.html');
+            if (!cuenta) return;
+            const comoIngreso = (li, pagina, texto) => {
+                const a = li.querySelector('a');
+                a.href = new URL(`../pages/auth/${pagina}`, base).href;
+                a.lastElementChild.textContent = texto;
+                if (window.location.pathname.endsWith(`/${pagina}`)) a.setAttribute('aria-current', 'page');
+                else a.removeAttribute('aria-current');
+                return li;
+            };
+            const registro = cuenta.cloneNode(true);
+            lista.replaceChildren(...[explorar, comoIngreso(cuenta, 'login.html', 'Ingresar'),
+                comoIngreso(registro, 'registro.html', 'Crear cuenta')].filter(Boolean));
+        };
+        const base = document.currentScript.src;
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', visitante);
+        else visitante();
+        return;
+    }
     if (!['admin', 'moderador', 'mecanico', 'empresa'].includes(rol)) return;
 
     const base = document.currentScript.src;
@@ -23,11 +53,11 @@
     const EXPLORAR = ['Explorar', 'info/home.html', ['vehiculos/buscar.html', 'vehiculos/vehiculo.html']];
     const ITEMS = {
         moderador: [EXPLORAR, ['Moderar', 'admin/admin-moderar.html'],
-            ['Reportes', 'admin/admin-soporte.html'], ['Reclamos', 'admin/admin-reclamos.html', ['talleres/verificacion.html']]],
+            ['Reportes', 'admin/admin-soporte.html']],
         admin: [['Moderar', 'admin/admin-moderar.html'], ['Usuarios', 'admin/admin-usuarios.html'],
             ['Estadísticas', 'admin/admin-metricas.html'],
-            ['Panel', 'admin/admin.html', ['admin/admin-talleres.html', 'admin/admin-empresas.html', 'admin/admin-soporte.html', 'admin/admin-reclamos.html',
-                'admin/admin-parametros.html', 'admin/admin-fallas.html', 'admin/admin-vehiculos.html', 'talleres/verificacion.html']]],
+            ['Panel', 'admin/admin.html', ['admin/admin-talleres.html', 'admin/admin-empresas.html', 'admin/admin-soporte.html',
+                'admin/admin-parametros.html', 'admin/admin-fallas.html', 'admin/admin-vehiculos.html']]],
         mecanico: [EXPLORAR, ['Mi taller', 'talleres/taller.html', ['talleres/taller-verificacion.html']]],
         empresa: [EXPLORAR, ['Mi empresa', 'vehiculos/empresa-panel.html', ['vehiculos/empresa.html']],
             ['Publicar', 'vehiculos/mis-publicaciones.html', ['vehiculos/publicar.html']], ['Mensajes', 'operaciones/mensajes.html']],

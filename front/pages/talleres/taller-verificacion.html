@@ -54,8 +54,6 @@
       <ul class="lista-filas" id="firmado-items" role="list"></ul>
       <dl class="datos" id="firmado-datos"></dl>
       <p class="campo__ayuda">El informe está firmado y cerrado: ya no se puede cambiar.</p>
-      <h3 class="titulo-seccion">Historial de este auto</h3>
-      <div class="pila" id="firmado-anteriores"></div>
     </section>
 
     <form class="formulario" id="informe" novalidate hidden>
@@ -88,7 +86,6 @@
           <input class="solo-lector" id="patente_foto" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" aria-labelledby="patente_foto-etiqueta" aria-describedby="patente_foto-estado patente_foto-error">
           <span class="campo__error" id="patente_foto-error"></span>
         </div>
-        <div class="pila" id="anteriores" aria-live="polite"></div>
       </fieldset>
 
       <!-- Marca y modelo del catálogo (idea B): obligatorios para firmar. Los selects los llena js/servicios/marcas.js

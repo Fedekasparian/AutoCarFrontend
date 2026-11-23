@@ -20,7 +20,7 @@ test('el admin recorre las estadísticas y ve la fórmula de para vos', async ({
     await test.step('el resumen muestra los indicadores y aclara qué es "compró"', async () => {
         await page.goto(pagina('pages/admin/admin-metricas.html'));
         await expect(page.locator('#p-resumen')).toBeVisible({ timeout: 60_000 });
-        await expect(page.locator('#kpis > li')).toHaveCount(5);
+        await expect(page.locator('#kpis > li')).toHaveCount(4); // sin "Pagado por reclamos" desde el 23/11
         await expect(page.locator('#p-resumen')).toContainText('pagó la inspección');
         await expect(page.locator('#p-plata')).toBeHidden();
     });
@@ -51,9 +51,9 @@ test('el admin recorre las estadísticas y ve la fórmula de para vos', async ({
     await test.step('la pestaña Inspecciones muestra estados, conclusiones y talleres', async () => {
         await page.getByRole('button', { name: 'Inspecciones' }).click();
         await expect(page).toHaveURL(/#inspecciones$/);
-        await expect(page.locator('#kpis-inspecciones > li')).toHaveCount(6);
+        await expect(page.locator('#kpis-inspecciones > li')).toHaveCount(4); // sin las de reclamos (23/11)
         await expect(page.locator('#barras-inspecciones > li').first()).toBeVisible();
-        await expect(page.locator('#tabla-mecanicos thead th')).toHaveCount(4);
+        await expect(page.locator('#tabla-mecanicos thead th')).toHaveCount(3); // Taller, Firmadas, Cobrado
     });
 
     await test.step('el período cambia y queda en la URL', async () => {
@@ -62,12 +62,12 @@ test('el admin recorre las estadísticas y ve la fórmula de para vos', async ({
         await expect(page.getByRole('button', { name: '3 meses' })).toHaveAttribute('aria-pressed', 'true');
         await page.getByRole('button', { name: 'Plata' }).click();
         await expect(page.locator('#grafico-ganancia .tendencia__nombre')).toHaveText('Ganancia (comisiones)');
-        await expect(page.locator('#grafico-reclamos')).not.toBeEmpty();
-        // El informe: ganancia − pérdida = ganancia neta, con la frase que lo resume
+        await expect(page.locator('#grafico-reclamos')).toHaveCount(0); // sin reclamos desde el 23/11
+        // El informe: la ganancia (sin pérdida por reclamos desde el 23/11), con la frase que lo resume
         await expect(page.locator('#informe-plata')).toBeVisible();
         await expect(page.locator('#t-informe')).toHaveText('Informe de los últimos 3 meses');
-        await expect(page.locator('#informe-cuenta dt')).toHaveCount(3);
-        await expect(page.locator('#informe-cuenta .informe-plata__fila--neta dt')).toContainText('Ganancia neta');
+        await expect(page.locator('#informe-cuenta dt')).toHaveCount(1);
+        await expect(page.locator('#informe-cuenta .informe-plata__fila--neta dt')).toContainText('Ganancia');
         await expect(page.locator('#informe-frase')).toContainText('en comisiones');
         // Segmentar por tipo de usuario: el informe pasa a ser solo de esos compradores
         await expect(page.locator('#tabla-plata-perfil tbody tr')).toHaveCount(5);
