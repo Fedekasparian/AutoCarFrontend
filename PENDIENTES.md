@@ -161,7 +161,7 @@ Decidido el 14/11: el comprador no tiene plan pago. **Publicar es gratis y sin l
 - [x] ~~**Talleres de demo en producción**~~ (11/11): 5 talleres aprobados (`*@autocar.test`: Acosta, Benítez, Gómez, Medina, Ferreyra), 3 compradores y 15 inspecciones firmadas, 3 por mecánico. Ya se puede pedir una inspección sobre la URL pública. Son distintos de los de la `007`, que sigue solo en dev.
 - [x] ~~**Firestore prod (`autocar-9897d`)**~~: cargado desde el 11/11 por la corrida del workflow `Scraper` (sin el historial de dev) y actualizado todos los días.
 - [x] ~~**Corrida diaria** del scraper~~: GitHub Actions, todos los días desde el 12/11. `diario.bat` en la PC queda para correrla a mano (su `.env` necesita `MARCAS_URL`).
-- [x] ~~**Ranking con historia, en dev y en prod**~~: ya no aplica (23/11). El ranking es por experiencia; `bin/demo-historial.php` carga inspecciones firmadas de demo en dev.
+- [x] ~~**Ranking con historia, en dev y en prod**~~: ya no aplica (23/11). El ranking es por experiencia; `bin/demo-experiencia.php` carga inspecciones firmadas de demo en dev.
 
 ## Presentación y defensa
 
