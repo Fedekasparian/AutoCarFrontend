@@ -92,7 +92,8 @@ test('el vendedor confirma el turno y, si vende antes, la inspección se cae', a
         const mecanico = await (await browser.newContext()).newPage();
         await ingresar(mecanico, MECANICO);
         await mecanico.goto(pagina('pages/talleres/taller.html'));
-        const fila = mecanico.locator('.fila--inspeccion', { hasText: 'Volkswagen Gol Trend' }).filter({ hasText: 'Luján' }).first();
+        // La de esta corrida, por el link a su publicación (corridas anteriores pueden dejar pedidos del mismo auto sin pagar)
+        const fila = mecanico.locator('.fila--inspeccion').filter({ has: mecanico.locator(`a[href*="vehiculo.html?id=${vehiculoId}"]`) });
         await fila.getByRole('button', { name: 'Aceptar' }).click();
         await mecanico.fill('#aceptar-fecha', turnoDeManana());
         await mecanico.click('#form-aceptar button[type="submit"]');
