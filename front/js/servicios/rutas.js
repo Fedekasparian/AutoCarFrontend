@@ -10,7 +10,6 @@ const PAGINAS = {
     'admin-parametros.html': 'pages/admin/admin-parametros.html',
     'admin-fallas.html': 'pages/admin/admin-fallas.html',
     'admin-moderar.html': 'pages/admin/admin-moderar.html',
-    'admin-reclamos.html': 'pages/admin/admin-reclamos.html',
     'admin-soporte.html': 'pages/admin/admin-soporte.html',
     'admin-talleres.html': 'pages/admin/admin-talleres.html',
     'admin-usuarios.html': 'pages/admin/admin-usuarios.html',

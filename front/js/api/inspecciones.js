@@ -3,12 +3,10 @@
 //
 // Una inspección llega así:
 // {id, estado: pedida|aceptada|rechazada|cancelada|firmada|no_realizada|caida, fuente, url, vehiculo_id, titulo, anio, kilometraje,
-//  precio_publicado, localidad, fecha_turno, motivo_rechazo, precio, monto_mecanico, monto_autocar, monto_fondo,
-//  tope_veces, dias_reclamo (con los que se pidió),
+//  precio_publicado, localidad, fecha_turno, motivo_rechazo, precio, monto_mecanico, monto_autocar,
 //  pago: retenido|liberado|reembolsado, conclusion, resumen, firmado_por, taller_firma, firmada_at, huella,
 //  created_at, comprador: {id, nombre}, mecanico: {id, nombre, taller, direccion, localidad},
-//  reclamo: null | {id, estado: abierto|procede|no_procede, item_codigo, descripcion, compensacion, respuesta, ...},
-//  reclamo_hasta, puede_reclamar, patente, patente_foto (ruta de la foto de la chapa o null),
+//  patente, patente_foto (ruta de la foto de la chapa o null),
 //  turno_confirmado_at (el vendedor confirmó el turno), credito_usado, a_pagar, credito: null | {tipo, monto},
 //  marca, modelo, modelo_clave, presupuestos y costo_total (idea A, sólo firmada y en el detalle),
 //  cobro: null | {estado: pendiente|pagado|cancelado|devuelto, monto, checkout_url, pagado_at} (Mercado Pago; al pedir y en el detalle),
@@ -20,8 +18,8 @@ const id = (n) => encodeURIComponent(n);
 // ---------- Público y comprador ----------
 
 // Ranking de la red → {items: [{id, mecanico, taller, direccion, localidad, precio_inspeccion, desglose,
-// firmadas, reclamos_procedentes, puntaje, nuevo, revisados?, especialidad?: {en, revisados, reclamos, puntaje, buena}}],
-// localidades, orden}. Con la marca del auto se ordena por especialidad, salvo orden = 'ranking'.
+// firmadas, nuevo, revisados?, especialidad?: {en: modelo|marca, revisados}}], localidades, orden}. Por experiencia.
+// Con la marca del auto se ordena por especialidad, salvo orden = 'ranking'.
 export const mecanicos = (localidad, marca, modelo, orden) => get('/api/mecanicos', { localidad, marca, modelo, orden });
 
 // {url, mecanico_id, titulo?, anio?, kilometraje?, precio_publicado?, localidad?, marca?, modelo?} → {inspeccion} (201)
@@ -38,9 +36,6 @@ export const pagar = (n) => post(`/api/inspecciones/${id(n)}/pago`, {});
 
 // Al volver de Mercado Pago: el back le pregunta cómo quedó el pago. → {inspeccion, cobro}
 export const estadoPago = (n) => post(`/api/inspecciones/${id(n)}/pago/estado`, {});
-
-// Una vez, dentro de los días de reclamo de la inspección (dias_reclamo). {descripcion, item_codigo?} → {inspeccion} (201)
-export const reclamar = (n, reclamo) => post(`/api/inspecciones/${id(n)}/reclamo`, reclamo);
 
 // ---------- Mecánico ----------
 

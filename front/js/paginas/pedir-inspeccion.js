@@ -2,7 +2,6 @@
 // mecánico del ranking, ve el desglose del precio y confirma. POST /api/inspecciones; el pago es simulado.
 // Si llega con ?url=..., el link queda fijo (solo lectura): es el del auto que estaba mirando.
 import * as api from '../api/inspecciones.js';
-import * as parametros from '../api/parametros.js';
 import * as formato from '../servicios/formato.js';
 import * as formularios from '../servicios/formularios.js';
 import * as insp from '../servicios/inspecciones.js';
@@ -89,17 +88,13 @@ function elAuto() {
 
 const ordenMecanicos = document.getElementById('orden-mecanicos');
 
-// La especialidad en este auto (la calcula el back, cuenta los reclamos que procedieron):
-// verde si le fue bien con ese modelo, gris si con otros de la marca, naranja si le fue mal
+// La especialidad en este auto (la calcula el back): cuántos de ese modelo revisó (verde) o, si ninguno, de la marca
 function experiencia(m) {
     const e = m.especialidad;
     if (!e) return null;
     const { marca, modelo } = elAuto();
     const cuales = e.en === 'modelo' ? `${marca} ${modelo}` : `${marca} de otros modelos`;
-    const reclamos = e.reclamos === 0 ? 'sin reclamos'
-        : `${e.reclamos} con reclamo que procedió`;
-    const tono = !e.buena ? 'etiqueta--caro' : e.en === 'modelo' ? 'etiqueta--buen_precio' : '';
-    return el('span', { class: `etiqueta ${tono}`.trim() }, `Revisó ${e.revisados} ${cuales} · ${reclamos}`);
+    return el('span', { class: `etiqueta ${e.en === 'modelo' ? 'etiqueta--buen_precio' : ''}`.trim() }, `Revisó ${e.revisados} ${cuales}`);
 }
 
 function opcionMecanico(m) {
@@ -112,7 +107,7 @@ function opcionMecanico(m) {
         el('span', { class: 'fila__cuerpo' },
             el('span', { class: 'fila__titulo' }, m.taller), el('br'),
             el('span', { class: 'fila__meta' }, `${m.mecanico} · ${m.direccion}, ${m.localidad}`), el('br'),
-            el('span', { class: 'fila__meta' }, insp.puntaje(m)),
+            el('span', { class: 'fila__meta' }, insp.experiencia(m)),
             yaReviso ? el('br') : null, yaReviso),
         el('strong', {}, formato.precio(m.precio_inspeccion)));
 }
@@ -176,7 +171,7 @@ function mostrarDesglose() {
         descuento ? ['Tu crédito', `−${formato.precio(descuento)} (un auto que hiciste revisar se vendió)`] : null,
         ['Pagás', el('strong', {}, formato.precio(d.precio - descuento))],
         ['Para el mecánico', formato.precio(d.monto_mecanico)],
-        ['Para AutoCar', `${formato.precio(d.monto_autocar)} (${formato.precio(d.monto_fondo)} van al fondo de garantía que paga los reclamos)`],
+        ['Para AutoCar', formato.precio(d.monto_autocar)],
     ]));
 }
 
@@ -241,10 +236,7 @@ if (sesion.requerirLogin()) {
             vistas.el('a', { class: 'boton boton--secundario', href: ruta('home.html') }, 'Explorar autos')));
         sinAuto.hidden = false;
     } else {
-        // Los días y el tope para reclamar son parámetros: se muestran los de hoy
-        parametros.publicos().then((p) => {
-            document.getElementById('alcance').replaceChildren(bloqueAlcance(true, { dias: p.dias_reclamo, tope: p.tope_veces }));
-        });
+        document.getElementById('alcance').replaceChildren(bloqueAlcance(true));
         precargar();
         cargarMecanicos();
         // Estadísticas: llegó tocando "Mandale un mecánico" desde una recomendación

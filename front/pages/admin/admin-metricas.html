@@ -65,14 +65,13 @@
         <figure class="grafico" id="plata-perfil-tabla" hidden>
           <figcaption class="grafico__titulo">Ganancias por tipo de usuario</figcaption>
           <div class="tabla-desplazable"><table class="tabla tabla-embudo" id="tabla-plata-perfil"></table></div>
-          <h3 class="grafico__subtitulo">Ganancia neta por tipo de usuario</h3>
+          <h3 class="grafico__subtitulo">Ganancia por tipo de usuario</h3>
           <ul class="barras" id="barras-plata-perfil" role="list"></ul>
           <p class="campo__ayuda">El tipo de usuario es la respuesta a "¿Para qué buscás el auto?" del comprador que pagó la inspección. "Sin perfil": no la contestó.</p>
         </figure>
         <ul class="resumen-admin" role="list" id="kpis-plata"></ul>
         <div class="graficos-fila">
           <figure class="grafico"><figcaption class="solo-lector">Ganancia de AutoCar en el tiempo</figcaption><div id="grafico-ganancia"></div></figure>
-          <figure class="grafico"><figcaption class="solo-lector">Pérdida por reclamos en el tiempo</figcaption><div id="grafico-reclamos"></div></figure>
         </div>
         <h3 class="titulo-seccion">Desde el principio</h3>
         <ul class="resumen-admin" role="list" id="tarjetas-ganancias"></ul>
@@ -82,7 +81,7 @@
 
       <section class="metricas-panel pila" id="p-inspecciones" data-pestana="inspecciones" aria-labelledby="t-inspecciones" hidden>
         <h2 class="solo-lector" id="t-inspecciones">Inspecciones</h2>
-        <p class="campo__ayuda">Las inspecciones pedidas en el período: cuántas se firmaron, cuánto se tarda y cuántas terminan en reclamo.</p>
+        <p class="campo__ayuda">Las inspecciones pedidas en el período: cuántas se firmaron, cuánto se tarda y qué concluyó el mecánico.</p>
         <ul class="resumen-admin" role="list" id="kpis-inspecciones"></ul>
         <div class="graficos-fila">
           <figure class="grafico"><figcaption class="grafico__titulo">En qué quedaron las pedidas</figcaption><ul class="barras" id="barras-inspecciones" role="list"></ul></figure>
@@ -111,7 +110,7 @@
           <div class="tabla-desplazable"><table class="tabla tabla-embudo" id="tabla-ganancia-embudo"></table></div>
           <h3 class="grafico__subtitulo">Ganancia por persona que vio la recomendación</h3>
           <ul class="barras" id="barras-ganancia-embudo" role="list"></ul>
-          <p class="campo__ayuda">Ganancia = comisión de AutoCar, menos los créditos, de las inspecciones pedidas en el período desde esa recomendación que ya se firmaron y se cobraron (o se reembolsaron por un reclamo), como en el informe de Plata. Cada columna "por" es esa ganancia dividida por cuántos vieron, tocaron "Mandale un mecánico" o pagaron. Resaltada, la que más deja por persona que la vio.</p>
+          <p class="campo__ayuda">Ganancia = comisión de AutoCar, menos los créditos, de las inspecciones pedidas en el período desde esa recomendación que ya se firmaron y se cobraron, como en el informe de Plata. Cada columna "por" es esa ganancia dividida por cuántos vieron, tocaron "Mandale un mecánico" o pagaron. Resaltada, la que más deja por persona que la vio.</p>
         </figure>
         <figure class="grafico" id="valor-figura" hidden>
           <figcaption class="grafico__titulo">Cuánto le cuesta decidirse a cada tipo de usuario</figcaption>

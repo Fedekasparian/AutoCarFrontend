@@ -1,10 +1,9 @@
 // Una inspección del lado del comprador (verificacion.html?id=N): estado y qué sigue, cancelar mientras está
-// pedida, informe firmado, trámites para pedir antes de pagar y reclamo dentro de los días de reclamo de la inspección.
-// También la ven el mecánico asignado y quien resuelve reclamos, pero sólo el comprador cancela y reclama.
+// pedida, informe firmado, qué cubre y trámites para pedir antes de pagar. No hay reclamo después de la firma: el
+// informe reduce el riesgo, no lo elimina. También la ve el mecánico asignado, pero sólo el comprador cancela.
 import * as api from '../api/inspecciones.js';
 import * as fallas from '../servicios/fallas.js';
 import * as formato from '../servicios/formato.js';
-import * as formularios from '../servicios/formularios.js';
 import * as informe from '../servicios/informe.js';
 import * as insp from '../servicios/inspecciones.js';
 import * as sesion from '../servicios/sesion.js';
@@ -80,13 +79,12 @@ function mostrarResumen(i) {
 function mostrarInforme(i) {
     const firmada = i.estado === 'firmada';
     $('informe').hidden = !firmada;
-    $('anteriores').hidden = !firmada;
     $('tramites').hidden = !firmada;
     $('costo').hidden = !firmada;
+    $('alcance').hidden = !firmada;
     if (!firmada) return;
+    $('alcance').replaceChildren(informe.bloqueAlcance(false));
     mostrarCostoTotal(i);
-    // Viene con el informe que pagó: las inspecciones anteriores de la misma patente
-    $('anteriores-lista').replaceChildren(...informe.historialAuto(i));
     $('informe-conclusion').replaceChildren('Conclusión del mecánico ', informe.conclusionDestacada(i));
     $('informe-resumen').textContent = i.resumen || '';
     $('informe-resumen').hidden = !i.resumen;
@@ -132,41 +130,6 @@ async function mostrarFallas(i) {
     }
 }
 
-// ---------- Reclamo ----------
-
-function mostrarReclamo(i) {
-    const r = i.reclamo;
-    const puedeReclamar = i.puede_reclamar && soyComprador();
-    $('reclamo').hidden = !r && !puedeReclamar;
-    $('reclamo-datos').hidden = !r;
-    $('form-reclamo').hidden = Boolean(r) || !puedeReclamar;
-    if (r) {
-        $('reclamo-datos').replaceChildren(...informe.filasDatos([
-            ['Estado', el('strong', {}, insp.estadoReclamo(r.estado))],
-            r.item_codigo ? ['Ítem', insp.nombreItem(r.item_codigo)] : null,
-            ['Qué pasó', r.descripcion],
-            ['Enviado el', formato.fecha(r.created_at)],
-            r.respuesta ? ['Respuesta', r.respuesta] : null,
-            r.estado === 'procede' ? ['Te devolvemos', formato.precio(r.devolucion ?? i.a_pagar ?? i.precio)] : null,
-            r.estado === 'procede' ? ['Compensación', formato.precio(r.compensacion || 0)] : null,
-        ]));
-        return;
-    }
-    if (puedeReclamar) {
-        $('reclamo-plazo').textContent = `Si el mecánico pasó por alto algo que se veía, podés reclamar una vez hasta el ${formato.fecha(i.reclamo_hasta)}.`;
-        $('reclamo-alcance').replaceChildren(informe.bloqueAlcance(false, { dias: i.dias_reclamo, tope: i.tope_veces }));
-    }
-}
-
-const select = $('item_codigo');
-select.append(...insp.CHECKLIST.map((c) => el('option', { value: c.codigo }, c.nombre)));
-
-formularios.alEnviar($('form-reclamo'), async ({ descripcion, item_codigo: item }) => {
-    inspeccion = (await api.reclamar(id, { descripcion, item_codigo: item || null })).inspeccion;
-    mostrarTodo(inspeccion);
-    avisar('Enviamos tu reclamo. AutoCar lo revisa y te responde acá.');
-});
-
 // ---------- Cancelar ----------
 
 const pedirCancelar = confirmacion({
@@ -206,13 +169,12 @@ const botonPagar = boton('Pagar con Mercado Pago', async (evento) => {
 // ---------- Inicio ----------
 
 function mostrarTodo(i) {
-    // El mecánico vuelve a su panel; el admin, a la cola de reclamos
+    // El mecánico vuelve a su panel
     if (!soyComprador()) {
-        $('volver').href = ruta(i.mecanico.id === sesion.usuario()?.id ? 'taller.html' : 'admin-reclamos.html');
+        $('volver').href = ruta('taller.html');
     }
     mostrarResumen(i);
     mostrarInforme(i);
-    mostrarReclamo(i);
     mostrarFallas(i);
 }
 
