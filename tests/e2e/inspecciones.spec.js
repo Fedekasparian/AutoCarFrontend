@@ -11,7 +11,7 @@
 // Variables:
 //   E2E_MECANICO_EMAIL / E2E_MECANICO_PASSWORD / E2E_MECANICO_TALLER  (por defecto, el mecánico 5 de la demo)
 import { test, expect } from '@playwright/test';
-import { pagina, soloFueraDeProduccion, emailNuevo, PASSWORD, contestarPreferencias } from './entorno.js';
+import { pagina, soloFueraDeProduccion, emailNuevo, PASSWORD, contestarPreferencias, pagarPedido } from './entorno.js';
 
 soloFueraDeProduccion();
 
@@ -67,14 +67,17 @@ test('recorrido de la demo: pedir, aceptar, firmar y ver el informe', async ({ b
         await registrar(comprador, 'Comprador E2E');
         // Como si viniera del botón "Mandale un mecánico" de un aviso: el link llega fijo
         const aviso = `https://auto.mercadolibre.com.ar/MLA-${Date.now()}-gol-trend-_JM`;
-        await comprador.goto(pagina(`pages/talleres/pedir-inspeccion.html?url=${encodeURIComponent(aviso)}`));
+        // El precio del aviso también llega en la URL (como desde el botón): el comprador nunca lo escribe; con él el
+        // informe arma el costo total
+        await comprador.goto(pagina(`pages/talleres/pedir-inspeccion.html?url=${encodeURIComponent(aviso)}&precio=9000000`));
         await expect(comprador.locator('#url')).toHaveValue(aviso);
+        await expect(comprador.locator('#precio_publicado')).toHaveValue('9000000');
         await comprador.locator('#mecanicos label', { hasText: MECANICO.taller }).locator('input[type="radio"]').check();
         await expect(comprador.locator('#resumen')).toBeVisible();
-        await comprador.locator('#datos-auto summary').click();
+        // Se abre solo cuando faltan datos del auto: se toca solo si está cerrado (tocarlo abierto lo cierra)
+        if (!(await comprador.locator('#datos-auto').evaluate((d) => d.open))) await comprador.locator('#datos-auto summary').click();
         await comprador.fill('#titulo', titulo);
         await comprador.fill('#localidad', 'Luján');
-        await comprador.fill('#precio_publicado', '9000000'); // con el precio del aviso, el informe arma el costo total
         // Marca y modelo del catálogo: le llegan al mecánico ya elegidos (los puede corregir)
         await comprador.selectOption('#marca', 'Volkswagen');
         await comprador.selectOption('#modelo', 'Gol Trend');
@@ -86,8 +89,8 @@ test('recorrido de la demo: pedir, aceptar, firmar y ver el informe', async ({ b
 
         await comprador.check('#acepto_alcance');
         await comprador.click('#pedido button[type="submit"]');
-        await expect(comprador).toHaveURL(/mis-inspecciones\.html\?nueva=\d+/);
-        id = Number(new URL(comprador.url()).searchParams.get('nueva'));
+        id = await pagarPedido(comprador); // con Mercado Pago activo, paga en el sandbox
+        await comprador.goto(pagina('pages/talleres/mis-inspecciones.html'));
         await expect(comprador.locator('#lista')).toContainText(titulo);
     });
 
