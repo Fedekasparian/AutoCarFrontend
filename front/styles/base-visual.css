@@ -1511,6 +1511,15 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .recomendados-intro{ margin: 0; font-size: 15px; color: var(--marca-gris); }
 .recomendados-intro strong{ color: var(--marca-tinta); }
 .recomendados-intro[hidden]{ display: none; }
+/* Explorar: los primeros de "Más relevantes" con el mismo aqua suave y una línea con por qué */
+.ficha--recomendada .ficha-vehiculo{
+    background: color-mix(in srgb, var(--marca-acento) 12%, var(--marca-blanco));
+    border-color: color-mix(in srgb, var(--marca-acento) 40%, var(--marca-linea));
+}
+.ficha-vehiculo__recomendado{ font-size: 13px; line-height: 1.45; color: var(--marca-tinta); }
+.ficha-vehiculo__recomendado strong{ display: block; font-size: 13px; }
+#explorar-intro{ margin: 0 0 12px; }
+
 /* Los 5 primeros: un bloque aparte con fondo aqua suave; "Otros autos" queda con el fondo normal */
 .recomendados[hidden], .otros-autos[hidden]{ display: none; }
 .recomendados{
