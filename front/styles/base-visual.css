@@ -156,6 +156,13 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 /* Sin :where: tienen que ganarle a la barra de vidrio de la sección 6, que viene después */
 :root[data-modo="oscuro"] .con-barra .barra{ background: var(--marca-blanco); backdrop-filter: none; -webkit-backdrop-filter: none; }
 :root[data-modo="oscuro"] .marca-nav{ background: var(--marca-papel); backdrop-filter: none; -webkit-backdrop-filter: none; }
+/* Al tocar el botón de modo (js/tema.js pone la clase por 250 ms): fondos, letras y bordes se funden en 200 ms */
+.modo-cambiando, .modo-cambiando *, .modo-cambiando *::before, .modo-cambiando *::after{
+    transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease, fill 200ms ease, stroke 200ms ease !important;
+}
+@media (prefers-reduced-motion: reduce){
+    .modo-cambiando, .modo-cambiando *, .modo-cambiando *::before, .modo-cambiando *::after{ transition: none !important; }
+}
 /* Paneles de marca: siguen oscuros con letra blanca */
 :where(:root[data-modo="oscuro"]) .hero, :where(:root[data-modo="oscuro"]) .acceso-relato, :where(:root[data-modo="oscuro"]) .portada-auto__escena{ background: var(--panel-oscuro); color: var(--sobre-panel); }
 :where(:root[data-modo="oscuro"]) .acceso-relato .acceso-relato__titulo{ color: var(--sobre-panel); }
