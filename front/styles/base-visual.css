@@ -128,29 +128,34 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 
 /* ---------- 5. Modo oscuro ---------- */
 /* js/tema.js pone data-modo="oscuro" en <html> si el sistema está en oscuro o si el usuario lo eligió con el botón */
+/* Grises neutros (sin azul) y el aqua más apagado; sombras cortas y la barra sin vidrio */
 :root[data-modo="oscuro"]{
     color-scheme: dark;
-    --marca-tinta: #e6eef1;
-    --marca-papel: #0b111d;
-    --marca-blanco: #131c2c;
-    --marca-tenue: #1b2638;
-    --marca-linea: #2a374b;
-    --marca-gris: #a3b4c2;
-    --marca-acento: #69e6d8;
-    --marca-hover: #8aeee3;
-    --marca-error: #ff8f94;
-    --marca-exito: #74d6a4;
-    --marca-aviso: #f0c36a;
-    --color-placeholder: #8292a3;
-    --color-borde: #5d6e82;
+    --marca-tinta: #e8e8e8;
+    --marca-papel: #161616;
+    --marca-blanco: #1f1f1f;
+    --marca-tenue: #282828;
+    --marca-linea: #343434;
+    --marca-gris: #a8a8a8;
+    --marca-acento: #57c2b6;
+    --marca-hover: #6ccfc4;
+    --marca-error: #f08a8f;
+    --marca-exito: #6fc79b;
+    --marca-aviso: #e3b860;
+    --color-placeholder: #8a8a8a;
+    --color-borde: #5e5e5e;
     --color-principal-oscuro: #ffffff;
     --color-error: var(--marca-error);
 
-    --panel-oscuro: #16223a;
-    --sombra-1: 0 1px 2px rgb(0 0 0 / .4);
-    --sombra-2: 0 12px 28px -10px rgb(0 0 0 / .6), 0 2px 6px rgb(0 0 0 / .3);
-    --sombra-3: 0 28px 64px -16px rgb(0 0 0 / .75);
+    --panel-oscuro: #1c1c1c;
+    --anillo-foco: 0 0 0 3px rgb(87 194 182 / .4);
+    --sombra-1: 0 1px 2px rgb(0 0 0 / .35);
+    --sombra-2: 0 4px 12px rgb(0 0 0 / .35);
+    --sombra-3: 0 12px 32px rgb(0 0 0 / .5);
 }
+/* Sin :where: tienen que ganarle a la barra de vidrio de la sección 6, que viene después */
+:root[data-modo="oscuro"] .con-barra .barra{ background: var(--marca-blanco); backdrop-filter: none; -webkit-backdrop-filter: none; }
+:root[data-modo="oscuro"] .marca-nav{ background: var(--marca-papel); backdrop-filter: none; -webkit-backdrop-filter: none; }
 /* Paneles de marca: siguen oscuros con letra blanca */
 :where(:root[data-modo="oscuro"]) .hero, :where(:root[data-modo="oscuro"]) .acceso-relato, :where(:root[data-modo="oscuro"]) .portada-auto__escena{ background: var(--panel-oscuro); color: var(--sobre-panel); }
 :where(:root[data-modo="oscuro"]) .acceso-relato .acceso-relato__titulo{ color: var(--sobre-panel); }
@@ -353,8 +358,8 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
     .vista-buscar .grilla-vehiculos{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
-:where(:root[data-modo="oscuro"]) .ficha-favorito{ background: rgb(19 27 45 / .78); color: #fff; }
-:where(:root[data-modo="oscuro"]) .ficha-favorito:hover{ background: rgb(19 27 45 / .92); }
+:where(:root[data-modo="oscuro"]) .ficha-favorito{ background: rgb(20 20 20 / .78); color: #fff; }
+:where(:root[data-modo="oscuro"]) .ficha-favorito:hover{ background: rgb(20 20 20 / .92); }
 @media (prefers-reduced-motion: reduce){
     .grilla-vehiculos--entra > li, .ficha--saliendo, .chip-filtro, .ficha-favorito--late svg{ animation: none; }
     .ficha-esqueleto__imagen, .ficha-esqueleto__linea{ animation: none; }
@@ -497,8 +502,8 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
     .barra-accion__texto span{ overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: var(--marca-gris); }
 }
 
-:where(:root[data-modo="oscuro"]) .galeria__boton{ background: rgb(19 27 45 / .78); color: #fff; }
-:where(:root[data-modo="oscuro"]) .galeria__boton:hover{ background: rgb(19 27 45 / .95); }
+:where(:root[data-modo="oscuro"]) .galeria__boton{ background: rgb(20 20 20 / .78); color: #fff; }
+:where(:root[data-modo="oscuro"]) .galeria__boton:hover{ background: rgb(20 20 20 / .95); }
 :where(:root[data-modo="oscuro"]) .etiqueta--buen_precio, :where(:root[data-modo="oscuro"]) .rango__ahorro{ background: #12392a; color: #8ee6b4; }
 :where(:root[data-modo="oscuro"]) .etiqueta--caro{ background: #47200f; color: #ffb795; }
 @media (prefers-reduced-motion: reduce){
@@ -1499,7 +1504,16 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .recomendados-intro{ margin: 0; font-size: 15px; color: var(--marca-gris); }
 .recomendados-intro strong{ color: var(--marca-tinta); }
 .recomendados-intro[hidden]{ display: none; }
-.resultado.resultado--recomendado{ border-left: 4px solid var(--marca-acento); }
+/* Los 5 primeros: un bloque aparte con fondo aqua suave; "Otros autos" queda con el fondo normal */
+.recomendados[hidden], .otros-autos[hidden]{ display: none; }
+.recomendados{
+    margin: 0; border-radius: 12px; overflow: hidden;
+    background: color-mix(in srgb, var(--marca-acento) 12%, var(--marca-blanco));
+    border: 1px solid color-mix(in srgb, var(--marca-acento) 40%, var(--marca-linea));
+}
+.recomendados .resultado{ padding-inline: 16px; }
+.recomendados .resultado:last-child{ border-bottom: 0; }
+.otros-autos{ margin: 24px 0 0; font-size: 18px; }
 .resultado__puesto{
     display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%;
     background: var(--marca-tinta); color: var(--marca-blanco); font-size: 12px; font-weight: 700;

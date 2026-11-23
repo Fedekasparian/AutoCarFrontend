@@ -32,7 +32,8 @@ test('con perfil, los primeros de "Más recomendados" dicen por qué y se puede 
 
     const id = new URL(page.url()).searchParams.get('id');
     await expect(page.locator('#filtros').or(page.locator('#estado .aviso'))).toBeVisible({ timeout: 60_000 });
-    const filas = page.locator('#resultados > li');
+    // Los 5 primeros van en #recomendados y el resto en #resultados
+    const filas = page.locator('#recomendados > li, #resultados > li');
     test.skip((await filas.count()) === 0, 'El entorno no tiene autos del metabuscador para esa marca y modelo.');
 
     await test.step('"Más recomendados" muestra hasta 5, numerados, para el perfil elegido', async () => {

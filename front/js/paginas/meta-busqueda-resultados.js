@@ -140,19 +140,25 @@ function mostrarResultados(r) {
     const resto = conTop ? res.items.slice(TOP) : res.items;
     const verTodo = !conTop || todo || res.total <= TOP;
 
-    // Con perfil, los clics de los primeros cuentan como "para vos" (la recomendación con mensaje); el resto, como
-    // metabuscador: así el embudo del admin mide si el mensaje convence
-    const filas = top.map((a, i) => fila(a, {
+    // Los primeros van en su propia lista, numerados y con su mensaje. Con perfil, sus clics cuentan como "para vos"
+    // (la recomendación con mensaje); el resto, como metabuscador: así el embudo del admin mide si el mensaje convence
+    $('recomendados').replaceChildren(...top.map((a, i) => fila(a, {
         i, id: idFila(a.id), aviso: avisoDe(a), puesto: i + 1,
         mensaje: r.perfil ? a.para_vos?.mensaje : mensajeSinPerfil(a),
         motivo: a.para_vos?.motivo,
         origen: r.perfil && a.para_vos ? 'para_vos' : 'metabuscador',
-    }));
-    if (verTodo) {
-        filas.push(...resto.map((a, i) => fila(a, { i: i + top.length, id: idFila(a.id), aviso: avisoDe(a), motivo: a.para_vos?.motivo })));
-    }
+    })));
+    $('recomendados').hidden = !conTop;
+    $('recomendados').classList.add('lista-filas--entra');
+
+    // "Otros autos": siguen en el mismo orden, pero sin números
+    const filas = verTodo
+        ? resto.map((a, i) => fila(a, { i: i + top.length, id: idFila(a.id), aviso: avisoDe(a), motivo: a.para_vos?.motivo }))
+        : [];
     $('resultados').replaceChildren(...filas);
     $('resultados').classList.add('lista-filas--entra');
+    $('otros-autos').textContent = `Otros autos (${res.total - top.length})`;
+    $('otros-autos').hidden = !(conTop && verTodo && filas.length);
 
     $('recomendados-intro').hidden = true;
     if (conTop) introRecomendados(r.perfil, top.length);
@@ -168,7 +174,7 @@ function mostrarResultados(r) {
             mostrarResultados(r);
             document.getElementById(idFila(res.items[TOP].id))?.querySelector('a')?.focus();
         }, 'boton boton--secundario ver-todo', 'ver-todo');
-        $('resultados').after(b);
+        $('recomendados').after(b);
     }
     $('paginacion').replaceWith(Object.assign(verTodo ? vistas.paginacion(res.pagina, res.paginas) : el('nav'), { id: 'paginacion' }));
 }
