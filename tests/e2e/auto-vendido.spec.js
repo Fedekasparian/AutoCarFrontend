@@ -7,7 +7,7 @@
 //            E2E_MECANICO_EMAIL / E2E_MECANICO_PASSWORD / E2E_MECANICO_TALLER (por defecto, el mecánico 5 de la demo)
 import { readFileSync } from 'node:fs';
 import { test, expect, request as pedidos } from '@playwright/test';
-import { pagina, soloFueraDeProduccion, emailNuevo, PASSWORD, contestarPreferencias } from './entorno.js';
+import { pagina, soloFueraDeProduccion, emailNuevo, PASSWORD, contestarPreferencias, pagarPedido } from './entorno.js';
 
 soloFueraDeProduccion();
 
@@ -85,8 +85,7 @@ test('el vendedor confirma el turno y, si vende antes, la inspección se cae', a
         await comprador.locator('#mecanicos label', { hasText: MECANICO.taller }).locator('input[type="radio"]').check();
         await comprador.check('#acepto_alcance');
         await comprador.click('#pedido button[type="submit"]');
-        await expect(comprador).toHaveURL(/mis-inspecciones\.html\?nueva=\d+/);
-        id = Number(new URL(comprador.url()).searchParams.get('nueva'));
+        id = await pagarPedido(comprador); // con Mercado Pago activo, paga en el sandbox
     });
 
     await test.step('el mecánico acepta con un turno para mañana', async () => {
