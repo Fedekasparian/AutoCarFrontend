@@ -20,7 +20,7 @@ test('el admin recorre las estadísticas y ve la fórmula de para vos', async ({
     await test.step('el resumen muestra los indicadores y aclara qué es "compró"', async () => {
         await page.goto(pagina('pages/admin/admin-metricas.html'));
         await expect(page.locator('#p-resumen')).toBeVisible({ timeout: 60_000 });
-        await expect(page.locator('#kpis > li')).toHaveCount(5);
+        await expect(page.locator('#kpis > li')).toHaveCount(4); // sin "Pagado por reclamos" desde el 23/11
         await expect(page.locator('#p-resumen')).toContainText('pagó la inspección');
         await expect(page.locator('#p-plata')).toBeHidden();
     });
@@ -51,9 +51,9 @@ test('el admin recorre las estadísticas y ve la fórmula de para vos', async ({
     await test.step('la pestaña Inspecciones muestra estados, conclusiones y talleres', async () => {
         await page.getByRole('button', { name: 'Inspecciones' }).click();
         await expect(page).toHaveURL(/#inspecciones$/);
-        await expect(page.locator('#kpis-inspecciones > li')).toHaveCount(6);
+        await expect(page.locator('#kpis-inspecciones > li')).toHaveCount(4); // sin las de reclamos (23/11)
         await expect(page.locator('#barras-inspecciones > li').first()).toBeVisible();
-        await expect(page.locator('#tabla-mecanicos thead th')).toHaveCount(4);
+        await expect(page.locator('#tabla-mecanicos thead th')).toHaveCount(3); // Taller, Firmadas, Cobrado
     });
 
     await test.step('el período cambia y queda en la URL', async () => {
