@@ -73,8 +73,9 @@ test('el admin recorre las estadísticas y ve la fórmula de para vos', async ({
         // Comparar las fuentes: conclusiones, barras, una fila por fuente y una línea por fuente en el gráfico
         await expect(page.locator('#comparar-fuentes')).toBeVisible();
         await expect(page.locator('#conclusiones-plata > li').first()).toBeVisible();
-        await expect(page.locator('#tabla-fuentes tbody tr')).toHaveCount(3);
-        await expect(page.locator('#tabla-fuentes thead th')).toHaveCount(9);
+        await expect(page.locator('#tarjetas-fuentes > li')).toHaveCount(3);
+        await expect(page.locator('#tarjetas-fuentes > li').first()).toContainText('de lo que ganamos');
+        await expect(page.locator('#figura-fuentes')).toBeVisible();
         // Segmentar por tipo de usuario (el perfil es obligatorio: sin fila "Sin perfil")
         await expect(page.locator('#tabla-plata-perfil tbody tr')).toHaveCount(4);
         await page.locator('#segmento-plata').getByRole('button', { name: 'Para la familia' }).click();
