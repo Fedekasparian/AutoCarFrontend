@@ -49,6 +49,11 @@ export function insigniaEmpresa(empresa, enlace = false) {
         : el('span', { class: 'insignia-empresa' }, ...contenido);
 }
 
+export function insigniaVerificado() {
+    return el('span', { class: 'insignia-verificado', title: 'Verificación mecánica vigente' },
+        el('span', { 'aria-hidden': 'true' }, '✓'), 'Verificado');
+}
+
 // v.recomendado {puesto, mensaje}: los primeros de "Más relevantes" en Explorar, con otro fondo y por qué
 export function fichaVehiculo(v) {
     return el('li', v.recomendado ? { class: 'ficha--recomendada' } : {},
@@ -60,6 +65,7 @@ export function fichaVehiculo(v) {
             el('div', { class: 'ficha-vehiculo__cuerpo' },
                 el('span', { class: 'ficha-vehiculo__precio' }, formato.precio(v.precio)),
                 el('span', { class: 'ficha-vehiculo__titulo' }, formato.titulo(v)),
+                v.verificado === true ? insigniaVerificado() : null,
                 // Concesionaria aprobada: su nombre con la insignia (sin logo; no es "patrocinado": compite igual)
                 v.empresa ? insigniaEmpresa(v.empresa) : null,
                 v.recomendado

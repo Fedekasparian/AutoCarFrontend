@@ -61,14 +61,15 @@ test('el admin recorre las estadísticas y ve la fórmula de para vos', async ({
         await expect(page).toHaveURL(/dias=90#inspecciones$/); // sigue en la pestaña que estaba abierta
         await expect(page.getByRole('button', { name: '3 meses' })).toHaveAttribute('aria-pressed', 'true');
         await page.getByRole('button', { name: 'Plata' }).click();
-        await expect(page.locator('#grafico-ganancia .tendencia__nombre')).toHaveText('Ganancia (comisiones)');
+        await expect(page.locator('#grafico-ganancia .tendencia__nombre')).toHaveText('Ingresos de AutoCar');
         await expect(page.locator('#grafico-reclamos')).toHaveCount(0); // sin reclamos desde el 23/11
         // El informe: la ganancia (sin pérdida por reclamos desde el 23/11), con la frase que lo resume
         await expect(page.locator('#informe-plata')).toBeVisible();
         await expect(page.locator('#t-informe')).toHaveText('Informe de los últimos 3 meses');
-        await expect(page.locator('#informe-cuenta dt')).toHaveCount(1);
-        await expect(page.locator('#informe-cuenta .informe-plata__fila--neta dt')).toContainText('Ganancia');
-        await expect(page.locator('#informe-frase')).toContainText('en comisiones');
+        await expect(page.locator('#informe-cuenta dt')).toHaveCount(4);
+        await expect(page.locator('#informe-cuenta .informe-plata__fila--neta dt')).toContainText('Ingresos del período');
+        await expect(page.locator('#informe-cuenta')).toContainText('Clics a plataformas');
+        await expect(page.locator('#informe-notas')).toContainText('Clics pendientes');
         // Segmentar por tipo de usuario: el informe pasa a ser solo de esos compradores
         await expect(page.locator('#tabla-plata-perfil tbody tr')).toHaveCount(5);
         await page.locator('#segmento-plata').getByRole('button', { name: 'Para la familia' }).click();

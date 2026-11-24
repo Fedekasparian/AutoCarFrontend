@@ -301,17 +301,26 @@ function informePlata(actual, anterior, textoPeriodo, quien = null) {
     const conQuien = quien ? ` con los compradores "${quien}"` : '';
 
     document.getElementById('informe-frase').textContent =
-        `En ${cuando} AutoCar ganó ${pesos(ingresos)} en comisiones${conQuien}.`;
+        `En ${cuando} AutoCar registró ${pesos(ingresos)} de ingresos${quien ? ' por inspecciones' : ''}${conQuien}.`;
 
     const fila = (nombre, detalle, monto, clase, extra = null) => el('div', { class: `informe-plata__fila ${clase}` },
         el('dt', {}, nombre, detalle ? el('span', { class: 'informe-plata__detalle' }, detalle) : null),
         el('dd', {}, el('span', {}, monto), extra));
-    llenar('informe-cuenta',
-        fila('Ganancia', 'Comisión de AutoCar de las inspecciones firmadas, menos los créditos usados',
-            pesos(ingresos), 'informe-plata__fila--neta', variacion(ingresos, anterior.ingresos)));
+    const desglose = [];
+    if (actual.ingresos_clics !== undefined) {
+        desglose.push(
+            fila('Inspecciones', 'Comisión de AutoCar menos los créditos usados', pesos(actual.ingresos_inspecciones), ''),
+            fila('Clics a plataformas', 'Liquidaciones de clics marcadas como cobradas en el período', pesos(actual.ingresos_clics), ''),
+            fila('Abonos de concesionarias', 'Abonos marcados como cobrados en el período', pesos(actual.ingresos_abonos), ''));
+    }
+    llenar('informe-cuenta', ...desglose,
+        fila(quien ? 'Ingreso por inspecciones' : 'Ingresos del período', '', pesos(ingresos),
+            'informe-plata__fila--neta', variacion(ingresos, anterior.ingresos)));
+    const pendiente = actual.clics_por_cobrar === undefined ? '' :
+        ` Clics pendientes de liquidación: ${pesos(actual.clics_por_cobrar)} estimados por ${n(actual.clics_pendientes)} clics válidos del período.`;
     document.getElementById('informe-notas').textContent =
-        `Por cobrar: ${pesos(actual.por_cobrar)} de inspecciones firmadas que todavía no se cobraron. `
-        + 'La comisión de Mercado Pago no está descontada: el pago es simulado.';
+        `Inspecciones por cobrar: ${pesos(actual.por_cobrar)}.` + pendiente
+        + ' Los convenios de afiliación son simulados.';
 }
 
 // ---------- Por tipo de usuario ("¿Para qué buscás el auto?"; el que no contestó es "Sin perfil") ----------
@@ -600,7 +609,7 @@ function mostrar(m) {
     llenar('kpis',
         tarjeta(actual.pagaron, `Pagaron la inspección ("compró") en ${textoPeriodo}`, n, { anterior: anterior.pagaron }),
         tarjeta(emb.vieron ? `${conversion} %` : '—', 'De los que vieron una recomendación, pagaron la inspección'),
-        tarjeta(actual.ingresos ?? actual.ganancia, `Ganancia de AutoCar en ${textoPeriodo}`, pesos, { anterior: anterior.ingresos ?? anterior.ganancia }),
+        tarjeta(actual.ingresos ?? actual.ganancia, `Ingresos de AutoCar en ${textoPeriodo}`, pesos, { anterior: anterior.ingresos ?? anterior.ganancia }),
         tarjeta(actual.nuevos_usuarios, `Usuarios nuevos en ${textoPeriodo}`, n, { anterior: anterior.nuevos_usuarios }));
     llenar('grafico-pagaron', tendencia(m.serie, { clave: 'pagaron', nombre: 'Inspecciones pagadas', clase: 'tendencia--1' }));
     llenar('grafico-nuevos', tendencia(m.serie, { clave: 'nuevos_usuarios', nombre: 'Usuarios nuevos', clase: 'tendencia--2' }));
@@ -608,11 +617,11 @@ function mostrar(m) {
     // Plata: arriba el informe (la ganancia) de todos o de un tipo de usuario, y después el detalle
     plataPorPerfil(m, textoPeriodo);
     llenar('kpis-plata',
-        tarjeta(actual.por_cobrar ?? 0, 'Por cobrar', pesos),
+        tarjeta(actual.por_cobrar ?? 0, 'Inspecciones por cobrar', pesos),
         tarjeta(actual.facturado, `Facturado (${n(actual.firmadas)} firmadas)`, pesos, { anterior: anterior.facturado }),
         tarjeta(actual.mecanicos ?? 0, 'Pagado a mecánicos', pesos, { anterior: anterior.mecanicos ?? 0 }),
         tarjeta(actual.compradores, 'Compradores que pagaron', n, { anterior: anterior.compradores }));
-    llenar('grafico-ganancia', tendencia(m.serie, { clave: 'ingresos', nombre: 'Ganancia (comisiones)', formatear: pesos, clase: 'tendencia--2' }));
+    llenar('grafico-ganancia', tendencia(m.serie, { clave: 'ingresos', nombre: 'Ingresos de AutoCar', formatear: pesos, clase: 'tendencia--2' }));
     const g = m.ganancias;
     llenar('tarjetas-ganancias',
         tarjeta(g.autocar, 'Para AutoCar', pesos),
