@@ -65,14 +65,13 @@
         <figure class="grafico" id="plata-perfil-tabla" hidden>
           <figcaption class="grafico__titulo">Ganancias por tipo de usuario</figcaption>
           <div class="tabla-desplazable"><table class="tabla tabla-embudo" id="tabla-plata-perfil"></table></div>
-          <h3 class="grafico__subtitulo">Ganancia neta por tipo de usuario</h3>
+          <h3 class="grafico__subtitulo">Ganancia por tipo de usuario</h3>
           <ul class="barras" id="barras-plata-perfil" role="list"></ul>
           <p class="campo__ayuda">El tipo de usuario es la respuesta a "¿Para qué buscás el auto?" del comprador que pagó la inspección. "Sin perfil": no la contestó.</p>
         </figure>
         <ul class="resumen-admin" role="list" id="kpis-plata"></ul>
         <div class="graficos-fila">
           <figure class="grafico"><figcaption class="solo-lector">Ganancia de AutoCar en el tiempo</figcaption><div id="grafico-ganancia"></div></figure>
-          <figure class="grafico"><figcaption class="solo-lector">Pérdida por reclamos en el tiempo</figcaption><div id="grafico-reclamos"></div></figure>
         </div>
         <h3 class="titulo-seccion">Desde el principio</h3>
         <ul class="resumen-admin" role="list" id="tarjetas-ganancias"></ul>
@@ -82,7 +81,7 @@
 
       <section class="metricas-panel pila" id="p-inspecciones" data-pestana="inspecciones" aria-labelledby="t-inspecciones" hidden>
         <h2 class="solo-lector" id="t-inspecciones">Inspecciones</h2>
-        <p class="campo__ayuda">Las inspecciones pedidas en el período: cuántas se firmaron, cuánto se tarda y cuántas terminan en reclamo.</p>
+        <p class="campo__ayuda">Las inspecciones pedidas en el período: cuántas se firmaron, cuánto se tarda y qué concluyó el mecánico.</p>
         <ul class="resumen-admin" role="list" id="kpis-inspecciones"></ul>
         <div class="graficos-fila">
           <figure class="grafico"><figcaption class="grafico__titulo">En qué quedaron las pedidas</figcaption><ul class="barras" id="barras-inspecciones" role="list"></ul></figure>
@@ -105,7 +104,51 @@
           <div class="tabla-desplazable"><table class="tabla tabla-embudo" id="tabla-embudo"></table></div>
           <p class="campo__ayuda">Conversión = de los compradores que vieron esa recomendación, qué parte pagó la inspección desde ahí. Resaltada, la que mejor funciona. "Sin perfil": no contestó "¿Para qué buscás el auto?". Si para un tipo de usuario "Recomendados" convierte menos que el resto, cambiá sus pesos en <a href="admin-parametros.html">Parámetros</a>.</p>
         </figure>
+        <!-- La misma tabla en plata: cuánto deja cada recomendación (con el mismo tipo de usuario elegido arriba) -->
+        <figure class="grafico">
+          <figcaption class="grafico__titulo" id="ganancia-embudo-titulo">Cuánta ganancia deja cada recomendación</figcaption>
+          <div class="tabla-desplazable"><table class="tabla tabla-embudo" id="tabla-ganancia-embudo"></table></div>
+          <h3 class="grafico__subtitulo">Ganancia por persona que vio la recomendación</h3>
+          <ul class="barras" id="barras-ganancia-embudo" role="list"></ul>
+          <p class="campo__ayuda">Ganancia = comisión de AutoCar, menos los créditos, de las inspecciones pedidas en el período desde esa recomendación que ya se firmaron y se cobraron, como en el informe de Plata. Cada columna "por" es esa ganancia dividida por cuántos vieron, tocaron "Mandale un mecánico" o pagaron. Resaltada, la que más deja por persona que la vio.</p>
+        </figure>
+        <figure class="grafico" id="valor-figura" hidden>
+          <figcaption class="grafico__titulo">Cuánto le cuesta decidirse a cada tipo de usuario</figcaption>
+          <ul class="resumen-admin" role="list" id="kpis-valor"></ul>
+          <div class="tabla-desplazable"><table class="tabla tabla-embudo" id="tabla-valor"></table></div>
+          <p class="campo__ayuda">Interacción: buscar en el metabuscador, cambiar el orden de los resultados o tocar "Mandale un mecánico" (que se le muestre un auto no cuenta). "Hasta comprar": mediana de los compradores, con sus interacciones de los 90 días antes de su primer pago; los que pagaron sin interactuar (por ejemplo, desde una publicación de AutoCar) se cuentan aparte.</p>
+        </figure>
         <p class="campo__ayuda" id="sin-origen"></p>
+      </section>
+
+      <!-- Afiliación con las plataformas (GET /api/admin/afiliacion): no depende del período elegido arriba -->
+      <section class="metricas-panel pila" id="p-afiliaciones" data-pestana="afiliaciones" aria-labelledby="t-afiliaciones" hidden>
+        <h2 class="solo-lector" id="t-afiliaciones">Afiliaciones</h2>
+        <p class="campo__ayuda">Convenio <strong>simulado</strong> con las plataformas del metabuscador: cada "Ver en …" se cuenta y a fin de mes se le cobra a cada una sus clics válidos por su tarifa. Válido = de una cuenta personal y no repetido (el mismo usuario y el mismo auto cuentan una vez cada 24 horas). No hay acuerdos reales con esas empresas.</p>
+        <h3 class="titulo-seccion">Este mes</h3>
+        <ul class="resumen-admin" role="list" id="kpis-afiliacion"></ul>
+        <figure class="grafico">
+          <figcaption class="grafico__titulo" id="afiliacion-mes-titulo">Lo que se va a cobrar este mes</figcaption>
+          <div class="tabla-desplazable"><table class="tabla tabla-embudo" id="tabla-afiliacion-mes"></table></div>
+          <p class="campo__ayuda" id="afiliacion-cierre"></p>
+        </figure>
+        <h3 class="titulo-seccion">Evolución</h3>
+        <figure class="grafico">
+          <figcaption class="grafico__titulo">Lo que se cobra por afiliación, mes a mes (últimos 12)</figcaption>
+          <ul class="leyenda-dias" role="list" aria-label="Referencias">
+            <li class="leyenda-dias__item leyenda-meses--clics">Clics a plataformas</li>
+            <li class="leyenda-dias__item leyenda-meses--abonos">Abonos de empresas</li>
+          </ul>
+          <ol class="meses" id="meses-afiliacion"></ol>
+        </figure>
+        <figure class="grafico">
+          <figcaption class="grafico__titulo">Meses cerrados</figcaption>
+          <div class="tabla-desplazable"><table class="tabla tabla-embudo" id="tabla-afiliacion-meses"></table></div>
+          <p class="campo__ayuda">Un mes se cobra cuando termina. "Marcar cobrado" guarda lo de ese momento: si después cambia la tarifa, ese mes no se mueve.</p>
+        </figure>
+        <h3 class="titulo-seccion">Convenios</h3>
+        <div class="tabla-desplazable"><table class="tabla tabla-embudo" id="tabla-convenios"></table></div>
+        <p class="campo__ayuda">La tarifa nueva vale para el mes en curso y los meses que todavía no se cobraron. Sin convenio activo los clics se cuentan, pero no se cobran.</p>
       </section>
 
       <section class="metricas-panel pila" id="p-metabuscador" data-pestana="metabuscador" aria-labelledby="t-metabuscador" hidden>

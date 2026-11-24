@@ -23,28 +23,22 @@ test('el checklist tiene los 10 códigos del back, en el mismo orden', () => {
     ]);
 });
 
-const PARAMETROS = { comision_autocar: 23, parte_fondo: 33.3333 };
+const PARAMETROS = { comision_autocar: 23 };
 
-test('desglose: con $ 100.000 son 77.000 para el mecánico y 23.000 para AutoCar (8.000 al fondo)', () => {
+test('desglose: con $ 100.000 son 77.000 para el mecánico y 23.000 para AutoCar', () => {
     assert.deepEqual(insp.desglose(100000, PARAMETROS),
-        { precio: 100000, monto_mecanico: 77000, monto_autocar: 23000, monto_fondo: 8000 });
+        { precio: 100000, monto_mecanico: 77000, monto_autocar: 23000 });
 });
 
 test('desglose: si el admin cambia la comisión, cambia el desglose', () => {
-    const d = insp.desglose(100000, { comision_autocar: 20, parte_fondo: 50 });
+    const d = insp.desglose(100000, { comision_autocar: 20 });
     assert.equal(d.monto_mecanico, 80000);
-    assert.equal(d.monto_fondo, 10000);
-});
-
-test('textoReclamo usa los días y el tope de la inspección', () => {
-    assert.match(insp.textoReclamo(10, 2), /10 días/);
-    assert.match(insp.textoReclamo(10, 2), /2 veces/);
+    assert.equal(d.monto_autocar, 20000);
 });
 
 test('desglose: la parte de AutoCar se redondea a miles y los montos suman el precio', () => {
     const d = insp.desglose(95000, PARAMETROS); // 23 % = 21.850 → 22.000
     assert.equal(d.monto_autocar, 22000);
-    assert.equal(d.monto_fondo, 7000);
     assert.equal(d.monto_mecanico + d.monto_autocar, 95000);
 });
 
@@ -158,24 +152,18 @@ test('fuenteDeUrl reconoce los sitios igual que el back', () => {
     assert.equal(insp.fuenteDeUrl('javascript:alert(1)'), null);
 });
 
-test('puntaje muestra "Nuevo en la red" con menos de 3 firmadas', () => {
-    assert.equal(insp.puntaje({ nuevo: true, puntaje: null, firmadas: 1 }), 'Nuevo en la red · 1 inspección firmada');
-    assert.equal(insp.puntaje({ nuevo: false, puntaje: 4.5, firmadas: 12 }), '4,5 de 5 · 12 inspecciones firmadas');
+test('experiencia muestra las firmadas y "Nuevo en la red" con menos del mínimo', () => {
+    assert.equal(insp.experiencia({ nuevo: true, firmadas: 1 }), 'Nuevo en la red · 1 inspección firmada');
+    assert.equal(insp.experiencia({ nuevo: false, firmadas: 12 }), '12 inspecciones firmadas');
 });
 
-test('el alcance cubre los 10 ítems del checklist y dice plazo y tope del reclamo', () => {
+test('el alcance cubre los 10 ítems del checklist y avisa que no hay reclamo después', () => {
     const cubre = insp.ALCANCE.cubre();
     assert.equal(cubre.length, insp.CHECKLIST.length);
     assert.match(cubre[0], /^Carrocería: /);
     assert.ok(insp.ALCANCE.noCubre.length >= 3);
-    assert.match(insp.textoReclamo(15, 3), /15 días/);
-    assert.match(insp.textoReclamo(15, 3), /3 veces el precio/);
-});
-
-test('reclamosProcedentes se muestra también para los nuevos', () => {
-    assert.equal(insp.reclamosProcedentes({ reclamos_procedentes: 0 }), 'Ningún reclamo procedió');
-    assert.equal(insp.reclamosProcedentes({ reclamos_procedentes: 1, nuevo: true }), '1 reclamo procedió');
-    assert.equal(insp.reclamosProcedentes({ reclamos_procedentes: 3 }), '3 reclamos procedieron');
+    assert.match(insp.TEXTO_RIESGO, /reduce el riesgo/);
+    assert.match(insp.TEXTO_RIESGO, /no hay reclamo/);
 });
 
 test('pedir hace POST /api/inspecciones y mias GET /api/mis-inspecciones', async () => {
@@ -196,26 +184,15 @@ test('mecanicos manda la localidad sólo si hay una', async () => {
     assert.equal(pedidos[1].url, 'http://localhost:8000/api/mecanicos?localidad=Luj%C3%A1n');
 });
 
-test('cancelar y reclamar hacen POST a su ruta', async () => {
-    respuestas.push(json({ inspeccion: {} }), json({ inspeccion: {} }, 201));
+test('cancelar hace POST a su ruta y ya no hay reclamo', async () => {
+    respuestas.push(json({ inspeccion: {} }));
     await api.cancelar(4);
-    await api.reclamar(4, { descripcion: 'Golpe en el zócalo', item_codigo: 'carroceria' });
     assert.equal(pedidos[0].url, 'http://localhost:8000/api/inspecciones/4/cancelar');
-    assert.equal(pedidos[1].url, 'http://localhost:8000/api/inspecciones/4/reclamo');
-    assert.deepEqual(JSON.parse(pedidos[1].body), { descripcion: 'Golpe en el zócalo', item_codigo: 'carroceria' });
-});
-
-test('el admin lista y resuelve reclamos', async () => {
-    respuestas.push(json({ items: [] }), json({ reclamo: {} }));
-    await admin.reclamos('abierto');
-    await admin.resolverReclamo(9, { procede: true, compensacion: 390000, respuesta: 'Se veía' });
-    assert.equal(pedidos[0].url, 'http://localhost:8000/api/admin/reclamos?estado=abierto');
-    assert.equal(pedidos[1].method, 'PATCH');
-    assert.equal(pedidos[1].url, 'http://localhost:8000/api/admin/reclamos/9');
+    assert.equal(api.reclamar, undefined);
+    assert.equal(admin.reclamos, undefined);
 });
 
 test('las páginas nuevas están en rutas.js', () => {
     assert.match(ruta('pedir-inspeccion.html?url=x'), /\/front\/pages\/talleres\/pedir-inspeccion\.html\?url=x$/);
     assert.match(ruta('mis-inspecciones.html'), /\/front\/pages\/talleres\/mis-inspecciones\.html$/);
-    assert.match(ruta('admin-reclamos.html'), /\/front\/pages\/admin\/admin-reclamos\.html$/);
 });

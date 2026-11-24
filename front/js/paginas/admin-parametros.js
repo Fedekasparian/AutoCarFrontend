@@ -1,7 +1,8 @@
-// Parámetros del negocio (permiso parametros.editar, el admin): comisión de AutoCar, parte al fondo, tope de la
-// compensación, días para reclamar y precio de la inspección. GET y PUT /api/admin/parametros.
+// Parámetros del negocio (permiso parametros.editar, el admin): comisión de AutoCar, precio de la inspección,
+// crédito por auto vendido, pesos de "para vos" y mínimo del ranking de mecánicos. GET y PUT /api/admin/parametros.
 // Los campos salen de la base: si se agrega un parámetro, aparece solo. El back valida los límites otra vez.
 import * as api from '../api/parametros.js';
+import * as admin from '../api/admin.js';
 import * as formato from '../servicios/formato.js';
 import * as formularios from '../servicios/formularios.js';
 import * as sesion from '../servicios/sesion.js';
@@ -12,7 +13,7 @@ const campos = document.getElementById('campos');
 const listaCambios = document.getElementById('cambios');
 const aviso = document.getElementById('aviso');
 
-const UNIDADES = { porcentaje: '%', pesos: '$', dias: 'días', veces: 'veces', horas: 'horas', puntos: 'puntos' };
+const UNIDADES = { porcentaje: '%', pesos: '$', dias: 'días', veces: 'veces', horas: 'horas', puntos: 'puntos', autos: 'autos' };
 let actuales = {}; // clave → valor que tiene hoy, para mandar solo lo que cambió
 
 // Un valor con su unidad: "23 %", "$100.000", "15 días"
@@ -39,6 +40,16 @@ function campoDe(p) {
 // La fórmula de "Recomendados" (parámetros peso_<perfil>_<criterio>): una grilla perfil × criterio en vez de 16 campos
 const PERFILES = { personal: 'Uso personal', familia: 'Familia', trabajo: 'Trabajo', aplicacion: 'Aplicación (Uber, Cabify)' };
 const CRITERIOS = { precio: 'Precio', km: 'Kilómetros', dias: 'Días publicado', anio: 'Año' };
+// Lo que se ve abajo de la grilla al pasar el mouse (o tocar) una columna: qué mide y qué pasa si le subís el peso
+const AYUDA_CRITERIOS = {
+    precio: { mide: 'El precio del auto comparado con el de autos parecidos.', mas: 'suben los autos más baratos que el resto.' },
+    km: { mide: 'Los kilómetros del auto comparados con los típicos de autos parecidos.', mas: 'suben los autos con menos km.' },
+    dias: { mide: 'Cuántos días lleva publicado desde que lo vimos por primera vez.', mas: 'suben los avisos viejos (hay más margen para negociar).' },
+    anio: { mide: 'El año del auto comparado con el año típico de la búsqueda.', mas: 'suben los autos más nuevos.' },
+};
+// El puntito de color de cada criterio: el mismo en la grilla, la ayuda y las barras de cada perfil
+const punto = (criterio) => el('span', { class: `criterio-punto criterio-punto--${criterio}`, 'aria-hidden': 'true' });
+const numero = (x) => String(Number(x.toFixed(2))).replace('.', ',');
 const esPeso = (p) => p.clave.startsWith('peso_');
 
 function formula(pesos) {
@@ -46,23 +57,65 @@ function formula(pesos) {
     const porClave = Object.fromEntries(pesos.map((p) => [p.clave, p]));
     const celda = (perfil, criterio) => {
         const p = porClave[`peso_${perfil}_${criterio}`];
-        if (!p) return el('td', {}, '—');
-        return el('td', {}, el('input', {
+        if (!p) return el('td', { 'data-criterio': criterio }, '—');
+        return el('td', { 'data-criterio': criterio }, el('input', {
             class: 'campo__input formula__peso', id: p.clave, name: p.clave, type: 'number', required: true,
             min: p.minimo, max: p.maximo, step: 'any', inputmode: 'decimal', value: Number(p.valor.toFixed(2)),
             'aria-label': `${PERFILES[perfil]}: peso de ${CRITERIOS[criterio].toLowerCase()}`, 'aria-describedby': `${p.clave}-error`,
         }), el('span', { class: 'campo__error', id: `${p.clave}-error` }));
     };
     const { minimo, maximo } = pesos[0];
+    const tabla = el('table', { class: 'tabla formula__tabla' },
+        el('thead', {}, el('tr', {}, el('th', {}, 'Perfil'), ...Object.entries(CRITERIOS).map(([criterio, c]) =>
+            el('th', { class: 'formula__criterio', 'data-criterio': criterio, tabindex: 0 }, punto(criterio), c)))),
+        el('tbody', {}, ...Object.entries(PERFILES).map(([perfil, nombre]) => el('tr', {},
+            el('th', { scope: 'row' }, nombre), ...Object.keys(CRITERIOS).map((criterio) => celda(perfil, criterio))))));
     return el('section', { class: 'pila formula', 'aria-labelledby': 'formula-titulo' },
         el('h2', { id: 'formula-titulo' }, 'Fórmula de "Recomendados"'),
         el('p', { class: 'campo__ayuda' }, `Cuánto pesa cada cosa al ordenar el metabuscador según para qué busca el auto cada comprador: de ${minimo} (no cuenta) a ${maximo} (lo que más importa). Mirá en Estadísticas → Recomendaciones si "Recomendados" convierte y ajustalo acá.`),
+        el('p', { class: 'formula__cuenta formula__cuenta--general' },
+            el('strong', {}, 'Puntaje'), ' = (peso precio × precio + peso km × km + peso días × días + peso año × año) ÷ suma de los pesos'),
         comoSeCalcula(),
-        el('div', { class: 'tabla-desplazable' }, el('table', { class: 'tabla formula__tabla' },
-            el('thead', {}, el('tr', {}, el('th', {}, 'Perfil'), ...Object.values(CRITERIOS).map((c) => el('th', {}, c)))),
-            el('tbody', {}, ...Object.entries(PERFILES).map(([perfil, nombre]) => el('tr', {},
-                el('th', { scope: 'row' }, nombre), ...Object.keys(CRITERIOS).map((criterio) => celda(perfil, criterio))))))));
+        el('p', { class: 'campo__ayuda' }, 'Pasá el mouse por el nombre de una columna (o tocá un casillero) para ver qué mide.'),
+        el('div', { class: 'tabla-desplazable' }, tabla));
 }
+
+// Cartelito que aparece al lado de lo que tiene data-criterio (columnas de la grilla y renglones de las tarjetas):
+// qué mide ese criterio y qué pasa si le subís el peso. Uno solo para toda la página, con position: fixed para que
+// la tabla desplazable no lo corte.
+const cartel = el('div', { class: 'cartel-criterio', id: 'cartel-criterio', role: 'tooltip', hidden: true });
+document.body.append(cartel);
+
+function mostrarCartel(evento) {
+    const objetivo = evento.target.closest('[data-criterio]');
+    if (!objetivo) return;
+    const criterio = objetivo.dataset.criterio;
+    cartel.replaceChildren(
+        el('p', { class: 'cartel-criterio__titulo' }, punto(criterio), CRITERIOS[criterio]),
+        el('p', {}, el('strong', {}, 'Qué mide: '), AYUDA_CRITERIOS[criterio].mide),
+        el('p', {}, el('strong', {}, 'Con más peso: '), AYUDA_CRITERIOS[criterio].mas));
+    cartel.hidden = false;
+    // Abajo de lo que señalaste; si no entra en la pantalla, arriba
+    const caja = objetivo.getBoundingClientRect();
+    const arriba = caja.bottom + 8 + cartel.offsetHeight > window.innerHeight;
+    cartel.style.top = `${arriba ? caja.top - cartel.offsetHeight - 8 : caja.bottom + 8}px`;
+    cartel.style.left = `${Math.max(8, Math.min(caja.left, window.innerWidth - cartel.offsetWidth - 8))}px`;
+    const tabla = objetivo.closest('.formula__tabla');
+    if (tabla) tabla.dataset.activo = criterio; // resalta la columna (CSS)
+}
+
+function ocultarCartel(evento) {
+    const objetivo = evento.target.closest('[data-criterio]');
+    if (!objetivo || objetivo.contains(evento.relatedTarget)) return;
+    cartel.hidden = true;
+    delete objetivo.closest('.formula__tabla')?.dataset.activo;
+}
+
+document.addEventListener('mouseover', mostrarCartel);
+document.addEventListener('focusin', mostrarCartel);
+document.addEventListener('mouseout', ocultarCartel);
+document.addEventListener('focusout', ocultarCartel);
+window.addEventListener('scroll', () => { cartel.hidden = true; }, { passive: true });
 
 // Cómo sale el puntaje de cada auto (MetaBusqueda\ParaVos del back). Los topes son fijos; los pesos, los de la grilla.
 function comoSeCalcula() {
@@ -74,30 +127,24 @@ function comoSeCalcula() {
             el('li', {}, el('strong', {}, 'Kilómetros: '), '(km típicos de los parecidos − km del auto) ÷ km típicos ÷ 0,5. La mitad de km (o menos) suma 1.'),
             el('li', {}, el('strong', {}, 'Días publicado: '), 'días desde que apareció ÷ 60. Con 60 días o más suma 1 (hay margen para negociar).'),
             el('li', {}, el('strong', {}, 'Año: '), '(año del auto − año típico de la búsqueda) ÷ 5. 5 años más nuevo suma 1; 5 más viejo resta 1.')),
-        el('p', { class: 'formula__cuenta' }, 'Puntaje = (peso precio × precio + peso km × km + peso días × días + peso año × año) ÷ suma de los pesos'),
-        el('p', {}, 'Da entre −1 y 1. "Recomendado" ordena de mayor a menor y el motivo que ve el comprador son las dos cosas que más suman. Ejemplo para "Familia" (2, 3, 1, 1): un auto 10 % más barato (0,5), con 25 % menos km (0,5), 30 días publicado (0,5) y del año típico (0) da (2×0,5 + 3×0,5 + 1×0,5 + 1×0) ÷ 7 = 0,43.'),
+        el('p', {}, 'Da entre −1 y 1. "Más recomendados" ordena de mayor a menor. Los primeros 5 llevan un mensaje con el perfil y lo que más sumó ("Como lo buscás para la familia, priorizamos pocos kilómetros: …"); el resto, las dos cosas que más suman. Ejemplo para "Familia" (2, 3, 1, 1): un auto 10 % más barato (0,5), con 25 % menos km (0,5), 30 días publicado (0,5) y del año típico (0) da (2×0,5 + 3×0,5 + 1×0,5 + 1×0) ÷ 7 = 0,43.'),
         el('p', {}, 'Si un perfil tiene todos los pesos en 0, sus autos no llevan puntaje y se ordenan por la diferencia con el precio típico.'));
 }
 
-// Cómo se arma el ranking de los mecánicos (Inspecciones\Ranking del back), con los valores de hoy de Parámetros
-// (ranking_*, se cambian en los campos de arriba). El 5 es fijo: el sitio dibuja cinco estrellas.
+// Cómo se arma el ranking de los mecánicos (Inspecciones\Ranking del back), con el mínimo de hoy de Parámetros
+// (ranking_minimo_firmadas, se cambia en el campo de arriba). Por experiencia: sin reclamos desde el 23/11.
 function rankingMecanicos(parametros) {
     const valor = Object.fromEntries(parametros.map((p) => [p.clave, p.valor]));
-    const veces = valor.ranking_veces_reclamo ?? 2;
     const minimo = valor.ranking_minimo_firmadas ?? 3;
-    const buena = valor.ranking_especialidad_buena ?? 2.5;
     const coma = (x) => String(Number(x.toFixed(2))).replace('.', ',');
-    const ejemplo = Math.max(0, 5 * (1 - (veces * 1) / 10));
     const caja = document.getElementById('ranking-mecanicos') ?? el('section', { class: 'pila', id: 'ranking-mecanicos', 'aria-labelledby': 'ranking-titulo' });
     caja.replaceChildren(
         el('h2', { id: 'ranking-titulo' }, 'Cómo se arma el ranking de los mecánicos'),
-        el('p', { class: 'campo__ayuda' }, 'Sale solo de cómo trabajó cada mecánico, nunca de un pago. Los números se cambian en los campos "Ranking de mecánicos" de arriba.'),
-        el('p', { class: 'formula__cuenta' }, `Puntaje = 5 × (1 − ${coma(veces)} × reclamos que procedieron ÷ inspecciones firmadas), con mínimo 0`),
+        el('p', { class: 'campo__ayuda' }, 'Sale de la experiencia de cada mecánico, nunca de un pago. El mínimo se cambia en el campo "Ranking de mecánicos" de arriba.'),
+        el('p', { class: 'formula__cuenta' }, 'Orden = inspecciones firmadas, de más a menos'),
         el('ul', {},
-            el('li', {}, `Con menos de ${coma(minimo)} inspecciones firmadas no tiene puntaje: aparece como "Nuevo en la red" y va al final.`),
-            el('li', {}, `Ejemplo: 10 firmadas y 1 reclamo que procedió → 5 × (1 − ${coma(veces)} × 1 ÷ 10) = ${coma(ejemplo)}.`),
-            el('li', {}, 'Orden del ranking general: mayor puntaje primero; si empatan, el que más firmó.'),
-            el('li', {}, `Al pedir una inspección de un auto, primero van los buenos en ese modelo, después los buenos en esa marca, después los que no revisaron ninguno y al final los que tuvieron reclamos en esos autos. "Bueno" = la misma cuenta, pero solo con las inspecciones de ese modelo (o de la marca), con ${coma(buena)} o más.`)));
+            el('li', {}, `Con menos de ${coma(minimo)} inspecciones firmadas aparece como "Nuevo en la red" y va después.`),
+            el('li', {}, 'Al pedir una inspección de un auto, primero van los que revisaron ese modelo, después los que revisaron esa marca y después el resto; en cada grupo, el que más revisó primero.')));
     return caja;
 }
 
@@ -107,20 +154,35 @@ function rankingAutos(pesos) {
     const valor = Object.fromEntries(pesos.map((p) => [p.clave, p.valor]));
     const caja = document.getElementById('ranking-autos') ?? el('section', { class: 'pila', id: 'ranking-autos', 'aria-labelledby': 'ranking-autos-titulo' });
     const perfiles = Object.entries(PERFILES).map(([perfil, nombre]) => {
-        const partes = Object.entries(CRITERIOS).map(([criterio, texto]) => [texto, valor[`peso_${perfil}_${criterio}`] ?? 0]);
-        const suma = partes.reduce((s, [, v]) => s + v, 0);
-        if (!suma) return el('li', {}, el('strong', {}, `${nombre}: `), 'todos los pesos en 0, se ordena por la diferencia con el precio típico.');
-        const ordenadas = partes.filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
-        const sinPeso = partes.filter(([, v]) => !v).map(([t]) => t.toLowerCase());
-        return el('li', {}, el('strong', {}, `${nombre}: `),
-            ordenadas.map(([t, v]) => `${t.toLowerCase()} ${Math.round((v / suma) * 100)} % (peso ${Number(v.toFixed(2))})`).join(' · '),
-            sinPeso.length ? `. No cuenta: ${sinPeso.join(', ')}.` : '.',
-            el('span', { class: 'campo__ayuda' }, ` Prioriza ${ordenadas[0][0].toLowerCase()}.`));
+        const partes = Object.keys(CRITERIOS).map((criterio) => ({ criterio, peso: valor[`peso_${perfil}_${criterio}`] ?? 0 }));
+        const suma = partes.reduce((s, p) => s + p.peso, 0);
+        const titulo = el('h3', { class: 'perfil-pesos__nombre' }, nombre);
+        if (!suma) return el('li', { class: 'perfil-pesos' }, titulo,
+            el('p', { class: 'perfil-pesos__nada' }, 'Todos los pesos en 0: se ordena por la diferencia con el precio típico.'));
+        const conPeso = partes.filter((p) => p.peso > 0).sort((a, b) => b.peso - a.peso);
+        const sinPeso = partes.filter((p) => !p.peso).map((p) => CRITERIOS[p.criterio].toLowerCase());
+        // Barra partida: cada tramo mide lo que decide ese criterio (peso ÷ suma)
+        const tramos = conPeso.map((p) => {
+            const tramo = el('span', { class: `perfil-pesos__tramo criterio-punto--${p.criterio}` });
+            tramo.style.setProperty('--parte', `${(p.peso / suma) * 100}%`);
+            return tramo;
+        });
+        return el('li', { class: 'perfil-pesos' },
+            el('div', { class: 'perfil-pesos__cabeza' }, titulo,
+                el('span', { class: 'perfil-pesos__prioriza' }, `Prioriza ${CRITERIOS[conPeso[0].criterio].toLowerCase()}`)),
+            el('div', { class: 'perfil-pesos__barra', 'aria-hidden': 'true' }, ...tramos),
+            el('ul', { class: 'perfil-pesos__lista' }, ...conPeso.map((p) => el('li', { class: 'perfil-pesos__item', 'data-criterio': p.criterio, tabindex: 0 },
+                punto(p.criterio), el('span', {}, CRITERIOS[p.criterio]),
+                el('strong', {}, `${Math.round((p.peso / suma) * 100)} %`),
+                el('span', { class: 'perfil-pesos__peso' }, `peso ${numero(p.peso)}`)))),
+            sinPeso.length ? el('p', { class: 'perfil-pesos__nada' }, `No cuenta: ${sinPeso.join(', ')}.`) : null,
+            el('p', { class: 'formula__cuenta' }, el('strong', {}, 'Puntaje'),
+                ` = (${conPeso.map((p) => `${numero(p.peso)} × ${CRITERIOS[p.criterio].toLowerCase()}`).join(' + ')}) ÷ ${numero(suma)}`));
     });
     caja.replaceChildren(
         el('h2', { id: 'ranking-autos-titulo' }, 'Cómo se arma el ranking de autos recomendados'),
-        el('p', { class: 'campo__ayuda' }, 'En el metabuscador, "Recomendado" ordena los autos por el puntaje de la fórmula de arriba, con los pesos del tipo de usuario del comprador ("¿Para qué buscás el auto?"). Cada porcentaje es qué parte del puntaje decide esa cosa (su peso ÷ la suma de los pesos de ese perfil). Un comprador sin perfil ve los autos ordenados por la diferencia con el precio típico.'),
-        el('ul', {}, ...perfiles));
+        el('p', { class: 'campo__ayuda' }, 'En el metabuscador, "Más recomendados" ordena los autos por el puntaje de la fórmula de arriba, con los pesos del tipo de usuario del comprador ("¿Para qué buscás el auto?"). Cada porcentaje es qué parte del puntaje decide esa cosa (su peso ÷ la suma de los pesos de ese perfil). Un comprador sin perfil ve los autos ordenados por la diferencia con el precio típico.'),
+        el('ul', { class: 'perfiles-pesos' }, ...perfiles));
     return caja;
 }
 
@@ -171,4 +233,30 @@ async function iniciar() {
     }
 }
 
-if (sesion.requerirPermiso('parametros.editar')) iniciar();
+// El ranking de Explorar usa el precio de cada publicación contra autos parecidos de otros sitios. Se calcula al aprobar
+// cada una y una vez por día cuando termina el scraper; este botón lo hace ahora (por ejemplo, después de cambiar datos)
+function botonPreciosMercado() {
+    const resultado = el('span', { class: 'suave', 'aria-live': 'polite' });
+    const boton = el('button', { class: 'boton boton--secundario', type: 'button' }, 'Actualizar precios contra el mercado');
+    boton.addEventListener('click', async () => {
+        boton.disabled = true;
+        resultado.textContent = 'Calculando…';
+        try {
+            const r = await admin.actualizarPreciosMercado();
+            resultado.textContent = `Listo: ${r.autos} publicaciones de ${r.modelos} modelos.`;
+        } catch (error) {
+            resultado.textContent = error.message;
+        } finally {
+            boton.disabled = false;
+        }
+    });
+    document.getElementById('contenido').append(el('section', { class: 'recuadro pila', 'aria-labelledby': 't-precios-mercado' },
+        el('h2', { class: 'titulo-seccion', id: 't-precios-mercado' }, 'Ranking de Explorar'),
+        el('p', { class: 'campo__ayuda' }, 'Explorar ordena con la misma fórmula de "para vos", con el precio de cada publicación contra autos parecidos de MercadoLibre, Kavak y Autocosmos. Se calcula al aprobar cada publicación y una vez por día, cuando termina el scraper. Con este botón se calcula ahora.'),
+        el('p', { class: 'acciones-fila' }, boton, ' ', resultado)));
+}
+
+if (sesion.requerirPermiso('parametros.editar')) {
+    iniciar();
+    botonPreciosMercado();
+}

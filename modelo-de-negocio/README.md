@@ -12,37 +12,39 @@
 
 > **v4 (08/11/2026).** Reemplaza a la v3, que tenía como eje "la publicación que se compara sola". Cambia por la devolución del profe: MercadoLibre ya muestra precios de referencia, así que el precio justo dejó de diferenciarnos. El eje nuevo es **el mecánico independiente que firma**. Al final está la sección [Qué cambió respecto de la v3](#qué-cambió-respecto-de-la-v3).
 
+> **Cambio del 23/11/2026 (devolución del profe): sin reclamos, sin fondo de garantía y sin historial por patente.** El reclamo no se puede verificar (nadie puede saber si la falla estaba el día de la inspección o apareció después) y llega cuando el comprador ya compró, o sea cuando la decisión ya está tomada. El informe firmado **reduce el riesgo antes de comprar, no lo elimina**: si al mecánico se le pasa algo, ese es el punto ciego del servicio y es un riesgo que asume el comprador. El historial por patente se sacó porque un auto puede dejar de estar publicado a las dos semanas y las inspecciones viejas quedan sin sentido. El ranking de mecánicos pasa a ser **por experiencia** (inspecciones firmadas).
+
 ## En una frase
 
-Encontrás un usado en cualquier sitio y AutoCar te manda un mecánico que **elegís vos**. El mecánico **firma el informe con su nombre** y, si se le pasó algo que se veía, **te devolvemos la plata y te compensamos**.
+Encontrás un usado en cualquier sitio y, antes de pagarlo, AutoCar te manda un mecánico que **elegís vos**. El mecánico **firma el informe con su nombre**: **comprás sabiendo lo que comprás**.
 
 ## Misión, visión y valores
 
-- **Misión:** que nadie en Argentina compre un usado a ciegas. Cualquier auto, esté publicado donde esté, puede pasar por un mecánico independiente que firma lo que revisó y responde si se equivoca.
+- **Misión:** que nadie en Argentina compre un usado a ciegas. Cualquier auto, esté publicado donde esté, puede pasar por un mecánico independiente que firma lo que revisó.
 - **Visión:** que en Argentina todo el que compre un usado pregunte "¿lo revisó un mecánico de AutoCar?". Es **solo para usados**: un 0 km ya tiene la garantía de fábrica y la revisión no aporta nada.
 - **Valores:**
   - **Independencia:** el mecánico lo elige el comprador. El vendedor no lo elige ni puede pagar para cambiar el resultado.
-  - **Responsabilidad:** cada informe lleva nombre y apellido. Si el mecánico se equivoca, responde.
+  - **Responsabilidad:** cada informe lleva nombre y apellido, fotos de lo que encontró y la patente con la foto de la chapa. La firma compromete al mecánico con lo que escribió.
   - **Transparencia:** el ranking de mecánicos es público y nadie puede pagar para subir.
 
 ## El problema
 
-Los avisos sobran y el precio de referencia ya lo da MercadoLibre. Lo que nadie resuelve es **"¿está bien de verdad este auto?"**, contestado por alguien que no tenga interés en la venta y que responda si se equivoca.
+Los avisos sobran y el precio de referencia ya lo da MercadoLibre. Lo que nadie resuelve es **"¿está bien de verdad este auto?"**, contestado por alguien que no tenga interés en la venta y que firme lo que vio.
 
 | | Qué pasa hoy |
 |---|---|
 | **01. El que revisa tiene interés** | Kavak, CarOne y Flash revisan los autos, pero el que revisa es el mismo que te vende o el que te quiere comprar el auto. |
-| **02. Nadie firma** | Los inspectores son anónimos. Si se les pasa algo, nadie responde. |
-| **03. El particular no tiene a quién llamar** | Si comprás en MercadoLibre o Marketplace, como mucho lo llevás a "un mecánico conocido": no deja un informe, no responde, y si el auto está en otra ciudad no tenés a nadie. |
+| **02. Nadie firma** | Los inspectores son anónimos: nadie pone su nombre en lo que revisó. |
+| **03. El particular no tiene a quién llamar** | Si comprás en MercadoLibre o Marketplace, como mucho lo llevás a "un mecánico conocido": no deja un informe firmado, y si el auto está en otra ciudad no tenés a nadie. |
 
 ¿Y el precio justo? MercadoLibre ya muestra precios de referencia. **No competimos ahí**: lo usamos como un dato más dentro del informe y del metabuscador.
 
 ## La solución: "Mandale un mecánico"
 
 1. **Encontrás el auto en cualquier lado.** Pegás el link de MercadoLibre, Kavak, Autocosmos o AutoCar, o tocás el botón **"Mandale un mecánico"** en el metabuscador.
-2. **Elegís un mecánico de la zona** por su ranking. El vendedor no puede elegirlo.
+2. **Elegís un mecánico de la zona** por su experiencia (cuántos autos revisó, y de ese modelo). El vendedor no puede elegirlo.
 3. **El mecánico revisa y firma.** Completa el checklist y firma el informe con su nombre. Una vez firmado, el informe no se puede cambiar.
-4. **Si se le pasó algo que se veía,** el comprador reclama. Si el reclamo procede, AutoCar devuelve lo que pagó, le paga una compensación y el mecánico baja en el ranking.
+4. **Decidís vos.** El informe reduce el riesgo, no lo elimina: la decisión de comprar es del comprador y no hay reclamo después de la firma.
 
 El comprador paga la inspección. AutoCar se queda una parte y el resto es para el mecánico.
 
@@ -55,9 +57,9 @@ El comprador paga la inspección. AutoCar se queda una parte y el resto es para 
 | El comprador elige al mecánico. El vendedor no lo elige y tampoco ve quién es hasta la cita. | Es lo que nos diferencia de Kavak, CarOne y Flash. |
 | El mecánico no puede revisar su propio auto ni uno publicado por él. | Para que no tenga interés en el resultado. |
 | El informe se firma con nombre y apellido y queda cerrado. Se guarda una huella (hash) para comprobar que nadie lo modificó. | La firma tiene que valer algo. |
-| Se responde por lo que **se veía**: lo que se detecta con el checklist sin desarmar el auto. Lo oculto o lo intermitente queda afuera, y eso se dice antes de pagar. | Si no, ningún mecánico se suma. |
-| El comprador tiene **15 días** desde la firma para reclamar. Lo resuelve AutoCar con las pruebas (fotos, informe de otro taller). | Plazo corto y claro. |
-| El ranking se calcula con las inspecciones firmadas y los reclamos que procedieron. **No se vende ni se puede pagar para subir.** | Si se pudiera pagar, la firma dejaría de valer. |
+| El informe dice qué revisó (el checklist, sin desarmar el auto) y qué no: lo oculto o lo intermitente queda afuera, y eso se dice antes de pagar. | El comprador sabe hasta dónde llega el informe. |
+| No hay reclamo después de la firma: el informe **reduce el riesgo, no lo elimina**, y la decisión de comprar es del comprador. | Un reclamo no se puede verificar y llega cuando el auto ya se compró (23/11). |
+| El ranking es por **experiencia**: cuántas inspecciones firmó cada mecánico y de qué modelos. **No se vende ni se puede pagar para subir.** | Si se pudiera pagar, la firma dejaría de valer. |
 
 ### El metabuscador, enganchado al mecánico
 
@@ -80,7 +82,7 @@ No hay una API pública del Registro Automotor para consultar deudas, prendas o 
 | ¿Quién revisa? | Un técnico de Kavak, que vende el auto | El que te compra el auto | Nadie | Tu mecánico | **Un mecánico independiente** |
 | ¿Quién lo elige? | Kavak | La empresa | — | Vos | **Vos (el comprador)** |
 | ¿Firma con su nombre? | No | No | — | No deja informe | **Sí** |
-| ¿Responde si se equivoca? | Solo por los autos de Kavak | No | — | No | **Devolución, compensación y baja en el ranking** |
+| ¿Deja un informe con fotos y patente? | Solo de su stock | No | — | No | **Sí, firmado y cerrado (con huella)** |
 | ¿Sirve para cualquier auto? | Solo su stock | Solo para venderles | — | Sí, si está cerca | **Sí, de cualquier sitio** |
 | ¿Te muestra autos de todos los sitios? | No | No | Solo sus avisos | — | **Sí (metabuscador)** |
 
@@ -104,19 +106,12 @@ Al principio el foco está en el comprador y en 5 talleres. Si el comprador conf
 | El comprador paga la inspección (precio sugerido; cada taller pone el suyo entre $ 70.000 y $ 150.000) | **$ 100.000** |
 | → para el mecánico (77 %) | $ 77.000 |
 | → para AutoCar (23 %) | $ 23.000 |
-| De lo de AutoCar, para el **fondo de garantía** (un tercio) | $ 8.000 |
 | De lo de AutoCar, comisión de Mercado Pago (si se usa) | ~$ 1.800 |
-| De lo de AutoCar, **neto por inspección** | **~$ 13.200** |
+| De lo de AutoCar, **neto por inspección** | **~$ 21.200** |
 
 Todos estos números (porcentajes, montos y días) son **parámetros** que el admin cambia desde su panel, sin tocar código. Son los que juntamos en avisos y blogs: hay que validarlos con talleres reales.
 
-**El fondo de garantía paga los reclamos.** Si un reclamo procede:
-
-- Al comprador se le devuelven los $ 100.000 y se le paga una **compensación de hasta 3 veces el precio de la inspección** (en este ejemplo, hasta $ 300.000) o el costo del arreglo, lo que sea menor.
-- **El mecánico paga una franquicia del 40 % de lo que cobró** (con $ 100.000, $ 30.800) y baja en el ranking.
-- El fondo **solo paga reclamos**.
-
-**¿Alcanza el fondo?** Un reclamo cuesta hasta ~$ 370.000 ($ 100.000 + $ 300.000 − $ 30.800 de franquicia). Con $ 8.000 por inspección, el fondo cierra si hay **menos de 1 reclamo que procede cada ~46 inspecciones**. Es un supuesto: si hay más, se sube la parte al fondo o se baja el tope (los dos son parámetros).
+**Sin fondo de garantía** (desde el 23/11): como no hay reclamos, no hay nada que apartar. Toda la comisión es de AutoCar.
 
 ### Fuentes de ingreso
 
@@ -147,11 +142,11 @@ Supuestos para el arranque en Mercedes y Luján. Hay que validarlos:
 | | Por mes |
 |---|---|
 | Costos fijos: servidor y base pagos, dominio, Mercado Pago, publicidad local mínima | ≈ $ 600.000 |
-| Neto por inspección (sin el fondo ni la comisión de Mercado Pago) | ~$ 13.200 |
-| **Inspecciones para cubrir los costos** | **≈ 46** |
+| Neto por inspección (sin la comisión de Mercado Pago) | ~$ 21.200 |
+| **Inspecciones para cubrir los costos** | **≈ 29** |
 | Capacidad con 5 talleres haciendo 2 por semana cada uno | ≈ 40 |
 
-Con los 5 talleres iniciales casi se cubren los costos: hace falta un taller más o que cada uno haga 3 por semana. Para crecer: más talleres por ciudad, la comisión por arreglos (idea A) y la suscripción del vendedor.
+Con los 5 talleres iniciales se cubren los costos (≈ 29 de las ≈ 40 que pueden hacer por mes). Para crecer: más talleres por ciudad, la comisión por arreglos (idea A) y la suscripción del vendedor.
 
 ## Cómo crece
 
@@ -159,13 +154,13 @@ Con los 5 talleres iniciales casi se cubren los costos: hace falta un taller má
 
 **Por qué es difícil de copiar:**
 
-- Una red de mecánicos con un historial de informes firmados y reclamos no se arma de un día para el otro.
+- Una red de mecánicos con miles de informes firmados no se arma de un día para el otro.
 - Los datos de fallas **medidas en autos reales**, modelo por modelo, no los tiene nadie en Argentina. Kavak los tiene, pero no los publica.
 - Kavak, CarOne y Flash no pueden copiarlo sin dejar de ser los que venden o compran el auto.
 
 | Fase | Qué incluye |
 |---|---|
-| **1. Lanzamiento** (lo que mostramos el 30/11) | Inspección por link con mecánico elegido por el comprador, informe firmado con patente e historial del auto, reclamo, fondo de garantía y ranking. Metabuscador con el botón "Mandale un mecánico" y alertas. **Fallas típicas por modelo** (idea B) y **costo total con 3 presupuestos** (idea A), con datos de prueba. 5 talleres de Mercedes y Luján |
+| **1. Lanzamiento** (lo que mostramos el 30/11) | Inspección por link con mecánico elegido por el comprador, informe firmado con patente y fotos, y ranking por experiencia. Metabuscador con el botón "Mandale un mecánico" y alertas. **Fallas típicas por modelo** (idea B) y **costo total con 3 presupuestos** (idea A), con datos de prueba. 5 talleres de Mercedes y Luján |
 | **2. Crecimiento** | Las ideas A y B con datos reales (fallas medidas en muchas inspecciones, presupuestos de toda la red). Cobro real con Mercado Pago y pagos al mecánico. Informe para vender y copia del informe al que compró el auto. Suscripción del vendedor |
 | **3. Escala** | Más ciudades, datos agregados para aseguradoras y financieras, financiación con socios |
 

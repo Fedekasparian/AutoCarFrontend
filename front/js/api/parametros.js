@@ -1,7 +1,7 @@
 // Parámetros del negocio (los cambia el admin en admin-parametros.html, sin tocar código).
 import { get, put } from './cliente.js';
 
-// Público. → {comision_autocar, parte_fondo, tope_veces, dias_reclamo, precio_minimo, precio_sugerido, precio_maximo}
+// Público. → {comision_autocar, precio_minimo, precio_sugerido, precio_maximo, credito_vendido, ...}
 export const publicos = () => get('/api/parametros');
 
 // Admin (permiso parametros.editar). → {parametros: [{clave, valor, minimo, maximo, unidad, descripcion,

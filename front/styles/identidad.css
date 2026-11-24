@@ -111,6 +111,8 @@ a.ficha-vehiculo:hover { box-shadow:0 10px 26px #162d3c13; transform:translateY(
 .taller-banner h2 { font-size:clamp(28px,3vw,42px); letter-spacing:-1.5px; margin:16px 0; }
 .taller-banner p { max-width:400px; color:var(--marca-gris); margin-bottom:24px; line-height:1.65; }
 .taller-banner small { font-size:12px; margin-top:14px; color:var(--marca-gris); }
+.taller-banner--invertido { margin-top:24px; }
+@media (min-width: 768px) { .taller-banner--invertido .taller-banner__foto { order:2; } }
 .planes-home { display:flex; align-items:center; justify-content:space-between; gap:32px; background:var(--marca-acento); border-radius:18px; padding:36px 42px; margin-bottom:60px; }
 .planes-home h2 { font-size:30px; letter-spacing:-1px; margin:8px 0; }
 .planes-home p { font-size:14px; }

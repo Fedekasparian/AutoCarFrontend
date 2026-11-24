@@ -17,6 +17,22 @@ export function explicacion(d) {
         : `Todavía no hay inspecciones firmadas de este modelo. El porcentaje se muestra desde ${d.minimo}.`;
 }
 
+// El voto del mecánico ya aplicado, para mostrarlo al instante mientras se guarda (el back después manda los datos
+// reales, con el estado nuevo). Cambia su voto anterior: no suma dos veces. No modifica d, devuelve una copia.
+export function conVoto(d, fallaId, confirma) {
+    return {
+        ...d,
+        fallas: d.fallas.map((f) => {
+            if (f.id !== fallaId || f.mi_voto === confirma) return f;
+            const votos = { ...f.votos };
+            if (f.mi_voto === true) votos.confirman -= 1;
+            if (f.mi_voto === false) votos.descartan -= 1;
+            votos[confirma ? 'confirman' : 'descartan'] += 1;
+            return { ...f, mi_voto: confirma, votos };
+        }),
+    };
+}
+
 // Las fallas del modelo. Con alVotar(falla, confirma) agrega los botones del mecánico ("La vi" / "No es típica").
 export function lista(d, alVotar = null) {
     const conFalla = d.fallas.map((f) => el('li', { class: `falla-tipica falla-tipica--${f.estado}` },

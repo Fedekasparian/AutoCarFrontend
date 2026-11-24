@@ -33,8 +33,8 @@ test.describe('@humo', () => {
     test('cómo funciona muestra los números de los parámetros', async ({ page }) => {
         const p = await (await page.request.get('/api/parametros')).json();
         await page.goto(pagina('pages/info/como-funciona.html'));
-        const dias = page.locator('#comprar [data-parametro="dias_reclamo"]');
-        await expect(dias).toHaveText(String(p.dias_reclamo));
+        const credito = page.locator('#comprar [data-parametro="credito_vendido"]');
+        await expect(credito).toHaveText(String(p.credito_vendido));
         await expect(page.locator('#mecanicos [data-parametro="comision_autocar"]')).toHaveText(String(p.comision_autocar));
     });
 });

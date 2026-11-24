@@ -158,7 +158,6 @@ function mostrarFormulario(i) {
     document.getElementById('conclusion').replaceChildren(...radios('conclusion', insp.CONCLUSIONES, i.conclusion));
     form.elements.resumen.value = i.resumen || '';
     form.elements.patente.value = insp.formatoPatente(i.patente);
-    mostrarAnteriores(i);
     mostrarEstadoFoto(i);
     actualizarProgreso();
     form.hidden = false;
@@ -213,10 +212,14 @@ async function cargarFallas() {
 }
 form.elements.modelo.addEventListener('change', cargarFallas);
 
+// El botón cambia al toque (conVoto) y el voto se guarda por detrás; si falla, vuelve como estaba
 async function votar(falla, confirma) {
+    const antes = modeloFallas;
+    mostrarFallas(fallas.conVoto(antes, falla.id, confirma));
     try {
         mostrarFallas((await api.votarFalla(falla.id, confirma)).fallas_tipicas);
     } catch (error) {
+        mostrarFallas(antes);
         avisar(error.message);
     }
 }
@@ -291,21 +294,6 @@ entradaFoto.addEventListener('change', async () => {
         mostrarEstadoFoto(inspeccion);
     }
     entradaFoto.value = '';
-});
-
-// Si el auto ya se revisó en AutoCar (misma patente), el mecánico lo ve antes de empezar: qué encontraron y con
-// cuántos km. Sale de la patente guardada, por eso al escribir una nueva se guarda el borrador.
-const anteriores = document.getElementById('anteriores');
-function mostrarAnteriores(i) {
-    anteriores.replaceChildren(...(i.patente ? informe.historialAuto(i) : []));
-}
-
-form.elements.patente.addEventListener('change', async () => {
-    const patente = insp.normalizarPatente(form.elements.patente.value);
-    if (!patente || patente === inspeccion.patente) return;
-    anteriores.replaceChildren(el('p', { class: 'campo__ayuda' }, 'Buscando si este auto ya se revisó en AutoCar…'));
-    if (await guardar(false)) mostrarAnteriores(inspeccion);
-    else anteriores.replaceChildren();
 });
 
 // Lo de la patente que se revisa además del checklist: el formato siempre y, para firmar, que estén las dos
@@ -397,7 +385,6 @@ const botonGuardar = boton('Guardar borrador', async () => {
     botonGuardar.disabled = true;
     if (await guardar(false)) {
         avisar('Se guardó el borrador. Podés seguir después.');
-        mostrarAnteriores(inspeccion);
     }
     botonGuardar.disabled = false;
 }, 'boton boton--secundario', 'guardar');
@@ -411,7 +398,7 @@ const pedirFirma = confirmacion({
     volver: 'Volver',
     detalle: (conclusion) => [
         el('p', {}, `Vas a firmar con tu nombre, ${sesion.usuario()?.nombre || ''}, un informe "${conclusion}" sobre ${insp.tituloAuto(inspeccion)}.`),
-        el('p', { class: 'campo__ayuda' }, `Después de firmar el informe queda cerrado y no se puede cambiar. Si se te pasó algo que se veía, el comprador puede reclamar durante ${inspeccion.dias_reclamo} días.`),
+        el('p', { class: 'campo__ayuda' }, `Después de firmar el informe queda cerrado y no se puede cambiar.`),
     ],
     hacer: async () => {
         // Se guarda lo último que cargó y después se firma eso mismo. Si no se pudo guardar, el motivo
@@ -460,7 +447,6 @@ function mostrarFirmado(i) {
     document.getElementById('firmado-items').replaceWith(
         Object.assign(informe.listaItems(i), { id: 'firmado-items' }));
     document.getElementById('firmado-datos').replaceChildren(...informe.datosFirma(i));
-    document.getElementById('firmado-anteriores').replaceChildren(...informe.historialAuto(i));
     document.getElementById('firmado').hidden = false;
 }
 

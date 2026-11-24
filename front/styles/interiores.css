@@ -250,7 +250,7 @@
 .fila--inspeccion .acciones-fila { margin-top:0; }
 .item-checklist { padding:16px 0; border:0; border-bottom:1px solid var(--marca-linea); }
 .item-checklist legend .campo__ayuda { font-weight:400; }
-.vista-pedir-inspeccion .pantalla,.vista-mis-inspecciones .pantalla,.vista-admin-reclamos .pantalla { max-width:900px; }
+.vista-pedir-inspeccion .pantalla,.vista-mis-inspecciones .pantalla { max-width:900px; }
 .vista-pedir-inspeccion .opciones label .fila__cuerpo { flex:1; min-width:0; }
 .orden > legend { padding:0; }
 /* Celular: las dos formas de ordenar en una fila y el precio del taller abajo del nombre, para que el nombre respire */
@@ -273,7 +273,7 @@
 .fila--mecanico .fila__acciones { display:flex; align-items:center; gap:12px; }
 .vista-talleres summary { cursor:pointer; font-weight:600; }
 
-/* Alcance de la inspección (pedir-inspeccion.html y el reclamo de verificacion.html) */
+/* Alcance de la inspección (pedir-inspeccion.html y el informe de verificacion.html) */
 .alcance summary { cursor:pointer; font-weight:600; }
 .alcance__titulo { font-size:1rem; margin:16px 0 8px; }
 .alcance ul { padding-left:20px; list-style:disc; }
