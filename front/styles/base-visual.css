@@ -1290,11 +1290,6 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .barra .boton-modo{ position: relative; z-index: 1; }
 
 /* ---------- Estadísticas del admin (admin-metricas.html): pestañas, período, variaciones, tendencias y embudo ---------- */
-.fuentes-plata { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; margin: 0; padding: 0; border: 0; }
-.fuentes-plata legend { padding: 0; margin-bottom: 8px; font-weight: 600; }
-.fuentes-plata label { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; cursor: pointer; }
-.fuentes-plata input { accent-color: var(--marca-acento); }
-.fuentes-plata button:disabled { opacity: .5; }
 .metricas-controles{ display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
 /* Son 6 secciones: en celular bajan de renglón en vez de esconderse a la derecha */
 .metricas-controles .pestanas-estado{ flex-wrap: wrap; overflow-x: visible; }

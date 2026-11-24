@@ -38,13 +38,13 @@ let segmento = 'todos';
 let segmentoEmbudo = 'todos'; // lo mismo en la tabla de Recomendaciones
 let ultimas = null; // las últimas métricas, para cambiar de segmento sin volver a pedirlas
 
+// Plata: "todas" o una sola fuente (botones). fuentes es el conjunto que usan el informe y los detalles.
+let fuenteElegida = 'todas';
 const fuentes = new Set(Object.keys(FUENTES));
 let afiliacionActual = null;
 
 function actualizarPlata() {
-    const todas = fuentes.size === Object.keys(FUENTES).length;
-    document.getElementById('todas-las-fuentes').disabled = todas;
-    document.getElementById('sin-fuentes').hidden = fuentes.size > 0;
+    const todas = fuenteElegida === 'todas';
     document.getElementById('detalle-inspecciones').hidden = !fuentes.has('inspecciones');
     document.getElementById('afiliaciones').hidden = !fuentes.has('clics') && !fuentes.has('abonos');
     document.querySelectorAll('[data-fuente]').forEach(nodo => { nodo.hidden = !fuentes.has(nodo.dataset.fuente); });
@@ -61,21 +61,14 @@ function actualizarPlata() {
 }
 
 function prepararFuentes() {
-    const grupo = document.getElementById('fuentes-plata');
-    for (const [clave, [nombre]] of Object.entries(FUENTES)) {
-        grupo.append(el('label', {}, el('input', { type: 'checkbox', value: clave, checked: true }), ' ' + nombre));
-    }
-    const todas = el('button', { class: 'boton-link', type: 'button', id: 'todas-las-fuentes', disabled: true }, 'Ver todo');
-    grupo.append(todas);
-    grupo.addEventListener('change', ({ target }) => {
-        if (target.checked) fuentes.add(target.value);
-        else fuentes.delete(target.value);
+    const opciones = [['todas', 'Todas'], ...Object.entries(FUENTES).map(([clave, [nombre]]) => [clave, nombre])];
+    llenar('fuentes-plata', ...opciones.map(([clave, texto]) => boton(texto, clave === fuenteElegida, () => {
+        fuenteElegida = clave;
+        fuentes.clear();
+        (clave === 'todas' ? Object.keys(FUENTES) : [clave]).forEach((f) => fuentes.add(f));
+        prepararFuentes();
         actualizarPlata();
-    });
-    todas.addEventListener('click', () => {
-        grupo.querySelectorAll('input').forEach(control => { control.checked = true; fuentes.add(control.value); });
-        actualizarPlata();
-    });
+    })));
 }
 
 // ---------- Piezas ----------

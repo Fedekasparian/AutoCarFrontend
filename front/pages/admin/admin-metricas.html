@@ -52,10 +52,11 @@
 
       <section class="metricas-panel pila" id="p-plata" data-pestana="plata" aria-labelledby="t-plata" hidden>
         <h2 class="solo-lector" id="t-plata">Plata</h2>
-        <fieldset class="fuentes-plata" id="fuentes-plata">
-          <legend>Fuentes de ingreso</legend>
-        </fieldset>
-        <p class="campo__ayuda" id="sin-fuentes" hidden>Elegí al menos una fuente para ver sus ingresos.</p>
+        <!-- Todas las fuentes o una sola: los botones los arma admin-metricas.js, como los del período -->
+        <div class="segmento-plata">
+          <span class="metricas-periodo__etiqueta" id="t-fuentes">Fuente de ingreso</span>
+          <div class="pestanas-estado" role="group" aria-labelledby="t-fuentes" id="fuentes-plata"></div>
+        </div>
         <article class="recuadro informe-plata" id="informe-plata" aria-labelledby="t-informe" hidden>
           <h3 class="informe-plata__titulo" id="t-informe">Informe</h3>
           <p class="informe-plata__frase" id="informe-frase"></p>
