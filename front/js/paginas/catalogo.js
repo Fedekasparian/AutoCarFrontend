@@ -30,19 +30,51 @@ function completarFormularios() {
     });
 }
 
-// Filtros rápidos (home.html): se aplican al elegir, sin tocar "Aplicar" (el botón queda para quien no tiene JS)
-function aplicarAlElegir() {
-    document.querySelectorAll('.filtros-rapidos').forEach((grupo) => {
-        const formulario = grupo.form || grupo.closest('form');
-        // Se arma la URL sin los campos vacíos (?combustible=nafta en lugar de ?q=&marca=&combustible=nafta)
-        grupo.addEventListener('change', () => {
-            const datos = new URLSearchParams();
-            new FormData(formulario).forEach((valor, nombre) => { if (valor) datos.set(nombre, valor); });
-            const query = datos.toString();
-            window.location.assign(formulario.getAttribute('action') + (query ? `?${query}` : ''));
-        });
-        formulario.querySelector('.resultados__barra [type="submit"]')?.setAttribute('hidden', '');
+// En Explorar se pueden combinar criterios antes de enviarlos juntos.
+function prepararBarra(formulario) {
+    if (!formulario) return;
+    const segmentos = [...formulario.querySelectorAll('details')];
+    const actualizar = () => segmentos.forEach(segmento => {
+        const resumen = segmento.querySelector('[data-resumen]');
+        const valores = [...segmento.querySelectorAll('input[type=search], input:checked, select')]
+            .filter(control => control.value)
+            .map(control => {
+                if (control.type === 'radio') return control.labels[0].textContent.trim();
+                if (control.tagName === 'SELECT') return control.selectedOptions[0].textContent;
+                return control.value;
+            });
+        resumen.textContent = valores.join(' · ') || resumen.dataset.porDefecto;
     });
+    for (const segmento of segmentos) {
+        const resumen = segmento.querySelector('[data-resumen]');
+        resumen.dataset.porDefecto = resumen.textContent;
+    }
+    actualizar();
+    formulario.addEventListener('input', actualizar);
+    formulario.addEventListener('change', actualizar);
+    document.addEventListener('click', evento => {
+        for (const segmento of segmentos) {
+            if (segmento.open && !segmento.contains(evento.target)) segmento.open = false;
+        }
+    });
+    formulario.addEventListener('keydown', evento => {
+        const segmento = evento.target.closest('details[open]');
+        if (evento.key === 'Escape' && segmento) {
+            segmento.open = false;
+            segmento.querySelector('summary').focus();
+        }
+    });
+    formulario.addEventListener('submit', evento => {
+        evento.preventDefault();
+        const parametros = new URLSearchParams();
+        for (const [nombre, valor] of new FormData(formulario)) {
+            if (valor.trim()) parametros.set(nombre, valor.trim());
+        }
+        const destino = new URL(formulario.action);
+        destino.search = parametros.toString();
+        window.location.assign(destino);
+    });
+    return actualizar;
 }
 
 // Buscar en escritorio: los filtros quedan abiertos en el panel de la izquierda
@@ -85,30 +117,32 @@ function chipsDeFiltros() {
 }
 
 async function cargarZonas() {
-    const select = document.getElementById('f-zona');
-    if (!select) return;
-    const actual = filtros.zona;
-    if (actual) select.add(new Option(actual, actual, true, true));
+    const grupo = document.getElementById('explorar-zonas');
+    if (!grupo) return;
+    const opcion = zona => el('label', { class: 'explorar-opcion' },
+        el('input', { type: 'radio', name: 'zona', value: zona, checked: zona === filtros.zona }),
+        el('span', {}, zona));
+    if (filtros.zona) grupo.append(opcion(filtros.zona));
     try {
-        const { zonas, seleccionada } = await vehiculos.zonas(actual);
-        const nombres = new Set(zonas);
-        if (seleccionada) nombres.add(seleccionada);
-        const opciones = [...nombres].sort((a, b) => a.localeCompare(b, 'es'));
-        select.replaceChildren(select.options[0], ...opciones.map(z => new Option(z, z)));
-        select.value = seleccionada || '';
+        const { zonas, seleccionada } = await vehiculos.zonas(filtros.zona);
+        const nombres = new Set([...zonas, seleccionada].filter(Boolean));
+        for (const zona of [...nombres].sort((a, b) => a.localeCompare(b, 'es'))) {
+            if (zona !== filtros.zona) grupo.append(opcion(zona));
+        }
     } catch {
-        // El filtro actual se puede quitar aunque falle la carga de opciones.
+        // La zona de la URL queda disponible aunque la API no responda.
     }
 }
 
 async function cargarMarcas() {
     const selects = document.querySelectorAll('select[name="marca"]');
     if (!selects.length) return;
+    if (filtros.marca) selects.forEach(select => select.add(new Option(filtros.marca, filtros.marca, true, true)));
     try {
         const { marcas } = await vehiculos.marcas();
         selects.forEach((select) => {
-            select.append(...marcas.map((m) => el('option', { value: m }, m)));
-            select.value = filtros.marca;
+            select.append(...marcas.filter(m => m !== filtros.marca).map((m) => el('option', { value: m }, m)));
+
         });
     } catch {
         // Sin marcas el filtro queda en "Marca" y el listado funciona igual.
@@ -181,10 +215,12 @@ async function cargarListado() {
     }
 }
 
+const zonasCargadas = cargarZonas();
+const marcasCargadas = cargarMarcas();
 completarFormularios();
-aplicarAlElegir();
+const actualizarBarra = prepararBarra(document.querySelector('.explorar-busqueda'));
 abrirPanelEnEscritorio();
 chipsDeFiltros();
-cargarZonas();
-cargarMarcas();
+zonasCargadas.then(() => actualizarBarra?.());
+marcasCargadas.then(() => actualizarBarra?.());
 cargarListado();
