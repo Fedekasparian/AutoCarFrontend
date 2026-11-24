@@ -14,7 +14,7 @@ const n = (valor) => numero.format(valor);
 const pesos = (v) => formato.precio(v);
 const porcentaje = (parte, total) => (total ? Math.round((parte / total) * 100) : 0);
 
-const PESTANAS = [['resumen', 'Resumen'], ['plata', 'Plata'], ['inspecciones', 'Inspecciones'], ['embudo', 'Recomendaciones'], ['metabuscador', 'Metabuscador'], ['afiliaciones', 'Afiliaciones'], ['usuarios', 'Usuarios'], ['plataforma', 'Publicaciones']];
+const PESTANAS = [['resumen', 'Resumen'], ['plata', 'Plata'], ['inspecciones', 'Inspecciones'], ['embudo', 'Recomendaciones'], ['metabuscador', 'Metabuscador'], ['usuarios', 'Usuarios'], ['plataforma', 'Publicaciones']];
 // "Ordenar por" del metabuscador y qué peso de la fórmula de "Recomendados" (Parámetros) tiene que ver con cada uno
 const ORDENES = { recomendado: 'Más recomendados', precio: 'Menor precio', km: 'Menos km', nuevos: 'Más nuevos' };
 const PESO_DEL_ORDEN = { precio: 'el precio', km: 'los kilómetros', nuevos: 'el año' };
@@ -29,7 +29,9 @@ const ORIGENES = {
 
 const params = new URLSearchParams(window.location.search);
 let dias = Number(params.get('dias')) in PERIODOS ? Number(params.get('dias')) : 30;
-let pestana = PESTANAS.some(([clave]) => `#${clave}` === window.location.hash) ? window.location.hash.slice(1) : 'resumen';
+const abreAfiliaciones = window.location.hash === '#afiliaciones';
+const inicial = abreAfiliaciones ? 'plata' : window.location.hash.slice(1);
+let pestana = PESTANAS.some(([clave]) => clave === inicial) ? inicial : 'resumen';
 // Plata: "todos" o un tipo de usuario (personal, familia, trabajo, aplicacion, sin_perfil). Se mantiene al cambiar el período.
 let segmento = 'todos';
 let segmentoEmbudo = 'todos'; // lo mismo en la tabla de Recomendaciones
@@ -504,6 +506,7 @@ function cobroDe(m, f) {
         b.disabled = true;
         try {
             mostrarAfiliacion(await admin.cobrarAfiliacion(f.tipo, f.socio, mesCorto(m.mes)));
+            await cargar();
         } catch (error) {
             b.replaceWith(el('span', { class: 'campo__error' }, error.status === 403 ? 'No tenés permiso para marcar cobros.' : error.message));
         }
@@ -526,7 +529,7 @@ function conveniosAfiliacion(convenios) {
                 guardar.disabled = true;
                 try {
                     await admin.guardarConvenio(c.fuente, Number(tarifa.value), activo.checked);
-                    await cargarAfiliacion();
+                    await Promise.all([cargarAfiliacion(), cargar()]);
                 } catch (error) {
                     mensaje.textContent = error.status === 403 ? 'No tenés permiso para cambiar los convenios.' : error.message;
                     guardar.disabled = false;
@@ -544,15 +547,16 @@ function mostrarAfiliacion(a) {
 }
 
 async function cargarAfiliacion() {
+    const estado = document.getElementById('estado-afiliaciones');
+    const detalle = document.getElementById('detalle-afiliaciones');
     try {
         mostrarAfiliacion(await admin.afiliacion());
-    } catch {
-        // Sin el back nuevo (o sin permiso) la pestaña no se muestra
-        document.querySelector('[data-pestana-boton="afiliaciones"]').hidden = true;
-        if (pestana === 'afiliaciones') {
-            pestana = 'resumen';
-            mostrarPestana();
-        }
+        detalle.hidden = false;
+        estado.hidden = true;
+    } catch (error) {
+        estado.hidden = false;
+        detalle.hidden = true;
+        estado.replaceChildren(vistas.avisoDeError(error));
     }
 }
 
@@ -719,18 +723,23 @@ function mostrar(m) {
     document.getElementById('generado').textContent = `Datos al ${new Date(m.generado).toLocaleString('es-AR')}.`;
 }
 
+let cargaActual = 0;
 async function cargar() {
+    const solicitud = ++cargaActual;
     const estado = document.getElementById('estado');
     const contenido = document.getElementById('metricas');
     estado.replaceChildren(vistas.cargando());
     contenido.classList.add('metricas--cargando');
     try {
-        ultimas = await admin.metricas(dias);
+        const metricas = await admin.metricas(dias);
+        if (solicitud !== cargaActual) return;
+        ultimas = metricas;
         mostrar(ultimas);
         estado.replaceChildren();
         contenido.hidden = false;
         mostrarPestana();
     } catch (error) {
+        if (solicitud !== cargaActual) return;
         if (error.status === 401) {
             sesion.requerirLogin();
             return;
@@ -739,11 +748,12 @@ async function cargar() {
             ? vistas.aviso('No tenés permiso para ver las estadísticas.')
             : vistas.avisoDeError(error));
     } finally {
-        contenido.classList.remove('metricas--cargando');
+        if (solicitud === cargaActual) contenido.classList.remove('metricas--cargando');
     }
 }
 
 if (sesion.requerirPermiso('metricas.ver')) {
+    if (abreAfiliaciones) document.getElementById('afiliaciones').open = true;
     armarControles();
     cargar();
     cargarAfiliacion(); // no depende del período: se pide una vez

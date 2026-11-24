@@ -95,15 +95,20 @@ test('el admin recorre las estadísticas y ve la fórmula de para vos', async ({
         await expect(page.locator('#sugerencias-orden > li').first()).toBeVisible();
     });
 
-    await test.step('la pestaña Afiliaciones muestra el mes en curso, la evolución y los convenios', async () => {
-        await page.getByRole('button', { name: 'Afiliaciones' }).click();
-        await expect(page).toHaveURL(/#afiliaciones$/);
+    await test.step('Plata reúne las liquidaciones mensuales y los convenios', async () => {
+        await page.getByRole('button', { name: 'Plata', exact: true }).click();
+        await expect(page.getByRole('button', { name: 'Afiliaciones', exact: true })).toHaveCount(0);
+        await page.locator('#p-plata summary').filter({ hasText: 'Afiliaciones y cobros mensuales' }).click();
         await expect(page.locator('#kpis-afiliacion > li')).toHaveCount(3);
         await expect(page.locator('#tabla-afiliacion-mes thead th')).toHaveCount(6);
         await expect(page.locator('#tabla-afiliacion-mes tbody tr').last()).toContainText('Total del mes');
         await expect(page.locator('#meses-afiliacion > li')).toHaveCount(12);
         await expect(page.locator('#tabla-afiliacion-meses tbody tr')).toHaveCount(11);
         await expect(page.locator('#tabla-convenios tbody tr').first().locator('input[type="number"]')).toBeVisible();
+        await page.goto(pagina('pages/admin/admin-metricas.html?dias=7#afiliaciones'));
+        await expect(page.locator('#p-plata')).toBeVisible();
+        await expect(page.locator('#afiliaciones')).toHaveAttribute('open', '');
+        await expect(page.getByRole('button', { name: '7 días' })).toHaveAttribute('aria-pressed', 'true');
     });
 
     await test.step('en Parámetros, la fórmula de para vos es una grilla de 4 perfiles por 4 criterios', async () => {
