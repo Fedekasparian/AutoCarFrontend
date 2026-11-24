@@ -9,7 +9,7 @@
 #colecciones[hidden], .carrusel [hidden] { display: none; }
 .carrusel { min-width: 0; max-width: 100%; }
 .carrusel__cabecera { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 12px; }
-.carrusel__cabecera h2, #catalogo-titulo {
+.carrusel__cabecera h2 {
     margin: 0; font-size: clamp(1.22rem, 2vw, 1.65rem); line-height: 1.2; letter-spacing: -.035em;
     color: var(--color-texto);
 }

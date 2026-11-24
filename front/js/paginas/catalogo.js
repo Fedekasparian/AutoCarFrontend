@@ -1,6 +1,7 @@
 // Listado de vehículos con filtros (home.html y buscar.html).
 // Los filtros viajan en la URL (formularios GET), así que se puede recargar, compartir o volver atrás.
 // Mientras carga se ven fichas grises (esqueletos); arriba del listado, un chip por filtro aplicado para sacarlo.
+import { carrusel } from '../servicios/carrusel.js';
 import * as vehiculos from '../api/vehiculos.js';
 import * as corazones from '../servicios/corazones.js';
 import * as formato from '../servicios/formato.js';
@@ -140,13 +141,20 @@ async function cargarListado() {
                 'Probá con menos filtros o buscá por marca y modelo.'));
             return;
         }
-        // Entran escalonadas: --n es el orden de cada ficha (el CSS calcula la demora)
         const fichas = r.items.map(vistas.fichaVehiculo);
-        fichas.forEach((li, i) => li.style.setProperty('--n', String(i)));
-        grilla.replaceChildren(...fichas);
-        grilla.classList.add('grilla-vehiculos--entra');
+        let lista = grilla;
+        if (grilla.dataset.carrusel) {
+            const seccion = carrusel(grilla.dataset.carrusel, fichas, { id: grilla.id });
+            lista = seccion.querySelector('ul');
+            grilla.replaceWith(seccion);
+            lista.before(document.getElementById('explorar-intro'));
+        } else {
+            fichas.forEach((li, i) => li.style.setProperty('--n', String(i)));
+            grilla.replaceChildren(...fichas);
+            grilla.classList.add('grilla-vehiculos--entra');
+        }
         lugarPaginacion.replaceWith(Object.assign(vistas.paginacion(r.pagina, r.paginas), { id: 'paginacion' }));
-        corazones.poner(grilla, r.items);
+        corazones.poner(lista, r.items);
     } catch (error) {
         grilla.replaceChildren();
         grilla.removeAttribute('aria-busy');

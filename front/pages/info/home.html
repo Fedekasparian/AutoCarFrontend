@@ -92,17 +92,12 @@
       </p>
     </form>
 
-    <div id="colecciones" hidden></div>
-    <h2 id="catalogo-titulo" hidden>Todas las publicaciones</h2>
-    <!-- Grilla de publicaciones: la arma js/paginas/catalogo.js con GET /api/vehiculos
-         (foto, precio, modelo, km y combustible; ver fichaVehiculo en js/servicios/vistas.js).
-         Si no hay resultados, después de la grilla se muestra el estado vacío. -->
-    <!-- "Más relevantes": según qué perfil está ordenado y el link para cambiarlo (lo arma js/paginas/catalogo.js) -->
     <p class="recomendados-intro" id="explorar-intro" hidden></p>
-    <ul class="grilla-vehiculos" id="resultados" role="list"></ul>
+    <ul class="grilla-vehiculos" id="resultados" data-carrusel="Todas las publicaciones" role="list"></ul>
 
     <nav class="paginacion" id="paginacion" aria-label="Páginas de resultados"></nav>
 
+    <div id="colecciones" hidden></div>
   </main>
 
 </body>

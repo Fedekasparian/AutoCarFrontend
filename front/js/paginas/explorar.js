@@ -60,7 +60,6 @@ async function explorar() {
         caja.append(seccion);
     });
     caja.hidden = !caja.childElementCount;
-    document.getElementById('catalogo-titulo').hidden = caja.hidden;
 }
 explorar().catch(() => {
     const caja = document.getElementById('colecciones');
