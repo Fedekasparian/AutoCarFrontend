@@ -19,6 +19,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Sora:wght@600;700;800&amp;display=swap">
 <link rel="stylesheet" href="../../styles/base-visual.css">
 <link rel="stylesheet" href="../../styles/carruseles.css">
+<link rel="stylesheet" href="../../styles/explorar-busqueda.css">
 <script type="module" src="../../js/paginas/explorar.js"></script>
 </head>
 <body class="con-barra vista-home">
@@ -31,66 +32,108 @@
 <li><a class="barra__enlace" href="../vehiculos/mis-publicaciones.html"><span class="barra__icono"><svg width="22" height="22" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16M4 12h16"></path></svg></span><span>Publicar</span></a></li>
 <li><a class="barra__enlace" href="../operaciones/mensajes.html"><span class="barra__icono"><svg width="22" height="22" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"></path></svg></span><span>Mensajes</span></a></li>
 <li><a class="barra__enlace" href="../auth/cuenta.html"><span class="barra__icono"><svg width="22" height="22" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"></path></svg></span><span>Cuenta</span></a></li>
-</ul></nav><header class="contenedor catalogo-intro"><div>
-<h1>Explorá vehículos</h1>
-<p>Filtrá por zona, marca, precio o combustible.</p>
-</div>
-</header>
+</ul></nav>
+  <header class="contenedor catalogo-intro">
+    <h1>Explorá vehículos</h1>
+  </header>
 
   <main id="contenido" class="pantalla pantalla--compacta">
 
-    <form action="home.html" method="get" role="search">
-      <div class="buscador">
-        <label class="solo-lector" for="q">Buscar vehículos</label>
-        <input class="campo__input" id="q" name="q" type="search" placeholder="Marca, modelo o versión" maxlength="60">
-        <button class="boton" type="submit">Buscar</button>
+    <form class="explorar-busqueda" action="home.html" method="get" role="search" aria-label="Buscar vehículos">
+      <div class="explorar-barra">
+        <details class="explorar-segmento" name="criterio-explorar">
+          <summary><strong>Vehículo</strong><span data-resumen>Marca o modelo</span></summary>
+          <div class="explorar-panel">
+            <label class="explorar-campo" for="q">Buscar vehículos
+              <input class="campo__input" id="q" name="q" type="search" placeholder="Ej. Ford Fiesta" maxlength="60">
+            </label>
+            <label class="explorar-campo" for="f-marca">Marca
+              <select class="campo__input" name="marca" id="f-marca">
+                <option value="">Todas las marcas</option>
+              </select>
+            </label>
+          </div>
+        </details>
+        <details class="explorar-segmento" name="criterio-explorar">
+          <summary><strong>Zona</strong><span data-resumen>Todas las zonas</span></summary>
+          <div class="explorar-panel">
+            <fieldset id="explorar-zonas">
+              <legend>Elegí una zona</legend>
+              <label class="explorar-opcion">
+                <input type="radio" name="zona" value="" checked>
+                <span>Todas las zonas</span>
+              </label>
+            </fieldset>
+          </div>
+        </details>
+        <details class="explorar-segmento" name="criterio-explorar">
+          <summary><strong>Precio</strong><span data-resumen>Sin máximo</span></summary>
+          <div class="explorar-panel">
+            <fieldset>
+              <legend>Precio máximo</legend>
+              <label class="explorar-opcion">
+                <input type="radio" name="precio_max" value="" checked>
+                <span>Cualquier precio</span>
+              </label>
+              <label class="explorar-opcion">
+                <input type="radio" name="precio_max" value="6000000">
+                <span>Hasta $6.000.000</span>
+              </label>
+              <label class="explorar-opcion">
+                <input type="radio" name="precio_max" value="9000000">
+                <span>Hasta $9.000.000</span>
+              </label>
+              <label class="explorar-opcion">
+                <input type="radio" name="precio_max" value="12000000">
+                <span>Hasta $12.000.000</span>
+              </label>
+              <label class="explorar-opcion">
+                <input type="radio" name="precio_max" value="20000000">
+                <span>Hasta $20.000.000</span>
+              </label>
+              <label class="explorar-opcion">
+                <input type="radio" name="precio_max" value="30000000">
+                <span>Hasta $30.000.000</span>
+              </label>
+              <label class="explorar-opcion">
+                <input type="radio" name="precio_max" value="45000000">
+                <span>Hasta $45.000.000</span>
+              </label>
+            </fieldset>
+          </div>
+        </details>
+        <details class="explorar-segmento" name="criterio-explorar">
+          <summary><strong>Más filtros</strong><span data-resumen>Combustible y más</span></summary>
+          <div class="explorar-panel">
+            <label class="explorar-campo" for="f-combustible">Combustible
+              <select class="campo__input" name="combustible" id="f-combustible">
+                <option value="">Cualquiera</option>
+                <option value="nafta">Nafta</option>
+                <option value="diesel">Diésel</option>
+                <option value="gnc">GNC</option>
+                <option value="hibrido">Híbrido</option>
+                <option value="electrico">Eléctrico</option>
+              </select>
+            </label>
+            <label class="explorar-campo" for="f-vendedor">Vendedor
+              <select class="campo__input" name="vendedor" id="f-vendedor">
+                <option value="">Todos</option>
+                <option value="particular">Particulares</option>
+                <option value="empresa">Concesionarias</option>
+              </select>
+            </label>
+            <label class="explorar-campo" for="f-orden">Ordenar por
+              <select class="campo__input" name="orden" id="f-orden">
+                <option value="">Más relevantes</option>
+                <option value="recientes">Más recientes</option>
+              </select>
+            </label>
+          </div>
+        </details>
+        <button class="explorar-enviar" type="submit"><span class="explorar-lupa" aria-hidden="true"></span>Buscar</button>
       </div>
-      <fieldset class="filtros-rapidos">
-        <legend class="solo-lector">Filtros rápidos</legend>
-        <label class="solo-lector" for="f-zona">Zona</label>
-        <select class="campo__input" id="f-zona" name="zona">
-          <option value="">Todas las zonas</option>
-        </select>
-        <label class="solo-lector" for="f-marca">Marca</label>
-        <select class="campo__input" id="f-marca" name="marca">
-          <option value="">Marca</option>
-        </select>
-        <label class="solo-lector" for="f-precio">Precio máximo</label>
-        <select class="campo__input" id="f-precio" name="precio_max">
-          <option value="">Precio</option>
-          <option value="6000000">Hasta $6.000.000</option>
-          <option value="9000000">Hasta $9.000.000</option>
-          <option value="12000000">Hasta $12.000.000</option>
-          <option value="20000000">Hasta $20.000.000</option>
-          <option value="30000000">Hasta $30.000.000</option>
-          <option value="45000000">Hasta $45.000.000</option>
-        </select>
-        <label class="solo-lector" for="f-combustible">Combustible</label>
-        <select class="campo__input" id="f-combustible" name="combustible">
-          <option value="">Combustible</option>
-          <option value="nafta">Nafta</option>
-          <option value="diesel">Diésel</option>
-          <option value="gnc">GNC</option>
-          <option value="hibrido">Híbrido</option>
-          <option value="electrico">Eléctrico</option>
-        </select>
-        <label class="solo-lector" for="f-vendedor">Vendedor</label>
-        <select class="campo__input" id="f-vendedor" name="vendedor">
-          <option value="">Vendedor</option>
-          <option value="particular">Particulares</option>
-          <option value="empresa">Concesionarias</option>
-        </select>
-        <label class="solo-lector" for="f-orden">Ordenar</label>
-        <select class="campo__input" id="f-orden" name="orden">
-          <option value="">Más relevantes</option>
-          <option value="recientes">Más recientes</option>
-        </select>
-      </fieldset>
-      <p class="resultados__barra">
-        <span class="suave" id="resultados-total" aria-live="polite"></span>
-        <button class="boton boton--secundario boton--chico" type="submit">Aplicar filtros</button>
-      </p>
     </form>
+    <p class="resultados__barra"><span class="suave" id="resultados-total" aria-live="polite"></span></p>
 
     <p class="recomendados-intro" id="explorar-intro" hidden></p>
     <ul class="grilla-vehiculos" id="resultados" data-carrusel="Todas las publicaciones" role="list"></ul>
