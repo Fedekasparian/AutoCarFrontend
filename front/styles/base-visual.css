@@ -1650,7 +1650,10 @@ a.insignia-empresa:hover .insignia-empresa__nombre{ text-decoration: underline; 
 .tendencia--varias .comparar__leyenda strong{ color: var(--marca-tinta); font-variant-numeric: tabular-nums; }
 .tendencia__cartel-fila{ display: flex; align-items: center; gap: 6px; }
 .tendencia__cartel-fila strong{ font-size: 13px; }
+/* Una sola columna que no se estira: la tabla ancha se desplaza dentro de su caja en vez de ensanchar la página */
+.comparar-fuentes{ grid-template-columns: minmax(0, 1fr); }
 .conclusiones-plata{ display: grid; gap: 8px; margin: 0; padding: 0 0 0 18px; font-size: 15px; line-height: 1.5; color: var(--marca-tinta); }
-#tabla-fuentes .variacion{ font-weight: 600; color: var(--marca-gris); white-space: nowrap; }
+#tabla-fuentes td{ white-space: nowrap; }
+#tabla-fuentes .variacion{ font-weight: 600; color: var(--marca-gris); }
 #tabla-fuentes .variacion--buena{ color: var(--ok); }
 #tabla-fuentes .variacion--mala{ color: var(--falla); }

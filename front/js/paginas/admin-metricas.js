@@ -270,11 +270,12 @@ function variasTendencias(serie, series, { nombre, formatear = n }) {
     lienzo.addEventListener('pointerleave', () => [guia, cartel, ...marcas].forEach((nodo) => { nodo.hidden = true; }));
 
     const porUnidad = unidad === 'semana' ? 'semana' : 'día';
-    const tabla = el('table', { class: 'solo-lector' },
+    // La tabla va dentro de un div oculto: una tabla con varias columnas no respeta el ancho de 1 px y ensancha la página
+    const tabla = el('div', { class: 'solo-lector' }, el('table', {},
         el('caption', {}, `${nombre} por ${porUnidad}`),
         el('thead', {}, el('tr', {}, el('th', {}, 'Fecha'), ...series.map((s) => el('th', {}, s.nombre)))),
         el('tbody', {}, ...puntos.map((p) => el('tr', {}, el('th', { scope: 'row' }, fechaCorta(p.fecha, unidad)),
-            ...series.map((s) => el('td', {}, formatear(p[s.clave])))))));
+            ...series.map((s) => el('td', {}, formatear(p[s.clave]))))))));
     return el('div', { class: 'tendencia tendencia--varias' }, cabeza, el('div', { class: 'tendencia__cuerpo' }, eje, lienzo, fechas), tabla);
 }
 
