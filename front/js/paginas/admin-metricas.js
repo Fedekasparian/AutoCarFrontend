@@ -38,13 +38,13 @@ let segmento = 'todos';
 let segmentoEmbudo = 'todos'; // lo mismo en la tabla de Recomendaciones
 let ultimas = null; // las últimas métricas, para cambiar de segmento sin volver a pedirlas
 
+// Plata: "todas" o una sola fuente (botones). fuentes es el conjunto que usan el informe y los detalles.
+let fuenteElegida = 'todas';
 const fuentes = new Set(Object.keys(FUENTES));
 let afiliacionActual = null;
 
 function actualizarPlata() {
-    const todas = fuentes.size === Object.keys(FUENTES).length;
-    document.getElementById('todas-las-fuentes').disabled = todas;
-    document.getElementById('sin-fuentes').hidden = fuentes.size > 0;
+    const todas = fuenteElegida === 'todas';
     document.getElementById('detalle-inspecciones').hidden = !fuentes.has('inspecciones');
     document.getElementById('afiliaciones').hidden = !fuentes.has('clics') && !fuentes.has('abonos');
     document.querySelectorAll('[data-fuente]').forEach(nodo => { nodo.hidden = !fuentes.has(nodo.dataset.fuente); });
@@ -61,24 +61,22 @@ function actualizarPlata() {
 }
 
 function prepararFuentes() {
-    const grupo = document.getElementById('fuentes-plata');
-    for (const [clave, [nombre]] of Object.entries(FUENTES)) {
-        grupo.append(el('label', {}, el('input', { type: 'checkbox', value: clave, checked: true }), ' ' + nombre));
-    }
-    const todas = el('button', { class: 'boton-link', type: 'button', id: 'todas-las-fuentes', disabled: true }, 'Ver todo');
-    grupo.append(todas);
-    grupo.addEventListener('change', ({ target }) => {
-        if (target.checked) fuentes.add(target.value);
-        else fuentes.delete(target.value);
+    const opciones = [['todas', 'Todas'], ...Object.entries(FUENTES).map(([clave, [nombre]]) => [clave, nombre])];
+    llenar('fuentes-plata', ...opciones.map(([clave, texto]) => boton(texto, clave === fuenteElegida, () => {
+        fuenteElegida = clave;
+        fuentes.clear();
+        (clave === 'todas' ? Object.keys(FUENTES) : [clave]).forEach((f) => fuentes.add(f));
+        prepararFuentes();
         actualizarPlata();
-    });
-    todas.addEventListener('click', () => {
-        grupo.querySelectorAll('input').forEach(control => { control.checked = true; fuentes.add(control.value); });
-        actualizarPlata();
-    });
+    })));
 }
 
 // ---------- Piezas ----------
+
+// Las fechas del período anterior ("17/10 al 24/10"), para decir con qué se compara. Las pone mostrar().
+let textoAntes = '';
+const diaMes = new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: '2-digit', timeZone: 'America/Argentina/Buenos_Aires' });
+const antes = (valor, formatear) => `Antes: ${formatear(valor)}${textoAntes ? ` (${textoAntes})` : ''}`;
 
 // Cuánto cambió contra el período anterior. Si "menos es mejor", bajar se pinta como bueno.
 function variacion(actual, anterior, menosEsMejor = false) {
@@ -90,7 +88,7 @@ function variacion(actual, anterior, menosEsMejor = false) {
     if (cambio === 0) return el('span', { class: 'variacion' }, '= igual que antes');
     const bueno = menosEsMejor ? cambio < 0 : cambio > 0;
     return el('span', { class: `variacion ${bueno ? 'variacion--buena' : 'variacion--mala'}` },
-        `${cambio > 0 ? '▲' : '▼'} ${Math.abs(cambio)} % vs. período anterior`);
+        `${cambio > 0 ? '▲' : '▼'} ${Math.abs(cambio)} % vs. antes`);
 }
 
 // Tarjeta de un indicador. Con un número (no un texto ya armado) cuenta hasta el valor al aparecer.
@@ -99,7 +97,8 @@ function tarjeta(valor, texto, formatear = n, comparar = {}) {
     if (typeof valor === 'number') vistas.contarHasta(numeroNodo, valor, formatear);
     // Los montos en pesos son más largos: van un poco más chicos para que entren en la tarjeta
     return el('li', { class: formatear === pesos ? 'recuadro resumen-admin__dinero' : 'recuadro' },
-        numeroNodo, el('span', {}, texto), variacion(valor, comparar.anterior, comparar.menosEsMejor));
+        numeroNodo, el('span', {}, texto), variacion(valor, comparar.anterior, comparar.menosEsMejor),
+        comparar.anterior !== undefined ? el('span', { class: 'resumen-admin__antes' }, antes(comparar.anterior, formatear)) : null);
 }
 
 // Barras horizontales de una sola serie, de mayor a menor: el largo es la cantidad y al lado va el número y qué
@@ -412,8 +411,9 @@ function informePlata(actual, anterior, textoPeriodo) {
     const desglose = Object.entries(FUENTES)
         .filter(([fuente]) => fuentes.has(fuente) && actual['ingresos_' + fuente] != null)
         .map(([fuente, [nombre, detalle]]) => fila(nombre, detalle, pesos(actual['ingresos_' + fuente]), ''));
-    llenar('informe-cuenta', ...desglose, fila('Ingresos del período', '', pesos(ingresos),
-        'informe-plata__fila--neta', variacion(ingresos, ingresosElegidos(anterior, fuentes))));
+    const ingresosAntes = ingresosElegidos(anterior, fuentes);
+    llenar('informe-cuenta', ...desglose, fila('Ingresos del período', antes(ingresosAntes ?? 0, pesos), pesos(ingresos),
+        'informe-plata__fila--neta', variacion(ingresos, ingresosAntes)));
     const notas = [];
     if (fuentes.has('inspecciones')) notas.push('Inspecciones por cobrar: ' + pesos(actual.por_cobrar) + '.');
     if (fuentes.has('clics') && actual.clics_por_cobrar != null) notas.push(
@@ -433,7 +433,6 @@ const UNIDADES = {
 const CLASE_FUENTE = { inspecciones: 'fuente--inspecciones', clics: 'fuente--clics', abonos: 'fuente--abonos' };
 // Cuánto cambió en % (null si antes era 0: no hay contra qué comparar)
 const cambioPorcentual = (actual, anterior) => (anterior ? Math.round(((actual - anterior) / anterior) * 100) : null);
-const conSigno = (v, sufijo = ' %') => (v === null ? '—' : `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v)}${sufijo}`);
 const mayuscula = (texto) => texto[0].toUpperCase() + texto.slice(1);
 
 function filasFuentes(actual, anterior) {
@@ -450,7 +449,7 @@ function filasFuentes(actual, anterior) {
         const porUnidad = cantidad ? plata / cantidad : null;
         const porUnidadAntes = cantidadAntes ? plataAntes / cantidadAntes : null;
         return {
-            fuente: f, nombre: FUENTES[f][0], u, ingresos, cantidad,
+            fuente: f, nombre: FUENTES[f][0], u, ingresos, cantidad, cantidadAntes, parteAntes, porUnidadAntes,
             parte, puntos: parteAntes === null ? null : Math.round(parte - parteAntes),
             crecimiento: cambioPorcentual(ingresos, ingresosAntes),
             crecimientoCantidad: cambioPorcentual(cantidad, cantidadAntes),
@@ -493,22 +492,36 @@ function conclusionesFuentes(filas, textoPeriodo) {
     return frases;
 }
 
+// Una tarjeta por fuente, en frases: cuánto dejó, qué parte de lo que ganamos es, cuánto creció, cuántas hubo y cuánto
+// deja cada una, siempre con lo de antes al lado
+function tarjetaFuente(f) {
+    const linea = (...hijos) => el('li', {}, ...hijos);
+    const crecio = f.crecimiento === null
+        ? linea('Antes no había ingresos de esta fuente')
+        : linea(el('span', { class: `variacion ${f.crecimiento > 0 ? 'variacion--buena' : f.crecimiento < 0 ? 'variacion--mala' : ''}` },
+            f.crecimiento === 0 ? 'La misma plata que antes'
+                : `${f.crecimiento > 0 ? '▲' : '▼'} ${Math.abs(f.crecimiento)} % ${f.crecimiento > 0 ? 'más' : 'menos'} plata que antes`));
+    const deAntes = (texto) => el('span', { class: 'fuente-tarjeta__antes' }, ` (antes ${texto})`);
+    return el('li', { class: `recuadro fuente-tarjeta ${CLASE_FUENTE[f.fuente]}` },
+        el('div', { class: 'fuente-tarjeta__cabeza' },
+            el('span', { class: 'fuente-tarjeta__nombre' }, f.nombre),
+            el('strong', { class: 'fuente-tarjeta__monto' }, pesos(f.ingresos))),
+        el('ul', { class: 'fuente-tarjeta__datos', role: 'list' },
+            linea(`${Math.round(f.parte)} % de lo que ganamos`, f.parteAntes === null ? null : deAntes(`${Math.round(f.parteAntes)} %`)),
+            crecio,
+            linea(`${n(f.cantidad)} ${f.cantidad === 1 ? f.u.una : f.u.varias}`, deAntes(n(f.cantidadAntes))),
+            f.porUnidad === null ? null : linea(`Cada ${f.u.una} nos deja ${pesos(Math.round(f.porUnidad))}`,
+                f.porUnidadAntes ? deAntes(pesos(Math.round(f.porUnidadAntes))) : null)));
+}
+
 function compararFuentes(actual, anterior, textoPeriodo, serie) {
     const caja = document.getElementById('comparar-fuentes');
+    const figura = document.getElementById('figura-fuentes');
     const filas = filasFuentes(actual, anterior);
-    caja.hidden = filas.length < 2; // con una sola fuente no hay nada que comparar
+    caja.hidden = figura.hidden = filas.length < 2; // con una sola fuente no hay nada que comparar
     if (caja.hidden) return;
     llenar('conclusiones-plata', ...conclusionesFuentes(filas, textoPeriodo).map((frase) => el('li', {}, frase)));
-    llenar('barras-fuentes', ...barras(filas.map((f) => [f.nombre, f.ingresos]), 'Todavía no hay ingresos en este período',
-        Object.fromEntries(filas.map((f) => [f.nombre, CLASE_FUENTE[f.fuente]])), pesos));
-    const cambioCelda = (v, sufijo) => el('span', { class: v ? `variacion ${v > 0 ? 'variacion--buena' : 'variacion--mala'}` : 'variacion' }, conSigno(v, sufijo));
-    llenar('tabla-fuentes',
-        el('thead', {}, celdas(['Fuente', 'Ingresos', 'Parte', 'Parte vs. antes', 'Crecimiento', 'Cantidad', 'Cantidad vs. antes', 'Por unidad', 'Por unidad vs. antes'], 'th')),
-        el('tbody', {}, ...filas.map((f) => celdas([
-            f.nombre, pesos(f.ingresos), `${Math.round(f.parte)} %`, cambioCelda(f.puntos, ' pts'), cambioCelda(f.crecimiento),
-            `${n(f.cantidad)} ${f.cantidad === 1 ? f.u.una : f.u.varias}`, cambioCelda(f.crecimientoCantidad),
-            f.porUnidad === null ? '—' : `${pesos(Math.round(f.porUnidad))} por ${f.u.una}`, cambioCelda(f.cambioPorUnidad),
-        ]))));
+    llenar('tarjetas-fuentes', ...filas.map(tarjetaFuente));
     llenar('grafico-fuentes', variasTendencias(serie,
         filas.map((f) => ({ clave: 'ingresos_' + f.fuente, nombre: f.nombre, clase: CLASE_FUENTE[f.fuente] })),
         { nombre: 'Ingresos de cada fuente', formatear: pesos }));
@@ -807,7 +820,8 @@ function armarControles() {
 // ---------- Llenar cada pestaña ----------
 
 function mostrar(m) {
-    const { actual, anterior } = m.resumen;
+    const { actual, anterior, rangos } = m.resumen;
+    textoAntes = rangos ? `${diaMes.format(new Date(rangos.anterior.desde))} al ${diaMes.format(new Date(rangos.anterior.hasta))}` : '';
     const textoPeriodo = PERIODOS[m.periodo.dias];
     const emb = m.embudo.total;
     const conversion = porcentaje(emb.pagaron, emb.vieron);

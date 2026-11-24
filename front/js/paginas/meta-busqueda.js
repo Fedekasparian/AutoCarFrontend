@@ -83,7 +83,9 @@ function fila(b, i) {
             'aria-label': `${criterios(b)}: ${b.autos === 1 ? '1 auto' : `${b.autos} autos`}${b.avisos_sin_ver ? `, ${b.avisos_sin_ver} sin ver` : ''}` },
             el('span', { class: 'fila__cuerpo' },
                 el('span', { class: 'fila__titulo' }, `${b.marca} ${b.modelo}`, novedades),
-                chips(b)),
+                chips(b),
+                // Cuándo se hizo la búsqueda por primera vez (la fecha en que se guardó)
+                b.created_at ? el('span', { class: 'busqueda-guardada__fecha' }, `Buscada el ${formato.fecha(b.created_at)}`) : null),
             el('span', { class: 'busqueda-guardada__cantidad', 'aria-hidden': 'true' },
                 el('strong', {}, String(b.autos)), b.autos === 1 ? 'auto' : 'autos'),
             el('span', { class: 'busqueda-guardada__flecha', 'aria-hidden': 'true' }, '›')),
