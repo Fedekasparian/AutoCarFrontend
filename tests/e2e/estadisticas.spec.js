@@ -32,8 +32,8 @@ test('el admin recorre las estadísticas y ve la fórmula de para vos', async ({
         await expect(page.locator('#p-resumen')).toBeHidden();
         await expect(page.locator('#embudo-total > li')).toHaveCount(4);
         await expect(page.locator('#tabla-embudo tbody tr')).toHaveCount(4);
-        // Por tipo de usuario: Todos, los 4 perfiles y "Sin perfil"; al elegir uno, la tabla es solo de ese perfil
-        await expect(page.locator('#segmento-embudo button')).toHaveCount(6);
+        // Por tipo de usuario: Todos y los 4 perfiles; al elegir uno, la tabla es solo de ese perfil
+        await expect(page.locator('#segmento-embudo button')).toHaveCount(5);
         // La misma tabla en plata: ganancia y cuánto deja por persona que vio, tocó o pagó
         await expect(page.locator('#tabla-ganancia-embudo thead th')).toHaveCount(5);
         await expect(page.locator('#tabla-ganancia-embudo tbody tr')).toHaveCount(4);
@@ -45,7 +45,7 @@ test('el admin recorre las estadísticas y ve la fórmula de para vos', async ({
         // Cuánto le cuesta decidirse a cada tipo de usuario: 2 indicadores y una fila por perfil
         await expect(page.locator('#kpis-valor > li')).toHaveCount(2);
         await expect(page.locator('#tabla-valor thead th')).toHaveCount(6);
-        await expect(page.locator('#tabla-valor tbody tr')).toHaveCount(5);
+        await expect(page.locator('#tabla-valor tbody tr')).toHaveCount(4);
     });
 
     await test.step('la pestaña Inspecciones muestra estados, conclusiones y talleres', async () => {
@@ -70,8 +70,13 @@ test('el admin recorre las estadísticas y ve la fórmula de para vos', async ({
         await expect(page.locator('#informe-cuenta .informe-plata__fila--neta dt')).toContainText('Ingresos del período');
         await expect(page.locator('#informe-cuenta')).toContainText('Clics a plataformas');
         await expect(page.locator('#informe-notas')).toContainText('Clics pendientes');
-        // Segmentar por tipo de usuario: el informe pasa a ser solo de esos compradores
-        await expect(page.locator('#tabla-plata-perfil tbody tr')).toHaveCount(5);
+        // Comparar las fuentes: conclusiones, barras, una fila por fuente y una línea por fuente en el gráfico
+        await expect(page.locator('#comparar-fuentes')).toBeVisible();
+        await expect(page.locator('#conclusiones-plata > li').first()).toBeVisible();
+        await expect(page.locator('#tabla-fuentes tbody tr')).toHaveCount(3);
+        await expect(page.locator('#tabla-fuentes thead th')).toHaveCount(9);
+        // Segmentar por tipo de usuario (el perfil es obligatorio: sin fila "Sin perfil")
+        await expect(page.locator('#tabla-plata-perfil tbody tr')).toHaveCount(4);
         await page.locator('#segmento-plata').getByRole('button', { name: 'Para la familia' }).click();
         await expect(page.locator('#ingresos-perfil')).toContainText('Para la familia');
         await expect(page.locator('#segmento-plata').getByRole('button', { name: 'Para la familia' })).toHaveAttribute('aria-pressed', 'true');
@@ -82,6 +87,7 @@ test('el admin recorre las estadísticas y ve la fórmula de para vos', async ({
         await fuentes.getByLabel('Clics a plataformas').uncheck();
         await expect(page.locator('#informe-cuenta dt')).toHaveCount(2);
         await expect(page.locator('#informe-cuenta')).toContainText('Afiliaciones de concesionarias');
+        await expect(page.locator('#comparar-fuentes')).toBeHidden(); // con una sola fuente no hay nada que comparar
         await expect(page.locator('#detalle-inspecciones')).toBeHidden();
         await fuentes.getByRole('button', { name: 'Ver todo' }).click();
         await expect(page.locator('#informe-cuenta dt')).toHaveCount(4);
@@ -96,10 +102,10 @@ test('el admin recorre las estadísticas y ve la fórmula de para vos', async ({
         await expect(page).toHaveURL(/#metabuscador$/);
         await expect(page.locator('#kpis-metabuscador > li')).toHaveCount(3);
         // Todos + 5 tipos de usuario, cada uno con dos barras
-        await expect(page.locator('#buscaron-compraron > li')).toHaveCount(6);
-        await expect(page.locator('#buscaron-compraron .comparar__fila')).toHaveCount(12);
+        await expect(page.locator('#buscaron-compraron > li')).toHaveCount(5);
+        await expect(page.locator('#buscaron-compraron .comparar__fila')).toHaveCount(10);
         await expect(page.locator('#tabla-ordenes thead th')).toHaveCount(6);
-        await expect(page.locator('#tabla-ordenes tbody tr')).toHaveCount(5);
+        await expect(page.locator('#tabla-ordenes tbody tr')).toHaveCount(4);
         await expect(page.locator('#sugerencias-orden > li').first()).toBeVisible();
     });
 

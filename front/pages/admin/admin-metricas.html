@@ -65,6 +65,25 @@
         <div class="graficos-fila" id="tendencia-plata">
           <figure class="grafico"><figcaption class="solo-lector">Ganancia de AutoCar en el tiempo</figcaption><div id="grafico-ganancia"></div></figure>
         </div>
+        <!-- Las fuentes elegidas, una contra otra: qué parte deja cada una, cuánto crecieron, cuánto deja cada unidad
+             (inspección, clic, abono) y si la cantidad creció igual que la plata. Lo arma admin-metricas.js. -->
+        <article class="recuadro informe-plata comparar-fuentes" id="comparar-fuentes" aria-labelledby="t-comparar" hidden>
+          <h3 class="informe-plata__titulo" id="t-comparar">Comparar las fuentes</h3>
+          <ul class="conclusiones-plata" id="conclusiones-plata" role="list"></ul>
+          <figure class="grafico">
+            <figcaption class="grafico__titulo">Qué parte de los ingresos deja cada fuente</figcaption>
+            <ul class="barras" id="barras-fuentes" role="list"></ul>
+          </figure>
+          <figure class="grafico">
+            <figcaption class="grafico__titulo">Cada fuente contra el período anterior</figcaption>
+            <div class="tabla-desplazable"><table class="tabla tabla-embudo" id="tabla-fuentes"></table></div>
+            <p class="campo__ayuda">Parte = qué porcentaje de los ingresos elegidos deja esa fuente; "pts" es cuántos puntos ganó o perdió contra el período anterior. Por unidad = lo que deja cada inspección firmada, cada clic válido o cada abono mensual cobrado. Los clics se cobran una vez por mes: para compararlos con su cantidad se usa lo que valen los del período con la tarifa de hoy, aunque todavía no se hayan cobrado.</p>
+          </figure>
+          <figure class="grafico">
+            <figcaption class="solo-lector">Ingresos de cada fuente en el tiempo</figcaption>
+            <div id="grafico-fuentes"></div>
+          </figure>
+        </article>
         <details class="comparacion" id="afiliaciones">
           <summary class="comparacion__titulo">Afiliaciones y cobros mensuales</summary>
           <div id="estado-afiliaciones" role="status">Cargando liquidaciones…</div>
@@ -108,7 +127,7 @@
             <div class="tabla-desplazable"><table class="tabla tabla-embudo" id="tabla-plata-perfil"></table></div>
             <h3 class="grafico__subtitulo">Comisión de inspecciones por tipo de usuario</h3>
             <ul class="barras" id="barras-plata-perfil" role="list"></ul>
-            <p class="campo__ayuda">El tipo de usuario es la respuesta a "¿Para qué buscás el auto?" del comprador que pagó la inspección. "Sin perfil": no la contestó.</p>
+            <p class="campo__ayuda">El tipo de usuario es la respuesta a "¿Para qué buscás el auto?" del comprador que pagó la inspección.</p>
           </figure>
           <ul class="resumen-admin" role="list" id="kpis-plata"></ul>
           <h3 class="titulo-seccion">Inspecciones desde el principio</h3>
@@ -141,7 +160,7 @@
             <div class="pestanas-estado" role="group" aria-labelledby="t-segmento-embudo" id="segmento-embudo"></div>
           </div>
           <div class="tabla-desplazable"><table class="tabla tabla-embudo" id="tabla-embudo"></table></div>
-          <p class="campo__ayuda">Conversión = de los compradores que vieron esa recomendación, qué parte pagó la inspección desde ahí. Resaltada, la que mejor funciona. "Sin perfil": no contestó "¿Para qué buscás el auto?". Si para un tipo de usuario "Recomendados" convierte menos que el resto, cambiá sus pesos en <a href="admin-parametros.html">Parámetros</a>.</p>
+          <p class="campo__ayuda">Conversión = de los compradores que vieron esa recomendación, qué parte pagó la inspección desde ahí. Resaltada, la que mejor funciona. Si para un tipo de usuario "Recomendados" convierte menos que el resto, cambiá sus pesos en <a href="admin-parametros.html">Parámetros</a>.</p>
         </figure>
         <!-- La misma tabla en plata: cuánto deja cada recomendación (con el mismo tipo de usuario elegido arriba) -->
         <figure class="grafico">

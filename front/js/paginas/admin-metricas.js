@@ -33,7 +33,7 @@ let dias = Number(params.get('dias')) in PERIODOS ? Number(params.get('dias')) :
 const abreAfiliaciones = window.location.hash === '#afiliaciones';
 const inicial = abreAfiliaciones ? 'plata' : window.location.hash.slice(1);
 let pestana = PESTANAS.some(([clave]) => clave === inicial) ? inicial : 'resumen';
-// Plata: "todos" o un tipo de usuario (personal, familia, trabajo, aplicacion, sin_perfil). Se mantiene al cambiar el período.
+// Plata: "todos" o un tipo de usuario (personal, familia, trabajo, aplicacion). Se mantiene al cambiar el período.
 let segmento = 'todos';
 let segmentoEmbudo = 'todos'; // lo mismo en la tabla de Recomendaciones
 let ultimas = null; // las últimas métricas, para cambiar de segmento sin volver a pedirlas
@@ -52,6 +52,7 @@ function actualizarPlata() {
     if (!ultimas) return;
     const { resumen, periodo, serie } = ultimas;
     informePlata(resumen.actual, resumen.anterior, PERIODOS[periodo.dias]);
+    compararFuentes(resumen.actual, resumen.anterior, PERIODOS[periodo.dias], serie);
     const puntos = serie.puntos.map(p => ({ ...p, importe: ingresosElegidos(p, fuentes) }));
     const grafico = document.getElementById('tendencia-plata');
     grafico.hidden = !fuentes.size || puntos.some(p => p.importe == null);
@@ -212,6 +213,72 @@ function tendencia(serie, { clave, nombre, formatear = n, clase = 'tendencia--1'
     return el('div', { class: `tendencia ${clase}` }, cabeza, el('div', { class: 'tendencia__cuerpo' }, eje, lienzo, fechas), tabla);
 }
 
+// Varias series en el MISMO gráfico, solo cuando todas son de la misma unidad (pesos) y se comparan entre sí: los
+// ingresos de cada fuente. Una línea por serie (sin área, para que no se tapen), la leyenda arriba con el total de
+// cada una y, al pasar el mouse, el cartel con el valor de todas ese día o semana.
+// series: [{clave, nombre, clase}] (clase: 'fuente--inspecciones' | 'fuente--clics' | 'fuente--abonos')
+function variasTendencias(serie, series, { nombre, formatear = n }) {
+    const { puntos, unidad } = serie;
+    const totales = series.map((s) => puntos.reduce((suma, p) => suma + p[s.clave], 0));
+    const leyenda = el('ul', { class: 'comparar__leyenda', role: 'list' }, ...series.map((s, i) =>
+        el('li', {}, el('span', { class: `comparar__muestra ${s.clase}`, 'aria-hidden': 'true' }), `${s.nombre}: `, el('strong', {}, formatear(totales[i])))));
+    const cabeza = el('div', { class: 'tendencia__cabeza' }, el('span', { class: 'tendencia__nombre' }, nombre), leyenda);
+    if (!totales.some((t) => t > 0)) return el('div', { class: 'tendencia' }, cabeza, el('p', { class: 'barras__vacio' }, 'No hubo ingresos en este período.'));
+
+    const tope = ejeRedondo(Math.max(...series.flatMap((s) => puntos.map((p) => p[s.clave]))));
+    const corto = formatear === pesos ? pesosCorto : n;
+    const ultimo = Math.max(puntos.length - 1, 1);
+    const x = (i) => (i / ultimo) * 100;
+    const y = (v) => 100 - (v / tope) * 100;
+    const dibujo = svg('svg', { class: 'tendencia__dibujo', viewBox: '0 0 100 100', preserveAspectRatio: 'none', 'aria-hidden': 'true' });
+    [0, 1, 2, 3].forEach((k) => dibujo.append(svg('line', { class: 'tendencia__guia', x1: 0, x2: 100, y1: k * 33.333, y2: k * 33.333, 'vector-effect': 'non-scaling-stroke' })));
+    series.forEach((s) => dibujo.append(svg('path', {
+        class: `tendencia__linea ${s.clase}`, 'vector-effect': 'non-scaling-stroke',
+        d: puntos.map((p, i) => `${i ? 'L' : 'M'}${x(i)},${y(p[s.clave])}`).join(' '),
+    })));
+    const eje = el('div', { class: 'tendencia__eje', 'aria-hidden': 'true' }, ...[3, 2, 1, 0].map((k) => {
+        const marca = el('span', {}, corto((tope / 3) * k));
+        marca.style.top = `${100 - k * 33.333}%`;
+        return marca;
+    }));
+    const cadaCuanto = Math.max(1, Math.ceil(puntos.length / 6));
+    const fechas = el('div', { class: 'tendencia__fechas', 'aria-hidden': 'true' }, ...puntos.map((p, i) => {
+        if (i % cadaCuanto !== 0 && i !== puntos.length - 1) return null;
+        if (i !== puntos.length - 1 && puntos.length - 1 - i < cadaCuanto / 2) return null;
+        const f = el('span', {}, fechaCorta(p.fecha, unidad));
+        f.style.left = `${x(i)}%`;
+        return f;
+    }));
+
+    const guia = el('span', { class: 'tendencia__cursor', hidden: true });
+    const marcas = series.map((s) => el('span', { class: `tendencia__punto ${s.clase}`, hidden: true }));
+    const cartel = el('span', { class: 'tendencia__cartel', hidden: true });
+    const lienzo = el('div', { class: 'tendencia__lienzo' }, dibujo, guia, ...marcas, cartel);
+    const marcar = (evento) => {
+        const caja = lienzo.getBoundingClientRect();
+        const i = Math.min(Math.max(Math.round(((evento.clientX - caja.left) / caja.width) * ultimo), 0), puntos.length - 1);
+        const p = puntos[i];
+        [guia, cartel, ...marcas].forEach((nodo) => { nodo.hidden = false; nodo.style.left = `${x(i)}%`; });
+        marcas.forEach((marca, k) => { marca.style.top = `${y(p[series[k].clave])}%`; });
+        cartel.classList.toggle('tendencia__cartel--izquierda', x(i) > 60);
+        cartel.replaceChildren(el('span', {}, `${unidad === 'semana' ? 'Semana del ' : ''}${fechaCorta(p.fecha, 'dia')}`),
+            ...series.map((s) => el('span', { class: 'tendencia__cartel-fila' },
+                el('span', { class: `comparar__muestra ${s.clase}`, 'aria-hidden': 'true' }), `${s.nombre}: `, el('strong', {}, formatear(p[s.clave])))));
+    };
+    lienzo.addEventListener('pointermove', marcar);
+    lienzo.addEventListener('pointerdown', marcar);
+    lienzo.addEventListener('pointerleave', () => [guia, cartel, ...marcas].forEach((nodo) => { nodo.hidden = true; }));
+
+    const porUnidad = unidad === 'semana' ? 'semana' : 'día';
+    // La tabla va dentro de un div oculto: una tabla con varias columnas no respeta el ancho de 1 px y ensancha la página
+    const tabla = el('div', { class: 'solo-lector' }, el('table', {},
+        el('caption', {}, `${nombre} por ${porUnidad}`),
+        el('thead', {}, el('tr', {}, el('th', {}, 'Fecha'), ...series.map((s) => el('th', {}, s.nombre)))),
+        el('tbody', {}, ...puntos.map((p) => el('tr', {}, el('th', { scope: 'row' }, fechaCorta(p.fecha, unidad)),
+            ...series.map((s) => el('td', {}, formatear(p[s.clave]))))))));
+    return el('div', { class: 'tendencia tendencia--varias' }, cabeza, el('div', { class: 'tendencia__cuerpo' }, eje, lienzo, fechas), tabla);
+}
+
 function llenar(id, ...hijos) {
     document.getElementById(id).replaceChildren(...hijos.filter(hijo => hijo != null));
 }
@@ -328,8 +395,8 @@ function embudoPorPerfil(m) {
     mostrarEmbudo(origenes, fila?.nombre);
 }
 
-// El informe de plata del período: la ganancia de AutoCar (su comisión, menos los créditos usados). Sin reclamos
-// (23/11) no hay pérdida que restar. Si el back todavía no manda estos números, el informe queda oculto.
+// El informe de plata del período: los ingresos de las fuentes elegidas. Si el back todavía no manda estos números,
+// el informe queda oculto.
 function informePlata(actual, anterior, textoPeriodo) {
     const ingresos = ingresosElegidos(actual, fuentes);
     const caja = document.getElementById('informe-plata');
@@ -354,7 +421,100 @@ function informePlata(actual, anterior, textoPeriodo) {
     document.getElementById('informe-notas').textContent = notas.join(' ');
 }
 
-// ---------- Por tipo de usuario ("¿Para qué buscás el auto?"; el que no contestó es "Sin perfil") ----------
+// ---------- Comparar las fuentes de ingreso ----------
+// Para cada fuente elegida: lo que dejó, qué parte del total es, cuánto creció, cuántas "unidades" hubo y cuánto dejó
+// cada una. "plata" es contra qué se compara la cantidad: en los clics, lo que valen los del período con la tarifa de
+// hoy (clics_valor), porque lo cobrado (ingresos_clics) llega por liquidación mensual y no sigue a los clics del período.
+const UNIDADES = {
+    inspecciones: { cantidad: 'firmadas', plata: 'ingresos_inspecciones', una: 'inspección firmada', varias: 'inspecciones firmadas', quien: 'las inspecciones' },
+    clics: { cantidad: 'clics_validos', plata: 'clics_valor', una: 'clic válido', varias: 'clics válidos', quien: 'los clics' },
+    abonos: { cantidad: 'abonos_cobrados', plata: 'ingresos_abonos', una: 'abono mensual', varias: 'abonos cobrados', quien: 'las concesionarias' },
+};
+const CLASE_FUENTE = { inspecciones: 'fuente--inspecciones', clics: 'fuente--clics', abonos: 'fuente--abonos' };
+// Cuánto cambió en % (null si antes era 0: no hay contra qué comparar)
+const cambioPorcentual = (actual, anterior) => (anterior ? Math.round(((actual - anterior) / anterior) * 100) : null);
+const conSigno = (v, sufijo = ' %') => (v === null ? '—' : `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v)}${sufijo}`);
+const mayuscula = (texto) => texto[0].toUpperCase() + texto.slice(1);
+
+function filasFuentes(actual, anterior) {
+    const elegidas = Object.keys(FUENTES).filter((f) => fuentes.has(f) && actual['ingresos_' + f] != null);
+    const total = (d) => elegidas.reduce((s, f) => s + (d['ingresos_' + f] ?? 0), 0);
+    const [totalAhora, totalAntes] = [total(actual), total(anterior)];
+    return elegidas.map((f) => {
+        const u = UNIDADES[f];
+        const [ingresos, ingresosAntes] = [actual['ingresos_' + f], anterior['ingresos_' + f] ?? 0];
+        const [cantidad, cantidadAntes] = [actual[u.cantidad] ?? 0, anterior[u.cantidad] ?? 0];
+        const [plata, plataAntes] = [actual[u.plata] ?? 0, anterior[u.plata] ?? 0];
+        const parte = totalAhora ? (ingresos / totalAhora) * 100 : 0;
+        const parteAntes = totalAntes ? (ingresosAntes / totalAntes) * 100 : null;
+        const porUnidad = cantidad ? plata / cantidad : null;
+        const porUnidadAntes = cantidadAntes ? plataAntes / cantidadAntes : null;
+        return {
+            fuente: f, nombre: FUENTES[f][0], u, ingresos, cantidad,
+            parte, puntos: parteAntes === null ? null : Math.round(parte - parteAntes),
+            crecimiento: cambioPorcentual(ingresos, ingresosAntes),
+            crecimientoCantidad: cambioPorcentual(cantidad, cantidadAntes),
+            crecimientoPlata: cambioPorcentual(plata, plataAntes),
+            porUnidad,
+            cambioPorUnidad: porUnidad === null || !porUnidadAntes ? null : cambioPorcentual(porUnidad, porUnidadAntes),
+        };
+    });
+}
+
+// Las conclusiones en palabras, de lo más general a lo más fino
+function conclusionesFuentes(filas, textoPeriodo) {
+    const conIngresos = filas.filter((f) => f.ingresos > 0).sort((a, b) => b.parte - a.parte);
+    if (!conIngresos.length) return [`Todavía no hay ingresos de estas fuentes en los últimos ${textoPeriodo}.`];
+    const [mayor, segunda] = conIngresos;
+    const frases = [`${mayuscula(mayor.u.quien)} dejaron el ${Math.round(mayor.parte)} % de los ingresos de los últimos ${textoPeriodo}`
+        + (segunda ? `; ${segunda.u.quien}, el ${Math.round(segunda.parte)} %.` : '.')];
+
+    const movida = filas.filter((f) => f.puntos).sort((a, b) => Math.abs(b.puntos) - Math.abs(a.puntos))[0];
+    if (movida) frases.push(`${mayuscula(movida.u.quien)} ${movida.puntos > 0 ? 'ganaron' : 'perdieron'} ${Math.abs(movida.puntos)} puntos de participación contra el período anterior.`);
+
+    const crecen = filas.filter((f) => f.crecimiento !== null).sort((a, b) => b.crecimiento - a.crecimiento);
+    const verbo = (c) => (c >= 0 ? `crecieron ${c} %` : `bajaron ${Math.abs(c)} %`);
+    if (crecen.length >= 2 && crecen[0].crecimiento !== crecen.at(-1).crecimiento) {
+        const [rapida, lenta] = [crecen[0], crecen.at(-1)];
+        frases.push(`${mayuscula(rapida.u.quien)} ${verbo(rapida.crecimiento)} y ${lenta.u.quien} ${verbo(lenta.crecimiento)}: crecen más rápido ${rapida.u.quien}.`);
+    }
+
+    // Cantidad contra plata: si hubo más clics (o inspecciones) pero la plata no subió igual, cada uno deja menos
+    filas.forEach((f) => {
+        const [c, p] = [f.crecimientoCantidad, f.crecimientoPlata];
+        if (c === null || p === null || Math.abs(c - p) < 5) return;
+        const cantidad = c >= 0 ? `Hubo ${c} % más ${f.u.varias}` : `Hubo ${Math.abs(c)} % menos ${f.u.varias}`;
+        const plata = p >= 0 ? `la plata subió ${p} %` : `la plata bajó ${Math.abs(p)} %`;
+        frases.push(`${cantidad} y ${plata}: cada ${f.u.una} deja ${p > c ? 'más' : 'menos'} que antes.`);
+    });
+
+    const rinden = filas.filter((f) => f.porUnidad !== null);
+    if (rinden.length) frases.push(mayuscula(rinden.map((f) => `cada ${f.u.una} deja ${pesos(Math.round(f.porUnidad))}`).join('; ')) + '.');
+    return frases;
+}
+
+function compararFuentes(actual, anterior, textoPeriodo, serie) {
+    const caja = document.getElementById('comparar-fuentes');
+    const filas = filasFuentes(actual, anterior);
+    caja.hidden = filas.length < 2; // con una sola fuente no hay nada que comparar
+    if (caja.hidden) return;
+    llenar('conclusiones-plata', ...conclusionesFuentes(filas, textoPeriodo).map((frase) => el('li', {}, frase)));
+    llenar('barras-fuentes', ...barras(filas.map((f) => [f.nombre, f.ingresos]), 'Todavía no hay ingresos en este período',
+        Object.fromEntries(filas.map((f) => [f.nombre, CLASE_FUENTE[f.fuente]])), pesos));
+    const cambioCelda = (v, sufijo) => el('span', { class: v ? `variacion ${v > 0 ? 'variacion--buena' : 'variacion--mala'}` : 'variacion' }, conSigno(v, sufijo));
+    llenar('tabla-fuentes',
+        el('thead', {}, celdas(['Fuente', 'Ingresos', 'Parte', 'Parte vs. antes', 'Crecimiento', 'Cantidad', 'Cantidad vs. antes', 'Por unidad', 'Por unidad vs. antes'], 'th')),
+        el('tbody', {}, ...filas.map((f) => celdas([
+            f.nombre, pesos(f.ingresos), `${Math.round(f.parte)} %`, cambioCelda(f.puntos, ' pts'), cambioCelda(f.crecimiento),
+            `${n(f.cantidad)} ${f.cantidad === 1 ? f.u.una : f.u.varias}`, cambioCelda(f.crecimientoCantidad),
+            f.porUnidad === null ? '—' : `${pesos(Math.round(f.porUnidad))} por ${f.u.una}`, cambioCelda(f.cambioPorUnidad),
+        ]))));
+    llenar('grafico-fuentes', variasTendencias(serie,
+        filas.map((f) => ({ clave: 'ingresos_' + f.fuente, nombre: f.nombre, clase: CLASE_FUENTE[f.fuente] })),
+        { nombre: 'Ingresos de cada fuente', formatear: pesos }));
+}
+
+// ---------- Por tipo de usuario ("¿Para qué buscás el auto?", obligatoria) ----------
 
 const celdas = (fila, etiqueta = 'td') => el('tr', {}, ...fila.map((c) => el(etiqueta, {}, c)));
 
@@ -455,7 +615,7 @@ function tablaOrdenes(ordenes) {
 // Qué cambiar: si un perfil ordena casi siempre por otra cosa que "Recomendado", la fórmula de "Recomendados" de ese perfil
 // no le está mostrando lo que busca. Se sugiere subir ese peso en Parámetros (solo los perfiles tienen fórmula).
 function sugerenciasOrden(ordenes) {
-    const items = ordenes.filter((f) => f.preferido && f.preferido !== 'recomendado' && f.uso !== 'sin_perfil').map((f) =>
+    const items = ordenes.filter((f) => f.preferido && f.preferido !== 'recomendado').map((f) =>
         el('li', {}, el('strong', {}, `${f.nombre}: `),
             `la mayoría ordena por "${ORDENES[f.preferido]}". Probá subir cuánto pesa ${PESO_DEL_ORDEN[f.preferido]} para ese perfil en `,
             el('a', { href: 'admin-parametros.html' }, 'Parámetros'), '.'));
