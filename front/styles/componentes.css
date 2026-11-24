@@ -762,3 +762,17 @@ textarea.campo__input{
     .perfil{ transition: none; }
     .perfil:hover, .perfil:focus-visible{ transform: none; }
 }
+
+.insignia-verificado {
+    display: inline-flex;
+    align-items: center;
+    gap: .35em;
+    width: fit-content;
+    padding: .2em .65em;
+    border-radius: 999px;
+    color: #065b36;
+    background-color: #d9f9e6;
+    font-size: .8rem;
+    font-weight: 700;
+    line-height: 1.45;
+}
