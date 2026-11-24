@@ -1,7 +1,7 @@
 // Rutas públicas del catálogo.
 import { get } from './cliente.js';
 
-// filtros: {q, marca, combustible, precio_max, vendedor: particular|empresa, orden: relevantes|recientes, page}
+// filtros: {q, zona, marca, combustible, precio_max, vendedor: particular|empresa, orden: relevantes|recientes, page}
 // → {items (cada uno con empresa: {id, nombre} o null), total, pagina, por_pagina, paginas}
 export const listar = (filtros) => get('/api/vehiculos', filtros);
 
@@ -13,6 +13,8 @@ export const comparacion = (vehiculoId) => get(`/api/vehiculos/${encodeURICompon
 
 // → {marcas: ['Ford', 'Toyota', ...]}: las que tienen autos publicados (para el filtro del catálogo)
 export const marcas = () => get('/api/marcas');
+
+export const zonas = (zona) => get('/api/zonas', { zona });
 
 // → {marcas: [{marca: 'Ford', modelos: ['Fiesta', 'Focus', ...]}, ...]}: las que se pueden publicar
 export const marcasModelos = () => get('/api/marcas-modelos');
