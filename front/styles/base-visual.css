@@ -1638,3 +1638,19 @@ a.insignia-empresa:hover .insignia-empresa__nombre{ text-decoration: underline; 
 .vista-empresa-panel .dias{ height: 160px; }
 .dias--visitas{ gap: 2px; }
 @media (max-width: 599px){ .dias--visitas{ gap: 1px; } }
+
+/* Plata > Comparar las fuentes: un color por fuente (barras, líneas, leyenda y conclusiones) */
+.fuente--inspecciones{ --color: var(--serie-1); }
+.fuente--clics{ --color: var(--serie-2); }
+.fuente--abonos{ --color: var(--serie-3); }
+.barras__barra.fuente--inspecciones::before, .barras__barra.fuente--clics::before, .barras__barra.fuente--abonos::before{ background: var(--color); }
+.comparar__muestra.fuente--inspecciones, .comparar__muestra.fuente--clics, .comparar__muestra.fuente--abonos{ display: inline-block; flex: none; }
+.tendencia--varias .tendencia__linea{ stroke: var(--color); }
+.tendencia--varias .comparar__leyenda{ margin: 6px 0 0; }
+.tendencia--varias .comparar__leyenda strong{ color: var(--marca-tinta); font-variant-numeric: tabular-nums; }
+.tendencia__cartel-fila{ display: flex; align-items: center; gap: 6px; }
+.tendencia__cartel-fila strong{ font-size: 13px; }
+.conclusiones-plata{ display: grid; gap: 8px; margin: 0; padding: 0 0 0 18px; font-size: 15px; line-height: 1.5; color: var(--marca-tinta); }
+#tabla-fuentes .variacion{ font-weight: 600; color: var(--marca-gris); white-space: nowrap; }
+#tabla-fuentes .variacion--buena{ color: var(--ok); }
+#tabla-fuentes .variacion--mala{ color: var(--falla); }
