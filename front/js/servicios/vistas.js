@@ -76,8 +76,7 @@ export function fichaVehiculo(v) {
                     `${formato.km(v.kilometraje)} · ${formato.combustible(v.combustible)}`),
                 v.localidad || v.transmision
                     ? el('span', { class: 'ficha-vehiculo__pie' },
-                        el('span', {}, v.localidad || ''),
-                        el('span', {}, v.transmision ? formato.transmision(v.transmision) : ''))
+                        [v.localidad, v.transmision && formato.transmision(v.transmision)].filter(Boolean).join(' · '))
                     : null)));
 }
 

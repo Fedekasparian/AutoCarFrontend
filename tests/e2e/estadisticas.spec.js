@@ -73,10 +73,18 @@ test('el admin recorre las estadísticas y ve la fórmula de para vos', async ({
         // Segmentar por tipo de usuario: el informe pasa a ser solo de esos compradores
         await expect(page.locator('#tabla-plata-perfil tbody tr')).toHaveCount(5);
         await page.locator('#segmento-plata').getByRole('button', { name: 'Para la familia' }).click();
-        await expect(page.locator('#t-informe')).toHaveText('Informe de los últimos 3 meses · compradores "Para la familia"');
+        await expect(page.locator('#ingresos-perfil')).toContainText('Para la familia');
         await expect(page.locator('#segmento-plata').getByRole('button', { name: 'Para la familia' })).toHaveAttribute('aria-pressed', 'true');
         await page.locator('#segmento-plata').getByRole('button', { name: 'Todos' }).click();
         await expect(page.locator('#t-informe')).toHaveText('Informe de los últimos 3 meses');
+        const fuentes = page.locator('#fuentes-plata');
+        await fuentes.getByLabel('Inspecciones', { exact: true }).uncheck();
+        await fuentes.getByLabel('Clics a plataformas').uncheck();
+        await expect(page.locator('#informe-cuenta dt')).toHaveCount(2);
+        await expect(page.locator('#informe-cuenta')).toContainText('Afiliaciones de concesionarias');
+        await expect(page.locator('#detalle-inspecciones')).toBeHidden();
+        await fuentes.getByRole('button', { name: 'Ver todo' }).click();
+        await expect(page.locator('#informe-cuenta dt')).toHaveCount(4);
         // Al recargar sigue en la misma pestaña y período
         await page.reload();
         await expect(page.locator('#p-plata')).toBeVisible({ timeout: 60_000 });
@@ -95,15 +103,20 @@ test('el admin recorre las estadísticas y ve la fórmula de para vos', async ({
         await expect(page.locator('#sugerencias-orden > li').first()).toBeVisible();
     });
 
-    await test.step('la pestaña Afiliaciones muestra el mes en curso, la evolución y los convenios', async () => {
-        await page.getByRole('button', { name: 'Afiliaciones' }).click();
-        await expect(page).toHaveURL(/#afiliaciones$/);
+    await test.step('Plata reúne las liquidaciones mensuales y los convenios', async () => {
+        await page.getByRole('button', { name: 'Plata', exact: true }).click();
+        await expect(page.getByRole('button', { name: 'Afiliaciones', exact: true })).toHaveCount(0);
+        await page.locator('#p-plata summary').filter({ hasText: 'Afiliaciones y cobros mensuales' }).click();
         await expect(page.locator('#kpis-afiliacion > li')).toHaveCount(3);
         await expect(page.locator('#tabla-afiliacion-mes thead th')).toHaveCount(6);
         await expect(page.locator('#tabla-afiliacion-mes tbody tr').last()).toContainText('Total del mes');
         await expect(page.locator('#meses-afiliacion > li')).toHaveCount(12);
         await expect(page.locator('#tabla-afiliacion-meses tbody tr')).toHaveCount(11);
         await expect(page.locator('#tabla-convenios tbody tr').first().locator('input[type="number"]')).toBeVisible();
+        await page.goto(pagina('pages/admin/admin-metricas.html?dias=7#afiliaciones'));
+        await expect(page.locator('#p-plata')).toBeVisible();
+        await expect(page.locator('#afiliaciones')).toHaveAttribute('open', '');
+        await expect(page.getByRole('button', { name: '7 días' })).toHaveAttribute('aria-pressed', 'true');
     });
 
     await test.step('en Parámetros, la fórmula de para vos es una grilla de 4 perfiles por 4 criterios', async () => {

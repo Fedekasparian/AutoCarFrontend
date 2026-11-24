@@ -9,12 +9,10 @@
 #colecciones[hidden], .carrusel [hidden] { display: none; }
 .carrusel { min-width: 0; max-width: 100%; }
 .carrusel__cabecera { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 12px; }
-.carrusel__cabecera h2, #catalogo-titulo {
+.carrusel__cabecera h2 {
     margin: 0; font-size: clamp(1.22rem, 2vw, 1.65rem); line-height: 1.2; letter-spacing: -.035em;
     color: var(--color-texto);
 }
-.explorar-zona { display: inline-flex; align-items: center; gap: .65rem; max-width: 100%; margin-bottom: 12px; }
-.explorar-zona select { width: auto; min-width: 0; max-width: 100%; }
 .carrusel__controles { display: flex; gap: 6px; flex: none; }
 .carrusel__continuar { display: flex; align-items: center; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
 .carrusel__continuar [role=status] { color: var(--color-texto-suave); font-size: .85rem; }

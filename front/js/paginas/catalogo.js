@@ -1,6 +1,7 @@
 // Listado de vehículos con filtros (home.html y buscar.html).
 // Los filtros viajan en la URL (formularios GET), así que se puede recargar, compartir o volver atrás.
 // Mientras carga se ven fichas grises (esqueletos); arriba del listado, un chip por filtro aplicado para sacarlo.
+import { carrusel } from '../servicios/carrusel.js';
 import * as vehiculos from '../api/vehiculos.js';
 import * as corazones from '../servicios/corazones.js';
 import * as formato from '../servicios/formato.js';
@@ -9,7 +10,7 @@ import { ruta } from '../servicios/rutas.js';
 import { PERFILES } from '../servicios/perfil.js';
 
 // orden: sin valor = "Más relevantes" (el mismo cálculo que el metabuscador, con el perfil de quien mira); recientes = los más nuevos
-const FILTROS = ['q', 'marca', 'combustible', 'precio_max', 'vendedor', 'orden', 'page'];
+const FILTROS = ['q', 'zona', 'marca', 'combustible', 'precio_max', 'vendedor', 'orden', 'page'];
 
 const params = new URLSearchParams(window.location.search);
 const filtros = Object.fromEntries(FILTROS.map((f) => [f, params.get(f) || '']));
@@ -40,7 +41,7 @@ function aplicarAlElegir() {
             const query = datos.toString();
             window.location.assign(formulario.getAttribute('action') + (query ? `?${query}` : ''));
         });
-        formulario.querySelector('[type="submit"]')?.setAttribute('hidden', '');
+        formulario.querySelector('.resultados__barra [type="submit"]')?.setAttribute('hidden', '');
     });
 }
 
@@ -59,6 +60,7 @@ function abrirPanelEnEscritorio() {
 function chipsDeFiltros() {
     const textos = {
         q: (v) => `“${v}”`,
+        zona: (v) => v,
         marca: (v) => v,
         combustible: (v) => formato.combustible(v),
         precio_max: (v) => `Hasta ${formato.precio(Number(v))}`,
@@ -80,6 +82,23 @@ function chipsDeFiltros() {
             ? el('li', {}, el('a', { class: 'chip-filtro chip-filtro--limpiar', href: sin(...activos) }, 'Limpiar todo'))
             : null);
     total.closest('.resultados__barra').after(lista);
+}
+
+async function cargarZonas() {
+    const select = document.getElementById('f-zona');
+    if (!select) return;
+    const actual = filtros.zona;
+    if (actual) select.add(new Option(actual, actual, true, true));
+    try {
+        const { zonas, seleccionada } = await vehiculos.zonas(actual);
+        const nombres = new Set(zonas);
+        if (seleccionada) nombres.add(seleccionada);
+        const opciones = [...nombres].sort((a, b) => a.localeCompare(b, 'es'));
+        select.replaceChildren(select.options[0], ...opciones.map(z => new Option(z, z)));
+        select.value = seleccionada || '';
+    } catch {
+        // El filtro actual se puede quitar aunque falle la carga de opciones.
+    }
 }
 
 async function cargarMarcas() {
@@ -140,13 +159,20 @@ async function cargarListado() {
                 'Probá con menos filtros o buscá por marca y modelo.'));
             return;
         }
-        // Entran escalonadas: --n es el orden de cada ficha (el CSS calcula la demora)
         const fichas = r.items.map(vistas.fichaVehiculo);
-        fichas.forEach((li, i) => li.style.setProperty('--n', String(i)));
-        grilla.replaceChildren(...fichas);
-        grilla.classList.add('grilla-vehiculos--entra');
+        let lista = grilla;
+        if (grilla.dataset.carrusel) {
+            const seccion = carrusel(grilla.dataset.carrusel, fichas, { id: grilla.id });
+            lista = seccion.querySelector('ul');
+            grilla.replaceWith(seccion);
+            lista.before(document.getElementById('explorar-intro'));
+        } else {
+            fichas.forEach((li, i) => li.style.setProperty('--n', String(i)));
+            grilla.replaceChildren(...fichas);
+            grilla.classList.add('grilla-vehiculos--entra');
+        }
         lugarPaginacion.replaceWith(Object.assign(vistas.paginacion(r.pagina, r.paginas), { id: 'paginacion' }));
-        corazones.poner(grilla, r.items);
+        corazones.poner(lista, r.items);
     } catch (error) {
         grilla.replaceChildren();
         grilla.removeAttribute('aria-busy');
@@ -159,5 +185,6 @@ completarFormularios();
 aplicarAlElegir();
 abrirPanelEnEscritorio();
 chipsDeFiltros();
+cargarZonas();
 cargarMarcas();
 cargarListado();
