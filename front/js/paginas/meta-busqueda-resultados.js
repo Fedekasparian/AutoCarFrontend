@@ -107,24 +107,37 @@ function mostrarNovedades(n) {
 const DESTACADOS = [['mejor_relacion', 'Mejor relación precio y km'], ['mas_barato', 'El más barato'], ['menos_usado', 'El menos usado']];
 function fichaResultado(a, { puesto, categoria, explicacion, origen = 'metabuscador', ancla = true } = {}) {
     const nombre = [a.marca, a.modelo, a.anio].filter(Boolean).join(' ');
-    const botones = acciones(a, origen);
-    const href = botones[0].getAttribute('href');
+    const { publicacion, inspeccion, estado } = acciones(a, origen);
+    const href = publicacion.getAttribute('href');
+    if (inspeccion) {
+        inspeccion.classList.add('auto-aviso__inspeccion');
+        inspeccion.append(el('span', { 'aria-hidden': 'true' }, '→'));
+        publicacion.classList.add('auto-aviso__ver-sitio');
+    }
     const aviso = avisos.find(v => String(v.auto_id) === String(a.id));
     const enlace = { href, ...(a.fuente === 'autocar' ? {} : { target: '_blank', rel: 'noopener noreferrer' }) };
     return el('li', { class: 'auto-aviso', id: ancla ? idFila(a.id) : null },
         categoria ? el('h3', { class: 'auto-aviso__categoria' }, categoria) : null,
-        el('a', { class: 'auto-aviso__portada', ...enlace, 'aria-label': puesto ? `Puesto ${puesto}. Ver ${nombre}` : 'Ver ' + nombre },
-            vistas.imagenVehiculo(a, 'auto-aviso__foto'),
-            puesto ? el('span', { class: 'auto-aviso__puesto', 'aria-hidden': 'true' }, '#' + puesto) : null,
-            a.reservado || aviso ? el('span', { class: 'auto-aviso__estado' }, a.reservado ? 'Reservado' : TIPOS_AVISO[aviso.tipo]) : null),
+        el('div', { class: 'auto-aviso__cabecera' },
+            puesto ? el('span', { class: 'auto-aviso__puesto' },
+                el('span', { class: 'solo-lector' }, 'Puesto '), '#' + puesto) : null,
+            el('small', { class: 'auto-aviso__fuente' }, fuente(a.fuente)),
+            a.reservado || aviso ? el('span', { class: 'auto-aviso__estado' },
+                a.reservado ? 'Reservado' : TIPOS_AVISO[aviso.tipo]) : null),
         el('div', { class: 'auto-aviso__datos' },
-            el('a', { class: 'auto-aviso__nombre', ...enlace }, nombre),
-            a.version ? el('span', { class: 'auto-aviso__version' }, a.version) : null,
-            el('span', { class: 'auto-aviso__meta' }, [a.km != null ? formato.km(a.km) : null, a.ubicacion].filter(Boolean).join(' · ')),
-            el('strong', { class: 'auto-aviso__precio' }, precio(a)), precioOriginal(a), etiquetaPrecio(a),
-            el('small', { class: 'auto-aviso__fuente' }, fuente(a.fuente))),
+            el('div', { class: 'auto-aviso__identidad' },
+                el('div', {}, el('a', { class: 'auto-aviso__nombre', ...enlace }, nombre),
+                    a.version ? el('span', { class: 'auto-aviso__version' }, a.version) : null),
+                vistas.imagenVehiculo(a, 'auto-aviso__foto')),
+            el('div', { class: 'auto-aviso__importe' },
+                el('strong', { class: 'auto-aviso__precio' }, precio(a)), etiquetaPrecio(a)),
+            precioOriginal(a),
+            a.km != null ? el('span', { class: 'auto-aviso__km' }, formato.km(a.km)) : null,
+            a.ubicacion ? el('span', { class: 'auto-aviso__meta' }, a.ubicacion) : null),
         puesto && explicacion ? mensajeRecomendado(explicacion) : explicacion ? el('p', { class: 'auto-aviso__nota' }, explicacion) : comparacion(a),
-        el('div', { class: 'auto-aviso__acciones' }, ...botones));
+        el('div', { class: 'auto-aviso__acciones' },
+            inspeccion ? el('p', { class: 'auto-aviso__beneficio' }, 'Elegí quién revisa el auto y recibí su informe firmado.') : null,
+            inspeccion, publicacion, estado));
 }
 
 function colecciones(r) {
