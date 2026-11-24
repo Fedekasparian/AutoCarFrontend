@@ -215,6 +215,11 @@ a.ficha-vehiculo:hover { box-shadow:0 10px 26px #162d3c13; transform:translateY(
     .adhesion { gap:32px; }
     .adhesion__historia h1 { font-size:38px; }
 }
+/* Tablet: con sesión de equipo, taller o concesionaria el menú suma "Panel", "Mi taller" o "Mi empresa" y no entraba
+   en 768 px: más juntos y, si igual no entran, bajan de renglón en vez de salirse de la pantalla */
+@media (min-width:768px) and (max-width:1023px) {
+    .marca-nav nav { min-width:0; flex-wrap:wrap; justify-content:flex-end; gap:6px 14px; font-size:13px; }
+}
 @media (max-width:767px) {
     :root { --margen:20px; }
     .marca-nav { padding:16px 20px; min-height:78px; flex-wrap:wrap; gap:16px; }
