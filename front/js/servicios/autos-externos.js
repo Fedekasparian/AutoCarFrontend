@@ -42,14 +42,14 @@ export const sitio = (fuente) => el('span', { class: `sitio sitio--${fuente}` },
 // origen (para las estadísticas): de dónde se tocó el botón; va en el link y la pantalla del pedido lo manda.
 export function acciones(a, origen = 'metabuscador') {
     if (a.fuente === 'autocar') {
-        return [el('a', { class: 'boton boton--chico', href: ruta(`vehiculo.html?id=${a.id}`) }, 'Ver publicación')];
+        return { publicacion: el('a', { class: 'boton boton--chico', href: ruta(`vehiculo.html?id=${a.id}`) }, 'Ver publicación') };
     }
     // "Ver en …" pasa por el back (GET /api/salida), que anota el clic para la afiliación con esa plataforma y redirige
     // al aviso. La dirección del aviso la pone el back con sus datos, no la que viaja en el link.
     const salida = `${API_URL}/api/salida?${new URLSearchParams({ id: a.id, origen })}`;
     const verEnSitio = el('a', { class: 'boton-link', href: salida, target: '_blank', rel: 'noopener noreferrer' }, `Ver en ${insp.fuente(a.fuente)}`);
     if (a.reservado) {
-        return [verEnSitio, el('span', { class: 'suave' }, 'Reservado: no se puede pedir inspección')];
+        return { publicacion: verEnSitio, estado: el('span', { class: 'suave' }, 'Reservado: no se puede pedir inspección') };
     }
     const pedido = new URLSearchParams({ url: a.url, titulo: `${a.marca} ${a.modelo}${a.version ? ` ${a.version}` : ''}` });
     if (a.anio) pedido.set('anio', a.anio);
@@ -63,13 +63,13 @@ export function acciones(a, origen = 'metabuscador') {
     pedido.set('modelo', a.modelo);
     pedido.set('origen', origen);
     eventos.registrar('mostrado', origen, a.url);
-    return [
-        verEnSitio,
-        el('a', { class: 'boton boton--chico', href: ruta(`pedir-inspeccion.html?${pedido}`) }, 'Mandale un mecánico'),
-    ];
+    return {
+        publicacion: verEnSitio,
+        inspeccion: el('a', { class: 'boton boton--chico', href: ruta(`pedir-inspeccion.html?${pedido}`) }, 'Mandale un mecánico'),
+    };
 }
 
-const etiquetaPrecio = (a) => {
+export const etiquetaPrecio = (a) => {
     const texto = ETIQUETAS[a.etiqueta?.valor];
     return texto
         ? el('span', { class: `etiqueta etiqueta--${COLOR_ETIQUETA[a.etiqueta.valor]}`, title: CRITERIO }, texto)
@@ -77,7 +77,7 @@ const etiquetaPrecio = (a) => {
 };
 
 // Abajo del precio, chico: contra qué se comparó (el orden por precio no mira el año ni los km, la etiqueta sí)
-function comparacion(a) {
+export function comparacion(a) {
     const e = a.etiqueta;
     if (!ETIQUETAS[e?.valor] || e.diferencia_pct === null) return null;
     const pct = String(Math.abs(e.diferencia_pct)).replace('.', ',');
@@ -88,7 +88,7 @@ function comparacion(a) {
 
 // El mensaje de "Más recomendados" con un título y, en negrita, el motivo (lo que va después de los dos puntos):
 // "Como lo buscás para la familia, priorizamos pocos kilómetros: **tiene 40 % menos km que autos parecidos…**"
-function mensajeRecomendado(texto) {
+export function mensajeRecomendado(texto) {
     const corte = texto.indexOf(': ');
     const cuerpo = corte > 0
         ? [texto.slice(0, corte + 2), el('strong', {}, texto.slice(corte + 2))]
@@ -111,6 +111,7 @@ export function fila(a, { i = 0, id = null, aviso = null, extra = null, puesto =
     const datos = [a.km !== null ? formato.km(a.km) : null, a.ubicacion].filter(Boolean).join(' · ');
     const atributos = { class: `fila resultado${puesto ? ' resultado--recomendado' : ''}` };
     if (id) atributos.id = id;
+    const { publicacion, inspeccion, estado } = conAcciones ? acciones(a, origen) : {};
     const li = el('li', atributos,
         el('span', { class: 'fila__cuerpo' },
             el('span', { class: 'resultado__arriba' },
@@ -125,7 +126,7 @@ export function fila(a, { i = 0, id = null, aviso = null, extra = null, puesto =
             extra,
             mensaje ? mensajeRecomendado(mensaje) : null,
             !mensaje && motivo ? el('span', { class: 'resultado__para-vos' }, motivo) : null),
-        conAcciones ? el('span', { class: 'fila__acciones' }, ...acciones(a, origen)) : null);
+        conAcciones ? el('span', { class: 'fila__acciones' }, publicacion, inspeccion, estado) : null);
     li.style.setProperty('--n', String(i));
     return li;
 }

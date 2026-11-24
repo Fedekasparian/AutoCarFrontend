@@ -1,5 +1,5 @@
 // Metabuscador del lado del comprador: una cuenta nueva con perfil guarda una búsqueda, ve los 5 más recomendados con
-// su mensaje, abre el listado completo y entra a la página de novedades. Crea una cuenta y una búsqueda: no corre
+// su mensaje, ve el resto en otra fila y entra a la página de novedades. Crea una cuenta y una búsqueda: no corre
 // contra producción.
 //
 // Variables opcionales: E2E_META_MARCA / E2E_META_MODELO (una marca y modelo con autos en el entorno; sin ellas usa la
@@ -39,21 +39,23 @@ test('con perfil, los primeros de "Más recomendados" dicen por qué y se puede 
     await test.step('"Más recomendados" muestra hasta 5, numerados, para el perfil elegido', async () => {
         await expect(page.locator('label.orden__opcion', { hasText: 'Más recomendados' }).locator('input')).toBeChecked();
         await expect(page.locator('#recomendados-intro')).toContainText('Para la familia');
-        const recomendados = page.locator('.resultado--recomendado');
+        const recomendados = page.locator('#recomendados > li');
         expect(await recomendados.count()).toBeLessThanOrEqual(5);
-        await expect(recomendados.first().locator('.resultado__puesto')).toHaveText(/1$/); // "Recomendado número 1" para el lector
+        await expect(recomendados.first().locator('.auto-aviso__puesto')).toHaveText(/1$/);
         // El mensaje, cuando lo hay, nombra el perfil
         const mensajes = await page.locator('.resultado__mensaje').allTextContents();
         for (const m of mensajes) expect(m).toContain('Como lo buscás para la familia');
     });
 
-    await test.step('"Ver listado completo" muestra el resto y queda en la URL', async () => {
-        const verTodo = page.locator('#ver-todo');
-        if (await verTodo.count()) {
-            await verTodo.click();
-            await expect(page).toHaveURL(/todo=1/);
-            expect(await filas.count()).toBeGreaterThan(5);
-            await expect(page.locator('#ver-todo')).toHaveCount(0);
+    await test.step('el resto de la búsqueda aparece en otro carrusel, sin repetir el top', async () => {
+        const top = page.locator('#recomendados > li');
+        await expect(page.getByRole('heading', { name: 'Recomendado para vos' })).toBeVisible();
+        const idsTop = await top.evaluateAll(items => items.map(item => item.id));
+        const resto = page.locator('#resultados > li');
+        if (await resto.count()) {
+            await expect(page.getByRole('heading', { name: 'Más autos de esta búsqueda' })).toBeVisible();
+            const ids = await resto.evaluateAll(items => items.map(item => item.id));
+            expect(ids.every(id => !idsTop.includes(id))).toBe(true);
         }
     });
 
@@ -61,7 +63,7 @@ test('con perfil, los primeros de "Más recomendados" dicen por qué y se puede 
         await page.locator('label.orden__opcion', { hasText: 'Menor precio' }).click();
         await expect(page).toHaveURL(/orden=precio/);
         await expect(page.locator('#resultados > li').first()).toBeVisible();
-        await expect(page.locator('.resultado--recomendado')).toHaveCount(0);
+        await expect(page.locator('#recomendados > li')).toHaveCount(0);
         await expect(page.locator('#recomendados-intro')).toBeHidden();
     });
 
