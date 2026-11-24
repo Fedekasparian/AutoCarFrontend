@@ -1,5 +1,5 @@
 // Mandale un mecánico: el comprador pega el link del auto (o llega con ?url=... desde un aviso), elige un
-// mecánico del ranking, ve el desglose del precio y confirma. POST /api/inspecciones; el pago es simulado.
+// mecánico del ranking, ve el desglose del precio y confirma. POST /api/inspecciones; después se paga con Mercado Pago.
 // Si llega con ?url=..., el link queda fijo (solo lectura): es el del auto que estaba mirando.
 import * as api from '../api/inspecciones.js';
 import * as formato from '../servicios/formato.js';
