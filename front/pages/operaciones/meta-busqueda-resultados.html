@@ -16,6 +16,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Sora:wght@600;700;800&amp;display=swap">
 <link rel="stylesheet" href="../../styles/base-visual.css">
+<link rel="stylesheet" href="../../styles/carruseles.css">
 </head>
 <body class="con-barra vista-meta-busqueda-resultados">
 
@@ -38,27 +39,7 @@
        novedades, destacados y los autos de todas las fuentes. Cada uno con "Mandale un mecánico" (link fijo). -->
   <main id="contenido" class="pantalla">
     <div class="estado" id="estado"></div>
-    <section class="pila" id="resumen" hidden aria-label="Resumen de la búsqueda">
-      <p class="recuadro" id="referencia"></p>
-      <!-- Precio típico de cada sitio en una misma escala (lo arma js/paginas/meta-busqueda-resultados.js) -->
-      <div class="sitios" id="sitios" hidden></div>
-      <p class="suave" id="novedades"></p>
-      <!-- Nuevos, bajaron y ya no están, como cifras (cuando hay dos corridas para comparar) -->
-      <ul class="novedades" id="novedades-cifras" role="list" hidden></ul>
-      <!-- Al tocar "nuevos" o "bajaron de precio": cuáles son (los que ya no están no se muestran) -->
-      <div class="novedades-detalle" id="novedades-detalle" hidden>
-        <h2 class="novedades-sin-ver__titulo" id="novedades-detalle-titulo"></h2>
-        <ul class="lista-filas" id="novedades-detalle-lista" role="list"></ul>
-      </div>
-      <!-- Cuáles son las novedades sin ver de esta búsqueda (GET /api/meta-busquedas/avisos?sin_ver=1) -->
-      <div class="novedades-sin-ver" id="novedades-sin-ver" hidden>
-        <h2 class="novedades-sin-ver__titulo">Novedades desde tu última visita</h2>
-        <ul class="novedades-sin-ver__lista" id="novedades-lista" role="list"></ul>
-      </div>
-      <!-- Mejor relación precio-km, el más barato y el menos usado -->
-      <ul class="destacados" id="destacados" role="list" aria-label="Destacados" hidden></ul>
-      <p class="campo__ayuda" id="aclaracion"></p>
-    </section>
+
     <form class="campos-fila" id="filtros" hidden>
       <!-- "Recomendado" no manda orden: el back ordena según el perfil del comprador (para_vos) o, sin perfil,
            por la diferencia con el precio típico -->
@@ -82,8 +63,29 @@
         </select>
       </div>
     </form>
-    <ul class="lista-filas" role="list" id="resultados"></ul>
+    <div id="colecciones-busqueda"></div>
     <nav id="paginacion"></nav>
+    <details class="informe-busqueda" id="resumen" hidden aria-label="Resumen de la búsqueda">
+      <summary>Precios y novedades de la búsqueda</summary>
+      <p class="recuadro" id="referencia"></p>
+      <!-- Precio típico de cada sitio en una misma escala (lo arma js/paginas/meta-busqueda-resultados.js) -->
+      <div class="sitios" id="sitios" hidden></div>
+      <p class="suave" id="novedades"></p>
+      <!-- Nuevos, bajaron y ya no están, como cifras (cuando hay dos corridas para comparar) -->
+      <ul class="novedades" id="novedades-cifras" role="list" hidden></ul>
+      <!-- Al tocar "nuevos" o "bajaron de precio": cuáles son (los que ya no están no se muestran) -->
+      <div class="novedades-detalle" id="novedades-detalle" hidden>
+        <h2 class="novedades-sin-ver__titulo" id="novedades-detalle-titulo"></h2>
+        <ul class="lista-filas" id="novedades-detalle-lista" role="list"></ul>
+      </div>
+      <!-- Cuáles son las novedades sin ver de esta búsqueda (GET /api/meta-busquedas/avisos?sin_ver=1) -->
+      <div class="novedades-sin-ver" id="novedades-sin-ver" hidden>
+        <h2 class="novedades-sin-ver__titulo">Novedades desde tu última visita</h2>
+        <ul class="novedades-sin-ver__lista" id="novedades-lista" role="list"></ul>
+      </div>
+
+      <p class="campo__ayuda" id="aclaracion"></p>
+    </details>
   </main>
 
 

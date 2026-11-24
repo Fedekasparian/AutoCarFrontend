@@ -27,26 +27,26 @@ function pintar(boton, v, guardado) {
 }
 
 function corazon(v, guardado, alSacar) {
-    const boton = el('button', { class: 'ficha-favorito', type: 'button' }, icono());
+    const boton = el('button', { class: 'ficha-favorito', type: 'button', 'data-favorito': v.id }, icono());
     pintar(boton, v, guardado);
     boton.addEventListener('click', async () => {
         if (!sesion.requerirLogin()) return;
         const antes = boton.getAttribute('aria-pressed') === 'true';
         // Se pinta enseguida y se vuelve atrás si el servidor dice que no
-        pintar(boton, v, !antes);
+        const copias = document.querySelectorAll(`button[data-favorito="${CSS.escape(String(v.id))}"]`);
+        copias.forEach(b => { pintar(b, v, !antes); b.disabled = true; });
         boton.classList.remove('ficha-favorito--late');
         if (!antes) requestAnimationFrame(() => boton.classList.add('ficha-favorito--late'));
-        boton.disabled = true;
         try {
             if (antes) await favoritos.sacar(v.id);
             else await favoritos.agregar(v.id);
             avisar(antes ? 'Se sacó de favoritos.' : 'Guardado en favoritos.');
             if (antes) alSacar?.(boton.closest('li'));
         } catch (error) {
-            pintar(boton, v, antes); // 409: es una publicación propia
+            copias.forEach(b => pintar(b, v, antes)); // 409: es una publicación propia
             avisar(error.message);
         }
-        boton.disabled = false;
+        copias.forEach(b => { b.disabled = false; });
     });
     return boton;
 }

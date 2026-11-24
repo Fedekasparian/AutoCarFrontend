@@ -2,6 +2,7 @@
 // precio de referencia, novedades y los autos de todas las fuentes, cada uno con "Mandale un mecánico".
 // "Recomendado" (sin orden en la URL) lo decide el back: si eligió para qué busca el auto, según su perfil
 // (para_vos, cada auto trae el motivo); si no, por la diferencia con el precio típico.
+import { carrusel } from '../servicios/carrusel.js';
 import * as api from '../api/metabusqueda.js';
 import * as formato from '../servicios/formato.js';
 import * as insp from '../servicios/inspecciones.js';
@@ -90,7 +91,7 @@ const sitio = (fuente) => el('span', { class: `sitio sitio--${fuente}` }, insp.f
 // apareciendo al cambiar de página u orden en esta pestaña.
 const TIPOS_AVISO = { nuevo: 'Nuevo', bajo: 'Bajó de precio', reservado: 'Reservado', retirado: 'Ya no está' };
 let avisos = [];
-const idFila = (autoId) => `auto-${autoId.replace(/[^\w-]/g, '-')}`;
+const idFila = (autoId) => `auto-${String(autoId).replace(/[^\w-]/g, '-')}`;
 
 async function traerAvisos() {
     const clave = `avisos-busqueda-${id}`;
@@ -226,22 +227,91 @@ function mostrarNovedades(n) {
 }
 
 const DESTACADOS = [['mejor_relacion', 'Mejor relación precio y km'], ['mas_barato', 'El más barato'], ['menos_usado', 'El menos usado']];
-function mostrarDestacados(d) {
-    const caja = $('destacados');
-    const items = DESTACADOS.filter(([clave]) => d?.[clave]);
-    if (!items.length) { caja.hidden = true; return; }
-    caja.replaceChildren(...items.map(([clave, titulo]) => {
-        const { auto: a, explicacion } = d[clave];
-        return el('li', { class: `destacado destacado--${clave}` },
-            el('span', { class: 'destacado__titulo' }, titulo),
-            el('strong', { class: 'destacado__precio' }, precio(a)),
-            precioOriginal(a),
-            el('span', { class: 'destacado__auto' }, `${a.marca} ${a.modelo} ${a.anio ?? ''}`.trim(),
-                a.km !== null ? ` · ${formato.km(a.km)}` : ''),
-            el('span', { class: 'destacado__explicacion' }, explicacion),
-            el('span', { class: 'destacado__pie' }, sitio(a.fuente), acciones(a, 'destacado').at(-1)));
+function fichaResultado(a, { puesto, categoria, explicacion, origen = 'metabuscador', ancla = true } = {}) {
+    const nombre = [a.marca, a.modelo, a.anio].filter(Boolean).join(' ');
+    const href = a.fuente === 'autocar' ? ruta(`vehiculo.html?id=${a.id}`) : a.url;
+    const aviso = avisos.find(v => String(v.auto_id) === String(a.id));
+    const enlace = { href, ...(a.fuente === 'autocar' ? {} : { target: '_blank', rel: 'noopener noreferrer' }) };
+    return el('li', { class: 'auto-aviso', id: ancla ? idFila(a.id) : null },
+        categoria ? el('h3', { class: 'auto-aviso__categoria' }, categoria) : null,
+        el('a', { class: 'auto-aviso__portada', ...enlace, 'aria-label': puesto ? `Puesto ${puesto}. Ver ${nombre}` : 'Ver ' + nombre },
+            vistas.imagenVehiculo(a, 'auto-aviso__foto'),
+            puesto ? el('span', { class: 'auto-aviso__puesto', 'aria-hidden': 'true' }, '#' + puesto) : null,
+            a.reservado || aviso ? el('span', { class: 'auto-aviso__estado' }, a.reservado ? 'Reservado' : TIPOS_AVISO[aviso.tipo]) : null),
+        el('div', { class: 'auto-aviso__datos' },
+            el('a', { class: 'auto-aviso__nombre', ...enlace }, nombre),
+            a.version ? el('span', { class: 'auto-aviso__version' }, a.version) : null,
+            el('span', { class: 'auto-aviso__meta' }, [a.km != null ? formato.km(a.km) : null, a.ubicacion].filter(Boolean).join(' · ')),
+            el('strong', { class: 'auto-aviso__precio' }, precio(a)), precioOriginal(a), etiquetaPrecio(a),
+            el('small', { class: 'auto-aviso__fuente' }, insp.fuente(a.fuente))),
+        explicacion ? el('p', { class: 'auto-aviso__nota' }, explicacion) : comparacion(a),
+        el('div', { class: 'auto-aviso__acciones' }, ...acciones(a, origen)));
+}
+
+function colecciones(r) {
+    const { items, pagina } = r.resultados;
+    const n = Number(pagina) === 1 && !params.get('orden') ? Math.min(5, items.length) : 0;
+    const caja = $('colecciones-busqueda');
+    const filas = [];
+    if (n) {
+        const top = items.slice(0, n).map((a, indice) => fichaResultado(a, {
+            puesto: indice + 1,
+            explicacion: a.para_vos?.mensaje || a.para_vos?.motivo,
+            origen: a.para_vos ? 'para_vos' : 'metabuscador',
+        }));
+        filas.push(carrusel('Recomendado para vos', top, { id: 'recomendados', clase: 'carrusel--recomendados' }));
+    }
+    const destacados = DESTACADOS.filter(([k]) => r.destacados?.[k]?.auto).map(([k, categoria]) => {
+        const { auto, explicacion } = r.destacados[k];
+        return fichaResultado(auto, { categoria, explicacion, origen: 'destacado', ancla: false });
+    });
+    if (destacados.length) filas.push(carrusel('También te puede interesar', destacados, {
+        id: 'destacados', clase: 'carrusel--comparaciones'
     }));
-    caja.hidden = false;
+    if (items.length > n) {
+        const resto = carrusel(n ? 'Más autos de esta búsqueda' : 'Autos de esta búsqueda',
+            items.slice(n).map(a => fichaResultado(a)), { id: 'resultados' });
+        if (Number(pagina) === 1 && r.resultados.paginas > 1) {
+            continuarResultados(resto, r.resultados);
+        }
+        filas.push(resto);
+    }
+    caja.replaceChildren(...filas);
+}
+
+function continuarResultados(seccion, inicial) {
+    const lista = seccion.querySelector('ul');
+    const vistos = new Set(inicial.items.map(a => String(a.id)));
+    const mas = el('button', { type: 'button', class: 'boton boton--secundario', 'aria-controls': lista.id }, 'Ver más autos');
+    const estado = el('span', { role: 'status' });
+    const pie = el('div', { class: 'carrusel__continuar' }, mas, estado);
+    let pagina = Number(inicial.pagina);
+    mas.addEventListener('click', async () => {
+        if (mas.disabled) return;
+        mas.disabled = true;
+        estado.textContent = 'Cargando autos…';
+        try {
+            const filtros = Object.fromEntries(['orden', 'fuente'].filter(k => params.get(k)).map(k => [k, params.get(k)]));
+            const { resultados } = await api.reporte(id, { ...filtros, page: pagina + 1 });
+            const nuevos = resultados.items.filter(a => !vistos.has(String(a.id)));
+            const fichas = nuevos.map(a => fichaResultado(a));
+            lista.append(...fichas);
+            nuevos.forEach(a => vistos.add(String(a.id)));
+            pagina = Number(resultados.pagina);
+            if (fichas.length) {
+                fichas[0].querySelector('a').focus({ preventScroll: true });
+                lista.scrollTo({ left: fichas[0].offsetLeft, behavior: 'instant' });
+            }
+            estado.textContent = `${vistos.size} de ${resultados.total} autos`;
+            mas.hidden = pagina >= resultados.paginas;
+        } catch (error) {
+            if (error.status === 401) return sesion.requerirLogin();
+            estado.textContent = 'No pudimos cargar los autos. Volvé a intentar.';
+        } finally {
+            mas.disabled = false;
+        }
+    });
+    seccion.append(pie);
 }
 
 function mostrar(r) {
@@ -263,16 +333,16 @@ function mostrar(r) {
     $('aclaracion').textContent = r.aclaracion;
     mostrarSitios(r.referencia);
     mostrarNovedades(n);
-    mostrarDestacados(r.destacados);
+    colecciones(r);
     $('resumen').hidden = false;
 
     const res = r.resultados;
-    $('resultados').replaceChildren(...res.items.map((a, i) => fila(a, i)));
     mostrarAvisos(res.items);
-    $('resultados').classList.add('lista-filas--entra');
     $('estado').replaceChildren(res.items.length ? '' : vistas.aviso('No hay autos con estos filtros.',
         'Probá con otro sitio o sacá algún criterio. La búsqueda queda guardada: si aparece un auto, te avisamos.'));
-    $('paginacion').replaceWith(Object.assign(vistas.paginacion(res.pagina, res.paginas), { id: 'paginacion' }));
+    const paginacion = vistas.paginacion(res.pagina, res.paginas);
+    if (Number(res.pagina) === 1 && $('resultados')) paginacion.hidden = true;
+    $('paginacion').replaceWith(Object.assign(paginacion, { id: 'paginacion' }));
     $('filtros').hidden = false;
     // Al final de la página, "Borrar esta búsqueda" (una sola vez, aunque se vuelva a mostrar el reporte)
     if (!$('borrar')) {
