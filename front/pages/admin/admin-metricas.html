@@ -52,22 +52,25 @@
 
       <section class="metricas-panel pila" id="p-plata" data-pestana="plata" aria-labelledby="t-plata" hidden>
         <h2 class="solo-lector" id="t-plata">Plata</h2>
-        <div class="segmento-plata" id="plata-perfil" hidden>
-          <span class="metricas-periodo__etiqueta" id="t-segmento">Tipo de usuario</span>
-          <div class="pestanas-estado" role="group" aria-labelledby="t-segmento" id="segmento-plata"></div>
-        </div>
+        <fieldset class="fuentes-plata" id="fuentes-plata">
+          <legend>Fuentes de ingreso</legend>
+        </fieldset>
+        <p class="campo__ayuda" id="sin-fuentes" hidden>Elegí al menos una fuente para ver sus ingresos.</p>
         <article class="recuadro informe-plata" id="informe-plata" aria-labelledby="t-informe" hidden>
           <h3 class="informe-plata__titulo" id="t-informe">Informe</h3>
           <p class="informe-plata__frase" id="informe-frase"></p>
           <dl class="informe-plata__cuenta" id="informe-cuenta"></dl>
           <p class="campo__ayuda" id="informe-notas"></p>
         </article>
+        <div class="graficos-fila" id="tendencia-plata">
+          <figure class="grafico"><figcaption class="solo-lector">Ganancia de AutoCar en el tiempo</figcaption><div id="grafico-ganancia"></div></figure>
+        </div>
         <details class="comparacion" id="afiliaciones">
           <summary class="comparacion__titulo">Afiliaciones y cobros mensuales</summary>
           <div id="estado-afiliaciones" role="status">Cargando liquidaciones…</div>
           <div class="pila" id="detalle-afiliaciones" hidden>
-            <p class="campo__ayuda">Las liquidaciones se calculan por mes calendario e incluyen clics a plataformas y abonos de concesionarias. El informe de ingresos registra cada cobro en la fecha en que se marca como cobrado.</p>
-            <p class="campo__ayuda">Los convenios con las plataformas son simulados. Para cada aviso se cuenta un clic por cuenta personal cada 24 horas.</p>
+            <p class="campo__ayuda">Las liquidaciones se calculan por mes calendario. El informe de ingresos registra cada cobro en la fecha en que se marca como cobrado.</p>
+            <p class="campo__ayuda" data-fuente="clics">Los convenios con las plataformas son simulados. Para cada aviso se cuenta un clic por cuenta personal cada 24 horas.</p>
             <ul class="resumen-admin" role="list" id="kpis-afiliacion"></ul>
             <figure class="grafico">
               <figcaption class="grafico__titulo" id="afiliacion-mes-titulo">Lo que se va a cobrar este mes</figcaption>
@@ -78,8 +81,8 @@
             <figure class="grafico">
               <figcaption class="grafico__titulo">Liquidaciones de los últimos 12 meses</figcaption>
               <ul class="leyenda-dias" role="list" aria-label="Referencias">
-                <li class="leyenda-dias__item leyenda-meses--clics">Clics a plataformas</li>
-                <li class="leyenda-dias__item leyenda-meses--abonos">Abonos de empresas</li>
+                <li class="leyenda-dias__item leyenda-meses--clics" data-fuente="clics">Clics a plataformas</li>
+                <li class="leyenda-dias__item leyenda-meses--abonos" data-fuente="abonos">Afiliaciones de concesionarias</li>
               </ul>
               <ol class="meses" id="meses-afiliacion"></ol>
             </figure>
@@ -88,26 +91,31 @@
               <div class="tabla-desplazable"><table class="tabla tabla-embudo" id="tabla-afiliacion-meses"></table></div>
               <p class="campo__ayuda">Un mes se cobra cuando termina. "Marcar cobrado" guarda lo de ese momento: si después cambia la tarifa, ese mes no se mueve.</p>
             </figure>
-            <h3 class="titulo-seccion">Convenios</h3>
-            <div class="tabla-desplazable"><table class="tabla tabla-embudo" id="tabla-convenios"></table></div>
-            <p class="campo__ayuda">La tarifa nueva vale para el mes en curso y los meses que todavía no se cobraron. Sin convenio activo los clics se cuentan, pero no se cobran.</p>
+            <h3 class="titulo-seccion" data-fuente="clics">Convenios</h3>
+            <div class="tabla-desplazable" data-fuente="clics"><table class="tabla tabla-embudo" id="tabla-convenios"></table></div>
+            <p class="campo__ayuda" data-fuente="clics">La tarifa nueva vale para el mes en curso y los meses que todavía no se cobraron. Sin convenio activo los clics se cuentan, pero no se cobran.</p>
           </div>
         </details>
-        <figure class="grafico" id="plata-perfil-tabla" hidden>
-          <figcaption class="grafico__titulo">Comisiones de inspecciones por tipo de usuario</figcaption>
-          <div class="tabla-desplazable"><table class="tabla tabla-embudo" id="tabla-plata-perfil"></table></div>
-          <h3 class="grafico__subtitulo">Comisión de inspecciones por tipo de usuario</h3>
-          <ul class="barras" id="barras-plata-perfil" role="list"></ul>
-          <p class="campo__ayuda">El tipo de usuario es la respuesta a "¿Para qué buscás el auto?" del comprador que pagó la inspección. "Sin perfil": no la contestó.</p>
-        </figure>
-        <ul class="resumen-admin" role="list" id="kpis-plata"></ul>
-        <div class="graficos-fila">
-          <figure class="grafico"><figcaption class="solo-lector">Ganancia de AutoCar en el tiempo</figcaption><div id="grafico-ganancia"></div></figure>
+        <div class="pila" id="detalle-inspecciones">
+          <h3 class="titulo-seccion">Ingresos por inspecciones</h3>
+          <div class="segmento-plata" id="plata-perfil" hidden>
+            <span class="metricas-periodo__etiqueta" id="t-segmento">Compradores de inspecciones</span>
+            <div class="pestanas-estado" role="group" aria-labelledby="t-segmento" id="segmento-plata"></div>
+          </div>
+          <p id="ingresos-perfil" hidden></p>
+          <figure class="grafico" id="plata-perfil-tabla" hidden>
+            <figcaption class="grafico__titulo">Comisiones de inspecciones por tipo de usuario</figcaption>
+            <div class="tabla-desplazable"><table class="tabla tabla-embudo" id="tabla-plata-perfil"></table></div>
+            <h3 class="grafico__subtitulo">Comisión de inspecciones por tipo de usuario</h3>
+            <ul class="barras" id="barras-plata-perfil" role="list"></ul>
+            <p class="campo__ayuda">El tipo de usuario es la respuesta a "¿Para qué buscás el auto?" del comprador que pagó la inspección. "Sin perfil": no la contestó.</p>
+          </figure>
+          <ul class="resumen-admin" role="list" id="kpis-plata"></ul>
+          <h3 class="titulo-seccion">Inspecciones desde el principio</h3>
+          <ul class="resumen-admin" role="list" id="tarjetas-ganancias"></ul>
+          <figure class="grafico" id="reparto-figura" hidden><figcaption class="grafico__titulo">Cómo se reparte lo facturado</figcaption><div id="reparto"></div></figure>
+          <p class="campo__ayuda" id="ganancias"></p>
         </div>
-        <h3 class="titulo-seccion">Inspecciones desde el principio</h3>
-        <ul class="resumen-admin" role="list" id="tarjetas-ganancias"></ul>
-        <figure class="grafico" id="reparto-figura" hidden><figcaption class="grafico__titulo">Cómo se reparte lo facturado</figcaption><div id="reparto"></div></figure>
-        <p class="campo__ayuda" id="ganancias"></p>
       </section>
 
       <section class="metricas-panel pila" id="p-inspecciones" data-pestana="inspecciones" aria-labelledby="t-inspecciones" hidden>

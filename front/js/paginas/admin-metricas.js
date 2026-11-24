@@ -2,6 +2,7 @@
 // Ordenadas en pestañas (Resumen, Plata, Inspecciones, Recomendaciones, Metabuscador, Usuarios, Publicaciones) con un período
 // que vale para todas. "Compró" = pagó la inspección. La pestaña y el período quedan en la URL (#plata, ?dias=90).
 // Plata, Recomendaciones y Metabuscador también separan por tipo de usuario ("¿Para qué buscás el auto?", por_perfil).
+import { FUENTES, ingresosElegidos, liquidacionElegida } from '../servicios/fuentes-plata.js';
 import * as admin from '../api/admin.js';
 import * as formato from '../servicios/formato.js';
 import { CONCLUSIONES, ESTADOS as ESTADOS_INSPECCION } from '../servicios/inspecciones.js';
@@ -36,6 +37,45 @@ let pestana = PESTANAS.some(([clave]) => clave === inicial) ? inicial : 'resumen
 let segmento = 'todos';
 let segmentoEmbudo = 'todos'; // lo mismo en la tabla de Recomendaciones
 let ultimas = null; // las últimas métricas, para cambiar de segmento sin volver a pedirlas
+
+const fuentes = new Set(Object.keys(FUENTES));
+let afiliacionActual = null;
+
+function actualizarPlata() {
+    const todas = fuentes.size === Object.keys(FUENTES).length;
+    document.getElementById('todas-las-fuentes').disabled = todas;
+    document.getElementById('sin-fuentes').hidden = fuentes.size > 0;
+    document.getElementById('detalle-inspecciones').hidden = !fuentes.has('inspecciones');
+    document.getElementById('afiliaciones').hidden = !fuentes.has('clics') && !fuentes.has('abonos');
+    document.querySelectorAll('[data-fuente]').forEach(nodo => { nodo.hidden = !fuentes.has(nodo.dataset.fuente); });
+    if (afiliacionActual) pintarLiquidaciones();
+    if (!ultimas) return;
+    const { resumen, periodo, serie } = ultimas;
+    informePlata(resumen.actual, resumen.anterior, PERIODOS[periodo.dias]);
+    const puntos = serie.puntos.map(p => ({ ...p, importe: ingresosElegidos(p, fuentes) }));
+    const grafico = document.getElementById('tendencia-plata');
+    grafico.hidden = !fuentes.size || puntos.some(p => p.importe == null);
+    if (!grafico.hidden) llenar('grafico-ganancia', tendencia({ ...serie, puntos }, {
+        clave: 'importe', nombre: todas ? 'Ingresos de AutoCar' : 'Ingresos seleccionados', formatear: pesos, clase: 'tendencia--2' }));
+}
+
+function prepararFuentes() {
+    const grupo = document.getElementById('fuentes-plata');
+    for (const [clave, [nombre]] of Object.entries(FUENTES)) {
+        grupo.append(el('label', {}, el('input', { type: 'checkbox', value: clave, checked: true }), ' ' + nombre));
+    }
+    const todas = el('button', { class: 'boton-link', type: 'button', id: 'todas-las-fuentes', disabled: true }, 'Ver todo');
+    grupo.append(todas);
+    grupo.addEventListener('change', ({ target }) => {
+        if (target.checked) fuentes.add(target.value);
+        else fuentes.delete(target.value);
+        actualizarPlata();
+    });
+    todas.addEventListener('click', () => {
+        grupo.querySelectorAll('input').forEach(control => { control.checked = true; fuentes.add(control.value); });
+        actualizarPlata();
+    });
+}
 
 // ---------- Piezas ----------
 
@@ -173,7 +213,7 @@ function tendencia(serie, { clave, nombre, formatear = n, clase = 'tendencia--1'
 }
 
 function llenar(id, ...hijos) {
-    document.getElementById(id).replaceChildren(...hijos);
+    document.getElementById(id).replaceChildren(...hijos.filter(hijo => hijo != null));
 }
 
 function horas(h) {
@@ -290,39 +330,28 @@ function embudoPorPerfil(m) {
 
 // El informe de plata del período: la ganancia de AutoCar (su comisión, menos los créditos usados). Sin reclamos
 // (23/11) no hay pérdida que restar. Si el back todavía no manda estos números, el informe queda oculto.
-// quien: el tipo de usuario si se segmentó ("Para la familia"); sin él es el de todos y compara con el período anterior.
-function informePlata(actual, anterior, textoPeriodo, quien = null) {
+function informePlata(actual, anterior, textoPeriodo) {
+    const ingresos = ingresosElegidos(actual, fuentes);
     const caja = document.getElementById('informe-plata');
-    caja.hidden = actual.ingresos === undefined;
+    caja.hidden = !fuentes.size || ingresos == null;
     if (caja.hidden) return;
-    const { ingresos } = actual;
-    const cuando = `los últimos ${textoPeriodo}`;
-    document.getElementById('t-informe').textContent = quien
-        ? `Informe de ${cuando} · compradores "${quien}"`
-        : `Informe de ${cuando}`;
-    const conQuien = quien ? ` con los compradores "${quien}"` : '';
-
+    document.getElementById('t-informe').textContent = 'Informe de los últimos ' + textoPeriodo;
     document.getElementById('informe-frase').textContent =
-        `En ${cuando} AutoCar registró ${pesos(ingresos)} de ingresos${quien ? ' por inspecciones' : ''}${conQuien}.`;
+        'Ingresos por ' + Object.keys(FUENTES).filter(f => fuentes.has(f)).map(f => FUENTES[f][0].toLowerCase()).join(', ') + '.';
 
     const fila = (nombre, detalle, monto, clase, extra = null) => el('div', { class: `informe-plata__fila ${clase}` },
         el('dt', {}, nombre, detalle ? el('span', { class: 'informe-plata__detalle' }, detalle) : null),
         el('dd', {}, el('span', {}, monto), extra));
-    const desglose = [];
-    if (actual.ingresos_clics !== undefined) {
-        desglose.push(
-            fila('Inspecciones', 'Comisión de AutoCar menos los créditos usados', pesos(actual.ingresos_inspecciones), ''),
-            fila('Clics a plataformas', 'Liquidaciones de clics marcadas como cobradas en el período', pesos(actual.ingresos_clics), ''),
-            fila('Abonos de concesionarias', 'Abonos marcados como cobrados en el período', pesos(actual.ingresos_abonos), ''));
-    }
-    llenar('informe-cuenta', ...desglose,
-        fila(quien ? 'Ingreso por inspecciones' : 'Ingresos del período', '', pesos(ingresos),
-            'informe-plata__fila--neta', variacion(ingresos, anterior.ingresos)));
-    const pendiente = actual.clics_por_cobrar === undefined ? '' :
-        ` Clics pendientes de liquidación: ${pesos(actual.clics_por_cobrar)} estimados por ${n(actual.clics_pendientes)} clics válidos del período.`;
-    document.getElementById('informe-notas').textContent =
-        `Inspecciones por cobrar: ${pesos(actual.por_cobrar)}.` + pendiente
-        + ' Los convenios de afiliación son simulados.';
+    const desglose = Object.entries(FUENTES)
+        .filter(([fuente]) => fuentes.has(fuente) && actual['ingresos_' + fuente] != null)
+        .map(([fuente, [nombre, detalle]]) => fila(nombre, detalle, pesos(actual['ingresos_' + fuente]), ''));
+    llenar('informe-cuenta', ...desglose, fila('Ingresos del período', '', pesos(ingresos),
+        'informe-plata__fila--neta', variacion(ingresos, ingresosElegidos(anterior, fuentes))));
+    const notas = [];
+    if (fuentes.has('inspecciones')) notas.push('Inspecciones por cobrar: ' + pesos(actual.por_cobrar) + '.');
+    if (fuentes.has('clics') && actual.clics_por_cobrar != null) notas.push(
+        'Clics pendientes de liquidación: ' + pesos(actual.clics_por_cobrar) + ' estimados por ' + n(actual.clics_pendientes) + ' clics válidos del período.');
+    document.getElementById('informe-notas').textContent = notas.join(' ');
 }
 
 // ---------- Por tipo de usuario ("¿Para qué buscás el auto?"; el que no contestó es "Sin perfil") ----------
@@ -330,24 +359,26 @@ function informePlata(actual, anterior, textoPeriodo, quien = null) {
 const celdas = (fila, etiqueta = 'td') => el('tr', {}, ...fila.map((c) => el(etiqueta, {}, c)));
 
 // Plata: los botones Todos / cada tipo de usuario, el informe del segmento elegido y la tabla que los compara
-function plataPorPerfil(m, textoPeriodo) {
+function plataPorPerfil(m) {
     const pp = m.por_perfil;
     const caja = document.getElementById('plata-perfil');
     caja.hidden = !pp;
     document.getElementById('plata-perfil-tabla').hidden = !pp;
-    if (!pp) {
-        informePlata(m.resumen.actual, m.resumen.anterior, textoPeriodo);
-        return;
-    }
+    const resumenPerfil = document.getElementById('ingresos-perfil');
+    resumenPerfil.hidden = true;
+    if (!pp) return;
     if (segmento !== 'todos' && !pp.plata.some((f) => f.uso === segmento)) segmento = 'todos';
     const opciones = [['todos', 'Todos'], ...Object.entries(pp.usos)];
     llenar('segmento-plata', ...opciones.map(([clave, texto]) => boton(texto, clave === segmento, () => {
         segmento = clave;
-        plataPorPerfil(ultimas, textoPeriodo);
+        plataPorPerfil(ultimas);
     })));
     const fila = pp.plata.find((f) => f.uso === segmento);
-    if (fila) informePlata(fila, {}, textoPeriodo, fila.nombre);
-    else informePlata(m.resumen.actual, m.resumen.anterior, textoPeriodo);
+    if (fila) {
+        resumenPerfil.textContent = fila.nombre + ' · Ingresos por inspecciones: ' + pesos(fila.ingresos)
+            + ' · Por cobrar: ' + pesos(fila.por_cobrar);
+        resumenPerfil.hidden = false;
+    }
 
     // La tabla: cada tipo de usuario con lo que pagó, lo que ganó AutoCar y qué parte de la ganancia es
     const total = pp.plata.reduce((s, f) => s + f.ingresos, 0);
@@ -442,15 +473,17 @@ const ESTADO_MES = { en_curso: 'En curso', pendiente: 'Falta cobrar', cobrado: '
 function esteMesAfiliacion(m) {
     llenar('kpis-afiliacion',
         tarjeta(m.total, `A cobrar en ${nombreMes(m.mes, true)}`, pesos),
-        tarjeta(m.de_clics, `De clics a plataformas (${n(m.validos)} válidos de ${n(m.clics)})`, pesos),
-        tarjeta(m.de_abonos, 'De abonos de empresas', pesos));
+        fuentes.has('clics') ? tarjeta(m.de_clics, `De clics a plataformas (${n(m.validos)} válidos de ${n(m.clics)})`, pesos) : null,
+        fuentes.has('abonos') ? tarjeta(m.de_abonos, 'Afiliaciones de concesionarias', pesos) : null);
     document.getElementById('afiliacion-mes-titulo').textContent = `Lo que se va a cobrar en ${nombreMes(m.mes, true)}`;
+    const conClics = fuentes.has('clics');
+    const cantidades = (clics, validos) => conClics ? [clics, validos] : [];
     llenar('tabla-afiliacion-mes',
-        el('thead', {}, celdas(['Socio', 'Tipo', 'Clics', 'Válidos', 'Tarifa', 'A cobrar'], 'th')),
+        el('thead', {}, celdas(['Socio', 'Tipo', ...cantidades('Clics', 'Válidos'), 'Tarifa', 'A cobrar'], 'th')),
         el('tbody', {}, ...m.filas.map((f) => celdas(f.tipo === 'empresa'
-            ? [f.nombre, 'Empresa', '—', '—', 'Abono mensual', pesos(f.monto)]
-            : [f.nombre, 'Plataforma', n(f.clics), n(f.validos), f.activo ? `${pesos(f.tarifa_clic)} / clic` : 'Sin convenio activo', pesos(f.monto)])),
-        celdas([el('strong', {}, 'Total del mes'), '', n(m.clics), n(m.validos), '', el('strong', {}, pesos(m.total))])));
+            ? [f.nombre, 'Concesionaria', ...cantidades('—', '—'), 'Abono mensual', pesos(f.monto)]
+            : [f.nombre, 'Plataforma', ...cantidades(n(f.clics), n(f.validos)), f.activo ? pesos(f.tarifa_clic) + ' / clic' : 'Sin convenio activo', pesos(f.monto)])),
+        celdas([el('strong', {}, 'Total del mes'), '', ...cantidades(n(m.clics), n(m.validos)), '', el('strong', {}, pesos(m.total))])));
     document.getElementById('afiliacion-cierre').textContent = m.dias_al_cierre
         ? `Faltan ${m.dias_al_cierre} ${m.dias_al_cierre === 1 ? 'día' : 'días'} para el cierre del mes.`
         : 'Hoy cierra el mes.';
@@ -479,23 +512,26 @@ function mesesAfiliacion(evolucion) {
 // Los meses cerrados, del más nuevo al más viejo; al tocar uno se ve cada socio y se marca cobrado
 let mesAbierto = null;
 function mesesCerradosAfiliacion(evolucion) {
+    const deClics = (...valores) => fuentes.has('clics') ? valores : [];
+    const deAbonos = (valor) => fuentes.has('abonos') ? [valor] : [];
+    const columnas = ['Mes', ...deClics('Clics válidos', 'De clics'), ...deAbonos('De afiliaciones'), 'Total', 'Estado', ''];
     const cerrados = evolucion.filter((m) => !m.en_curso).reverse();
     const filas = cerrados.flatMap((m) => {
         const abierto = mesAbierto === m.mes;
         const ver = el('button', { class: 'boton-link', type: 'button', 'aria-expanded': String(abierto) }, abierto ? 'Ocultar' : 'Ver por socio');
         ver.addEventListener('click', () => { mesAbierto = abierto ? null : m.mes; mesesCerradosAfiliacion(evolucion); });
         const estado = el('span', { class: `estado-cobro estado-cobro--${m.estado}` }, ESTADO_MES[m.estado]);
-        const fila = celdas([nombreMes(m.mes, true), n(m.validos), pesos(m.de_clics), pesos(m.de_abonos), pesos(m.total), estado, ver]);
+        const fila = celdas([nombreMes(m.mes, true), ...deClics(n(m.validos), pesos(m.de_clics)), ...deAbonos(pesos(m.de_abonos)), pesos(m.total), estado, ver]);
         if (!abierto) return [fila];
         const detalle = el('table', { class: 'tabla tabla-cobros' },
-            el('thead', {}, celdas(['Socio', 'Tipo', 'Clics válidos', 'Monto', ''], 'th')),
+            el('thead', {}, celdas(['Socio', 'Tipo', ...deClics('Clics válidos'), 'Monto', ''], 'th')),
             el('tbody', {}, ...m.filas.map((f) => celdas([f.nombre, f.tipo === 'empresa' ? 'Abono' : 'Clics',
-                f.tipo === 'empresa' ? '—' : n(f.validos), pesos(f.monto), cobroDe(m, f)]))));
-        return [fila, el('tr', { class: 'tabla-cobros__fila' }, el('td', { colspan: '7' }, detalle))];
+                ...deClics(f.tipo === 'empresa' ? '—' : n(f.validos)), pesos(f.monto), cobroDe(m, f)]))));
+        return [fila, el('tr', { class: 'tabla-cobros__fila' }, el('td', { colspan: String(columnas.length) }, detalle))];
     });
     llenar('tabla-afiliacion-meses',
-        el('thead', {}, celdas(['Mes', 'Clics válidos', 'De clics', 'De abonos', 'Total', 'Estado', ''], 'th')),
-        el('tbody', {}, ...(filas.length ? filas : [el('tr', {}, el('td', { colspan: '7' }, 'Todavía no hay meses cerrados.'))])));
+        el('thead', {}, celdas(columnas, 'th')),
+        el('tbody', {}, ...(filas.length ? filas : [el('tr', {}, el('td', { colspan: String(columnas.length) }, 'Todavía no hay meses cerrados.'))])));
 }
 
 function cobroDe(m, f) {
@@ -540,10 +576,17 @@ function conveniosAfiliacion(convenios) {
 }
 
 function mostrarAfiliacion(a) {
-    esteMesAfiliacion(a.este_mes);
-    mesesAfiliacion(a.evolucion);
-    mesesCerradosAfiliacion(a.evolucion);
+    afiliacionActual = a;
+    pintarLiquidaciones();
     conveniosAfiliacion(a.convenios);
+}
+
+function pintarLiquidaciones() {
+    if (!fuentes.has('abonos') && !fuentes.has('clics')) return;
+    const evolucion = afiliacionActual.evolucion.map(m => liquidacionElegida(m, fuentes));
+    esteMesAfiliacion(liquidacionElegida(afiliacionActual.este_mes, fuentes));
+    mesesAfiliacion(evolucion);
+    mesesCerradosAfiliacion(evolucion);
 }
 
 async function cargarAfiliacion() {
@@ -619,13 +662,13 @@ function mostrar(m) {
     llenar('grafico-nuevos', tendencia(m.serie, { clave: 'nuevos_usuarios', nombre: 'Usuarios nuevos', clase: 'tendencia--2' }));
 
     // Plata: arriba el informe (la ganancia) de todos o de un tipo de usuario, y después el detalle
-    plataPorPerfil(m, textoPeriodo);
+    plataPorPerfil(m);
+    actualizarPlata();
     llenar('kpis-plata',
         tarjeta(actual.por_cobrar ?? 0, 'Inspecciones por cobrar', pesos),
         tarjeta(actual.facturado, `Facturado (${n(actual.firmadas)} firmadas)`, pesos, { anterior: anterior.facturado }),
         tarjeta(actual.mecanicos ?? 0, 'Pagado a mecánicos', pesos, { anterior: anterior.mecanicos ?? 0 }),
         tarjeta(actual.compradores, 'Compradores que pagaron', n, { anterior: anterior.compradores }));
-    llenar('grafico-ganancia', tendencia(m.serie, { clave: 'ingresos', nombre: 'Ingresos de AutoCar', formatear: pesos, clase: 'tendencia--2' }));
     const g = m.ganancias;
     llenar('tarjetas-ganancias',
         tarjeta(g.autocar, 'Para AutoCar', pesos),
@@ -754,6 +797,7 @@ async function cargar() {
 
 if (sesion.requerirPermiso('metricas.ver')) {
     if (abreAfiliaciones) document.getElementById('afiliaciones').open = true;
+    prepararFuentes();
     armarControles();
     cargar();
     cargarAfiliacion(); // no depende del período: se pide una vez

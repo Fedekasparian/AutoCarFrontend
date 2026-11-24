@@ -73,10 +73,18 @@ test('el admin recorre las estadísticas y ve la fórmula de para vos', async ({
         // Segmentar por tipo de usuario: el informe pasa a ser solo de esos compradores
         await expect(page.locator('#tabla-plata-perfil tbody tr')).toHaveCount(5);
         await page.locator('#segmento-plata').getByRole('button', { name: 'Para la familia' }).click();
-        await expect(page.locator('#t-informe')).toHaveText('Informe de los últimos 3 meses · compradores "Para la familia"');
+        await expect(page.locator('#ingresos-perfil')).toContainText('Para la familia');
         await expect(page.locator('#segmento-plata').getByRole('button', { name: 'Para la familia' })).toHaveAttribute('aria-pressed', 'true');
         await page.locator('#segmento-plata').getByRole('button', { name: 'Todos' }).click();
         await expect(page.locator('#t-informe')).toHaveText('Informe de los últimos 3 meses');
+        const fuentes = page.locator('#fuentes-plata');
+        await fuentes.getByLabel('Inspecciones', { exact: true }).uncheck();
+        await fuentes.getByLabel('Clics a plataformas').uncheck();
+        await expect(page.locator('#informe-cuenta dt')).toHaveCount(2);
+        await expect(page.locator('#informe-cuenta')).toContainText('Afiliaciones de concesionarias');
+        await expect(page.locator('#detalle-inspecciones')).toBeHidden();
+        await fuentes.getByRole('button', { name: 'Ver todo' }).click();
+        await expect(page.locator('#informe-cuenta dt')).toHaveCount(4);
         // Al recargar sigue en la misma pestaña y período
         await page.reload();
         await expect(page.locator('#p-plata')).toBeVisible({ timeout: 60_000 });
