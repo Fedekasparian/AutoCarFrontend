@@ -772,6 +772,7 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .busqueda-guardada .recuadro.fila:hover{ box-shadow: var(--sombra-2); transform: translateY(-2px); border-color: color-mix(in srgb, var(--marca-acento) 60%, var(--marca-linea)); }
 .busqueda-guardada .fila__titulo{ display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-family: var(--fuente-titulos); font-size: 19px; }
 .busqueda-guardada__chips{ display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.busqueda-guardada__fecha{ display: block; margin-top: 8px; font-size: 13px; color: var(--marca-gris); }
 .chip-criterio{ padding: 3px 10px; border-radius: 999px; background: var(--marca-tenue); color: var(--marca-tinta); font-size: 12px; font-weight: 600; }
 .busqueda-guardada__novedades{
     display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 999px;
