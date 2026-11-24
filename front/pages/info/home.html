@@ -33,24 +33,24 @@
 <li><a class="barra__enlace" href="../auth/cuenta.html"><span class="barra__icono"><svg width="22" height="22" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"></path></svg></span><span>Cuenta</span></a></li>
 </ul></nav><header class="contenedor catalogo-intro"><div>
 <h1>Explorá vehículos</h1>
-<p>Filtrá por marca, precio o combustible.</p>
+<p>Filtrá por zona, marca, precio o combustible.</p>
 </div>
 </header>
 
   <main id="contenido" class="pantalla pantalla--compacta">
 
-    <!-- Búsqueda por texto: lleva a la búsqueda con todos los filtros -->
-    <form class="buscador" action="home.html" method="get" role="search">
-      <label class="solo-lector" for="q">Buscar vehículos</label>
-      <input class="campo__input" id="q" name="q" type="search" placeholder="Marca, modelo o versión" maxlength="60">
-      <button class="boton" type="submit">Buscar</button>
-    </form>
-
-    <!-- Filtros rápidos: se aplican sobre esta misma página (GET). Las marcas las carga js/paginas/catalogo.js -->
-    <form action="home.html" method="get">
-      <input type="hidden" name="q">
+    <form action="home.html" method="get" role="search">
+      <div class="buscador">
+        <label class="solo-lector" for="q">Buscar vehículos</label>
+        <input class="campo__input" id="q" name="q" type="search" placeholder="Marca, modelo o versión" maxlength="60">
+        <button class="boton" type="submit">Buscar</button>
+      </div>
       <fieldset class="filtros-rapidos">
         <legend class="solo-lector">Filtros rápidos</legend>
+        <label class="solo-lector" for="f-zona">Zona</label>
+        <select class="campo__input" id="f-zona" name="zona">
+          <option value="">Todas las zonas</option>
+        </select>
         <label class="solo-lector" for="f-marca">Marca</label>
         <select class="campo__input" id="f-marca" name="marca">
           <option value="">Marca</option>

@@ -10,7 +10,7 @@ import { ruta } from '../servicios/rutas.js';
 import { PERFILES } from '../servicios/perfil.js';
 
 // orden: sin valor = "Más relevantes" (el mismo cálculo que el metabuscador, con el perfil de quien mira); recientes = los más nuevos
-const FILTROS = ['q', 'marca', 'combustible', 'precio_max', 'vendedor', 'orden', 'page'];
+const FILTROS = ['q', 'zona', 'marca', 'combustible', 'precio_max', 'vendedor', 'orden', 'page'];
 
 const params = new URLSearchParams(window.location.search);
 const filtros = Object.fromEntries(FILTROS.map((f) => [f, params.get(f) || '']));
@@ -41,7 +41,7 @@ function aplicarAlElegir() {
             const query = datos.toString();
             window.location.assign(formulario.getAttribute('action') + (query ? `?${query}` : ''));
         });
-        formulario.querySelector('[type="submit"]')?.setAttribute('hidden', '');
+        formulario.querySelector('.resultados__barra [type="submit"]')?.setAttribute('hidden', '');
     });
 }
 
@@ -60,6 +60,7 @@ function abrirPanelEnEscritorio() {
 function chipsDeFiltros() {
     const textos = {
         q: (v) => `“${v}”`,
+        zona: (v) => v,
         marca: (v) => v,
         combustible: (v) => formato.combustible(v),
         precio_max: (v) => `Hasta ${formato.precio(Number(v))}`,
@@ -81,6 +82,23 @@ function chipsDeFiltros() {
             ? el('li', {}, el('a', { class: 'chip-filtro chip-filtro--limpiar', href: sin(...activos) }, 'Limpiar todo'))
             : null);
     total.closest('.resultados__barra').after(lista);
+}
+
+async function cargarZonas() {
+    const select = document.getElementById('f-zona');
+    if (!select) return;
+    const actual = filtros.zona;
+    if (actual) select.add(new Option(actual, actual, true, true));
+    try {
+        const { zonas, seleccionada } = await vehiculos.zonas(actual);
+        const nombres = new Set(zonas);
+        if (seleccionada) nombres.add(seleccionada);
+        const opciones = [...nombres].sort((a, b) => a.localeCompare(b, 'es'));
+        select.replaceChildren(select.options[0], ...opciones.map(z => new Option(z, z)));
+        select.value = seleccionada || '';
+    } catch {
+        // El filtro actual se puede quitar aunque falle la carga de opciones.
+    }
 }
 
 async function cargarMarcas() {
@@ -167,5 +185,6 @@ completarFormularios();
 aplicarAlElegir();
 abrirPanelEnEscritorio();
 chipsDeFiltros();
+cargarZonas();
 cargarMarcas();
 cargarListado();
