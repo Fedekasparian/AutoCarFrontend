@@ -16,6 +16,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Sora:wght@600;700;800&amp;display=swap">
 <link rel="stylesheet" href="../../styles/base-visual.css">
+<link rel="stylesheet" href="../../styles/carruseles.css">
 </head>
 <body class="con-barra vista-meta-busqueda-resultados">
 
@@ -38,14 +39,6 @@
        novedades, destacados y los autos de todas las fuentes. Cada uno con "Mandale un mecánico" (link fijo). -->
   <main id="contenido" class="pantalla">
     <div class="estado" id="estado"></div>
-    <section class="pila" id="resumen" hidden aria-label="Resumen de la búsqueda">
-      <!-- Precio típico de cada sitio en una misma escala (lo arma js/paginas/meta-busqueda-resultados.js) -->
-      <div class="sitios" id="sitios" hidden></div>
-      <!-- Nuevos, bajaron y ya no están desde la corrida anterior, con el link a la página de novedades
-           (meta-busqueda-novedades.html: el gráfico por día y cuáles son) -->
-      <p class="novedades-franja" id="novedades"></p>
-      <p class="campo__ayuda" id="aclaracion"></p>
-    </section>
     <form class="campos-fila" id="filtros" hidden>
       <!-- "Más recomendados" no manda orden: el back ordena según el perfil del comprador (para_vos) o, sin perfil,
            por la diferencia con el precio típico. Ahí se ven primero los 5 más recomendados con su mensaje -->
@@ -69,18 +62,16 @@
         </select>
       </div>
     </form>
-    <!-- En "Más recomendados": para quién son los primeros y el link para cambiar el perfil (es el título de la lista) -->
-    <h2 class="recomendados-intro" id="recomendados-intro" hidden></h2>
-    <!-- Los 5 primeros del ranking, aparte y con otro fondo; abajo "Otros autos" sigue el mismo orden, sin números -->
-    <ul class="lista-filas recomendados" role="list" id="recomendados" aria-labelledby="recomendados-intro" hidden></ul>
-    <!-- Mejor relación precio-km, el más barato y el menos usado: más chicos, debajo de los recomendados -->
-    <section class="destacados-bloque" id="destacados-bloque" aria-labelledby="destacados-titulo" hidden>
-      <h2 class="destacados-bloque__titulo" id="destacados-titulo">También te puede interesar</h2>
-      <ul class="destacados" id="destacados" role="list"></ul>
-    </section>
-    <h2 class="otros-autos" id="otros-autos" hidden></h2>
-    <ul class="lista-filas" role="list" id="resultados"></ul>
+    <div id="colecciones-busqueda"></div>
     <nav id="paginacion"></nav>
+    <section class="pila" id="resumen" hidden aria-label="Resumen de la búsqueda">
+      <!-- Precio típico de cada sitio en una misma escala (lo arma js/paginas/meta-busqueda-resultados.js) -->
+      <div class="sitios" id="sitios" hidden></div>
+      <!-- Nuevos, bajaron y ya no están desde la corrida anterior, con el link a la página de novedades
+           (meta-busqueda-novedades.html: el gráfico por día y cuáles son) -->
+      <p class="novedades-franja" id="novedades"></p>
+      <p class="campo__ayuda" id="aclaracion"></p>
+    </section>
   </main>
 
 

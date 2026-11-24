@@ -69,7 +69,7 @@ export function acciones(a, origen = 'metabuscador') {
     ];
 }
 
-const etiquetaPrecio = (a) => {
+export const etiquetaPrecio = (a) => {
     const texto = ETIQUETAS[a.etiqueta?.valor];
     return texto
         ? el('span', { class: `etiqueta etiqueta--${COLOR_ETIQUETA[a.etiqueta.valor]}`, title: CRITERIO }, texto)
@@ -77,7 +77,7 @@ const etiquetaPrecio = (a) => {
 };
 
 // Abajo del precio, chico: contra qué se comparó (el orden por precio no mira el año ni los km, la etiqueta sí)
-function comparacion(a) {
+export function comparacion(a) {
     const e = a.etiqueta;
     if (!ETIQUETAS[e?.valor] || e.diferencia_pct === null) return null;
     const pct = String(Math.abs(e.diferencia_pct)).replace('.', ',');
@@ -88,7 +88,7 @@ function comparacion(a) {
 
 // El mensaje de "Más recomendados" con un título y, en negrita, el motivo (lo que va después de los dos puntos):
 // "Como lo buscás para la familia, priorizamos pocos kilómetros: **tiene 40 % menos km que autos parecidos…**"
-function mensajeRecomendado(texto) {
+export function mensajeRecomendado(texto) {
     const corte = texto.indexOf(': ');
     const cuerpo = corte > 0
         ? [texto.slice(0, corte + 2), el('strong', {}, texto.slice(corte + 2))]
