@@ -37,77 +37,70 @@
 @media (min-width: 1051px) {
     .carrusel--recomendados .carrusel__pista { grid-auto-columns: calc((100% - 4 * var(--separacion)) / 4.35); }
 }
-.auto-aviso__portada { display: block; position: relative; overflow: hidden; border-radius: 16px; }
-.auto-aviso__foto, .carrusel .ficha-vehiculo__imagen, .grilla-vehiculos .ficha-vehiculo__imagen {
+.carrusel .ficha-vehiculo__imagen, .grilla-vehiculos .ficha-vehiculo__imagen {
     display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; background: var(--marca-tenue);
     border-radius: 16px;
 }
-.auto-aviso__foto[role=img], .ficha-vehiculo__imagen[role=img] { display: grid; place-items: center; }
-.auto-aviso__foto[role=img]::after, .ficha-vehiculo__imagen[role=img]::after {
+.ficha-vehiculo__imagen[role=img] { display: grid; place-items: center; }
+.ficha-vehiculo__imagen[role=img]::after {
     content: 'Foto no disponible'; color: var(--color-texto-suave); font-size: .8rem; font-weight: 500;
 }
-.auto-aviso__estado { position: absolute; left: 10px; top: 10px; border-radius: 6px; background: #fff; color: #18201f; padding: 3px 8px; font-size: .76rem; }
-.auto-aviso__puesto {
-    position: absolute; left: 10px; top: 10px; padding: 5px 10px; border-radius: 8px;
-    background: #132d2b; color: #fff; border: 1px solid #ffffff70;
-    font-size: 1.05rem; font-weight: 750; line-height: 1.2; font-variant-numeric: tabular-nums;
-}
-.auto-aviso__puesto + .auto-aviso__estado { top: auto; bottom: 10px; }
-.auto-aviso__datos, .carrusel .ficha-vehiculo__cuerpo, .grilla-vehiculos .ficha-vehiculo__cuerpo {
+.carrusel .ficha-vehiculo__cuerpo, .grilla-vehiculos .ficha-vehiculo__cuerpo {
     display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 10px 1px 2px;
 }
-.auto-aviso__nombre, .carrusel .ficha-vehiculo__titulo, .grilla-vehiculos .ficha-vehiculo__titulo {
+.carrusel .ficha-vehiculo__titulo, .grilla-vehiculos .ficha-vehiculo__titulo {
     font-size: 1rem; line-height: 1.25; font-weight: 650; color: var(--color-texto); text-decoration: none; letter-spacing: -.025em;
 }
+.carrusel .ficha-vehiculo__precio, .grilla-vehiculos .ficha-vehiculo__precio { font-size: 1.08rem; line-height: 1.35; letter-spacing: -.025em; font-weight: 700; }
+
+#colecciones-busqueda .carrusel__pista { align-items: stretch; }
+.auto-aviso {
+    display: flex; flex-direction: column; gap: 12px;
+    padding: clamp(14px, 1.4vw, 22px); border: 1px solid var(--color-linea);
+    border-radius: 15px; background: var(--color-superficie);
+}
+.auto-aviso__cabecera, .auto-aviso__importe { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.auto-aviso__cabecera { padding-bottom: 10px; border-bottom: 1px solid var(--color-linea); }
+.auto-aviso__puesto, .auto-aviso__estado { padding: 2px 7px; border-radius: 5px; font-size: .8rem; font-weight: 700; }
+.auto-aviso__puesto { background: var(--marca-tinta); color: var(--marca-papel); }
+.auto-aviso__estado { background: var(--marca-tenue); color: var(--color-texto); }
+.auto-aviso__fuente, .auto-aviso__version, .auto-aviso__meta, .auto-aviso__nota { color: var(--color-texto-suave); font-size: .875rem; line-height: 1.4; }
+.auto-aviso__datos { display: grid; gap: 4px; }
+.auto-aviso__identidad { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.auto-aviso__nombre { color: var(--color-texto); font-size: 1.08rem; line-height: 1.25; font-weight: 650; text-decoration: none; }
 .auto-aviso__nombre:hover { text-decoration: underline; }
-.auto-aviso__version { display: block; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--color-texto); font-size: .87rem; }
-.auto-aviso__precio, .carrusel .ficha-vehiculo__precio, .grilla-vehiculos .ficha-vehiculo__precio { font-size: 1.08rem; line-height: 1.35; letter-spacing: -.025em; font-weight: 700; }
-.auto-aviso__meta, .auto-aviso__fuente, .auto-aviso__nota { color: var(--color-texto-suave); font-size: .83rem; line-height: 1.4; }
-.auto-aviso__nota { margin: 4px 0; }
-.auto-aviso__acciones { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; margin-top: 10px; }
-.auto-aviso__acciones a.boton, .auto-aviso__acciones .boton-link {
-    display: inline-flex; align-items: center; justify-content: center; flex: 1 1 max-content;
-    max-width: 100%; min-width: 0; width: auto; min-height: 44px; height: auto; padding: 8px 12px;
-    border: 1px solid var(--color-borde, var(--color-texto-suave)); border-radius: 9px;
-    background: transparent; color: var(--color-texto); box-shadow: none;
-    text-align: center; text-decoration: none; font-family: inherit;
-    font-size: .875rem; line-height: 1.25; font-weight: 600;
+.auto-aviso__version { display: block; margin-top: 2px; }
+.auto-aviso__foto { flex: none; width: 54px; height: 48px; border-radius: 7px; object-fit: cover; }
+.auto-aviso__foto[role=img] { display: none; }
+.auto-aviso__importe { margin: 8px 0 2px; }
+.auto-aviso__precio { font-size: clamp(1.25rem, 1.6vw, 1.6rem); line-height: 1.15; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+.auto-aviso__km { color: var(--color-texto); font-size: .93rem; }
+.auto-aviso > .resultado__comparacion { flex-basis: auto; }
+.auto-aviso > .resultado__mensaje { margin-top: 0; }
+.auto-aviso__nota, .auto-aviso__categoria { margin: 0; }
+.auto-aviso__categoria { font-size: 1.12rem; line-height: 1.25; color: var(--marca-acento); }
+.auto-aviso__acciones {
+    display: grid; gap: 4px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--color-linea);
 }
-.auto-aviso__acciones a:first-child {
-    color: var(--color-sobre-principal, var(--color-superficie));
-    background: var(--color-principal, var(--color-texto)); border-color: transparent;
+.auto-aviso__beneficio {
+    margin: 0 0 5px; color: var(--color-texto); font-size: .875rem; line-height: 1.4;
 }
-.auto-aviso__acciones a:hover { box-shadow: inset 0 0 0 2px currentColor; text-decoration: none; }
-/* La foto, los datos, la explicación y las dos acciones comparten filas entre avisos. */
-.carrusel__pista:is(#recomendados, #resultados) { grid-template-rows: repeat(5, auto); row-gap: 0; }
-.carrusel__pista:is(#recomendados, #resultados) > .auto-aviso {
-    grid-row: 1 / -1; display: grid; grid-template-rows: subgrid; align-self: stretch;
+.auto-aviso__acciones a {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    min-width: 0; min-height: 44px; height: auto; padding: 8px 10px;
+    text-align: center; line-height: 1.25;
 }
-.carrusel__pista:is(#recomendados, #resultados) .auto-aviso__acciones {
-    grid-row: 4 / span 2; display: grid; grid-template-rows: subgrid; row-gap: 0;
+.auto-aviso__acciones .auto-aviso__inspeccion {
+    min-height: 48px; border: 1px solid transparent; border-radius: 10px;
+    background: var(--marca-acento); color: var(--sobre-acento);
+    font-size: .96rem; font-weight: 700; text-decoration: none;
 }
-.carrusel__pista:is(#recomendados, #resultados) .auto-aviso__acciones > :nth-child(2) { margin-top: 8px; }
-.carrusel--comparaciones .carrusel__pista { align-items: stretch; }
-.carrusel--comparaciones .auto-aviso {
-    display: grid; grid-template-columns: minmax(0, 1fr) 35%; grid-template-rows: auto auto 1fr auto;
-    grid-template-areas: "titulo titulo" "datos foto" "nota nota" "acciones acciones";
-    gap: 12px; padding: clamp(14px, 1.4vw, 22px); border-radius: 15px;
-    border: 1px solid var(--color-linea); background: var(--color-superficie);
+.auto-aviso__acciones .auto-aviso__inspeccion:hover { background: var(--marca-hover); }
+.auto-aviso__acciones .auto-aviso__ver-sitio {
+    color: var(--color-texto-suave); background: transparent;
+    font-size: .875rem; font-weight: 500; text-decoration: underline; text-underline-offset: 3px;
 }
-.carrusel--comparaciones .auto-aviso__categoria {
-    grid-area: titulo; margin: 0; color: var(--color-texto); font-weight: 700;
-    font-size: clamp(1.125rem, 1.4vw, 1.4rem); letter-spacing: -.025em; line-height: 1.2;
-}
-.carrusel--comparaciones .auto-aviso__portada { grid-area: foto; align-self: start; border-radius: 9px; }
-.carrusel--comparaciones .auto-aviso__foto { aspect-ratio: 4 / 3; border-radius: 9px; }
-.carrusel--comparaciones .auto-aviso__datos { grid-area: datos; min-width: 0; padding: 0; }
-.carrusel--comparaciones .auto-aviso__nota, .carrusel--comparaciones .resultado__comparacion {
-    grid-area: nota; margin: 0; align-self: start;
-}
-.carrusel--comparaciones .auto-aviso__acciones {
-    grid-area: acciones; margin-top: 0; display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 10.5rem), 1fr));
-}
+.auto-aviso__acciones .auto-aviso__ver-sitio:hover { color: var(--color-texto); }
 .carrusel .ficha-vehiculo, .grilla-vehiculos .ficha-vehiculo { display: block; border: 0; border-radius: 0; background: transparent; box-shadow: none; overflow: visible; }
 .carrusel .ficha-vehiculo:hover, .grilla-vehiculos .ficha-vehiculo:hover,
 .carrusel .ficha-vehiculo:hover .ficha-vehiculo__imagen, .grilla-vehiculos .ficha-vehiculo:hover .ficha-vehiculo__imagen { transform: none; }
