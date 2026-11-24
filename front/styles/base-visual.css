@@ -772,6 +772,7 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .busqueda-guardada .recuadro.fila:hover{ box-shadow: var(--sombra-2); transform: translateY(-2px); border-color: color-mix(in srgb, var(--marca-acento) 60%, var(--marca-linea)); }
 .busqueda-guardada .fila__titulo{ display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-family: var(--fuente-titulos); font-size: 19px; }
 .busqueda-guardada__chips{ display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.busqueda-guardada__fecha{ display: block; margin-top: 8px; font-size: 13px; color: var(--marca-gris); }
 .chip-criterio{ padding: 3px 10px; border-radius: 999px; background: var(--marca-tenue); color: var(--marca-tinta); font-size: 12px; font-weight: 600; }
 .busqueda-guardada__novedades{
     display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 999px;
@@ -1290,11 +1291,6 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .barra .boton-modo{ position: relative; z-index: 1; }
 
 /* ---------- Estadísticas del admin (admin-metricas.html): pestañas, período, variaciones, tendencias y embudo ---------- */
-.fuentes-plata { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; margin: 0; padding: 0; border: 0; }
-.fuentes-plata legend { padding: 0; margin-bottom: 8px; font-weight: 600; }
-.fuentes-plata label { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; cursor: pointer; }
-.fuentes-plata input { accent-color: var(--marca-acento); }
-.fuentes-plata button:disabled { opacity: .5; }
 .metricas-controles{ display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
 /* Son 6 secciones: en celular bajan de renglón en vez de esconderse a la derecha */
 .metricas-controles .pestanas-estado{ flex-wrap: wrap; overflow-x: visible; }
@@ -1638,3 +1634,29 @@ a.insignia-empresa:hover .insignia-empresa__nombre{ text-decoration: underline; 
 .vista-empresa-panel .dias{ height: 160px; }
 .dias--visitas{ gap: 2px; }
 @media (max-width: 599px){ .dias--visitas{ gap: 1px; } }
+
+/* Plata > Comparar las fuentes: un color por fuente (barras, líneas, leyenda y conclusiones) */
+.fuente--inspecciones{ --color: var(--serie-1); }
+.fuente--clics{ --color: var(--serie-2); }
+.fuente--abonos{ --color: var(--serie-3); }
+.comparar__muestra.fuente--inspecciones, .comparar__muestra.fuente--clics, .comparar__muestra.fuente--abonos{ display: inline-block; flex: none; }
+.tendencia--varias .tendencia__linea{ stroke: var(--color); }
+.tendencia--varias .comparar__leyenda{ margin: 6px 0 0; }
+.tendencia--varias .comparar__leyenda strong{ color: var(--marca-tinta); font-variant-numeric: tabular-nums; }
+.tendencia__cartel-fila{ display: flex; align-items: center; gap: 6px; }
+.tendencia__cartel-fila strong{ font-size: 13px; }
+/* Una sola columna que no se estira: la tabla ancha se desplaza dentro de su caja en vez de ensanchar la página */
+.comparar-fuentes{ grid-template-columns: minmax(0, 1fr); }
+.conclusiones-plata{ display: grid; gap: 8px; margin: 0; padding: 0 0 0 18px; font-size: 15px; line-height: 1.5; color: var(--marca-tinta); }
+/* Una tarjeta por fuente: la línea de color arriba es la misma de la fuente en el gráfico */
+.fuentes-tarjetas{ display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 14px; margin: 0; padding: 0; list-style: none; }
+.fuente-tarjeta{ display: grid; gap: 12px; align-content: start; border-top: 4px solid var(--color) !important; }
+.fuente-tarjeta__cabeza{ display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px; }
+.fuente-tarjeta__nombre{ font-weight: 700; color: var(--marca-tinta); }
+.fuente-tarjeta__monto{ font-family: var(--fuente-titulos); font-size: 22px; color: var(--marca-tinta); font-variant-numeric: tabular-nums; }
+.fuente-tarjeta__datos{ display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 14px; line-height: 1.45; color: var(--marca-tinta); }
+.fuente-tarjeta__antes{ color: var(--marca-gris); }
+.fuente-tarjeta .variacion{ font-weight: 600; color: var(--marca-gris); }
+.fuente-tarjeta .variacion--buena{ color: var(--ok); }
+.fuente-tarjeta .variacion--mala{ color: var(--falla); }
+.resumen-admin__antes{ font-size: 12px; color: var(--marca-gris); }

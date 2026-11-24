@@ -26,10 +26,9 @@
         import(modulo).then(({ pedirPerfil }) => pedirPerfil(usuario));
     }
     if (usuario) {
-        const [ruta, etiqueta] = usuario.rol === 'admin'
-            ? ['../pages/admin/admin-moderar.html', 'AutoCar, moderar publicaciones']
-            : ['../pages/info/home.html', 'AutoCar, explorar vehículos'];
-        const destino = new URL(ruta, document.currentScript.src).href;
+        // Con cualquier rol (también el admin) el logo lleva a Explorar: es la única forma de volver si la barra no lo tiene
+        const etiqueta = 'AutoCar, explorar vehículos';
+        const destino = new URL('../pages/info/home.html', document.currentScript.src).href;
         document.querySelectorAll('a.marca, a.barra__marca').forEach((logo) => {
             if (/\/index\.html$|\/front\/?$/.test(new URL(logo.href).pathname)) {
                 logo.href = destino;
