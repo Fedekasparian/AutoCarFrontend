@@ -1318,6 +1318,8 @@ dialog.hoja::backdrop{ background: rgb(11 17 29 / .45); backdrop-filter: blur(2p
 .informe-plata__fila dd{ display: grid; justify-items: end; gap: 2px; margin: 0 0 0 auto; font-family: var(--fuente-titulos); font-size: 20px; font-variant-numeric: tabular-nums; color: var(--marca-tinta); }
 .informe-plata__fila--neta{ border-top: 2px solid var(--marca-tinta); border-bottom: 0; }
 .informe-plata__fila--neta dd{ font-size: 26px; font-weight: 700; }
+/* Lo que todavía no se liquidó, entre paréntesis abajo del monto cobrado */
+.informe-plata__pendiente{ font-family: var(--fuente); font-size: 13px; font-weight: 400; color: var(--marca-gris); text-align: right; }
 .informe-plata .variacion{ font-family: inherit; font-size: 12px; font-weight: 600; color: var(--marca-gris); }
 .informe-plata .variacion--buena{ color: var(--ok); }
 .informe-plata .variacion--mala{ color: var(--falla); }

@@ -51,7 +51,7 @@ function actualizarPlata() {
     if (afiliacionActual) pintarLiquidaciones();
     if (!ultimas) return;
     const { resumen, periodo, serie } = ultimas;
-    informePlata(resumen.actual, resumen.anterior, PERIODOS[periodo.dias]);
+    informePlata(resumen.actual, resumen.anterior, PERIODOS[periodo.dias], ultimas.sin_liquidar);
     plataEscapada(ultimas.escapado, PERIODOS[periodo.dias]);
     compararFuentes(resumen.actual, resumen.anterior, PERIODOS[periodo.dias], serie);
     const puntos = serie.puntos.map(p => ({ ...p, importe: ingresosElegidos(p, fuentes) }));
@@ -396,9 +396,9 @@ function embudoPorPerfil(m) {
 }
 
 // Un renglón de un informe de plata: nombre (con una aclaración abajo) y el monto a la derecha
-const renglon = (nombre, detalle, monto, clase, extra = null) => el('div', { class: `informe-plata__fila ${clase}` },
+const renglon = (nombre, detalle, monto, clase, ...extra) => el('div', { class: `informe-plata__fila ${clase}` },
     el('dt', {}, nombre, detalle ? el('span', { class: 'informe-plata__detalle' }, detalle) : null),
-    el('dd', {}, el('span', {}, monto), extra));
+    el('dd', {}, el('span', {}, monto), ...extra));
 
 // "Plata que se nos escapó": en cada paso donde la gente se fue, cuánta plata era. Sin el dato del back queda oculto.
 // Las inspecciones van con la fuente Inspecciones y los clics con Clics a plataformas.
@@ -431,7 +431,19 @@ function plataEscapada(escapado, textoPeriodo) {
 
 // El informe de plata del período: los ingresos de las fuentes elegidas. Si el back todavía no manda estos números,
 // el informe queda oculto.
-function informePlata(actual, anterior, textoPeriodo) {
+// Clics y abonos: el informe cuenta lo cobrado en el período; al lado, entre paréntesis, lo que todavía no se liquidó
+// (lo que va del mes en curso y los meses cerrados sin cobrar), con los mismos números que la grilla de liquidaciones.
+function sinLiquidar(fuente, pendiente) {
+    const p = pendiente?.[fuente];
+    if (!p || !(p.en_curso + p.cerrados)) return null;
+    const mes = pendiente.mes ? nombreMes(pendiente.mes, true).split(' ')[0] : 'este mes';
+    const texto = p.cerrados
+        ? `(+ ${pesos(p.en_curso + p.cerrados)} sin liquidar: ${pesos(p.en_curso)} de ${mes} y ${pesos(p.cerrados)} de meses cerrados)`
+        : `(+ ${pesos(p.en_curso)} de ${mes}, todavía sin liquidar)`;
+    return el('span', { class: 'informe-plata__pendiente' }, texto);
+}
+
+function informePlata(actual, anterior, textoPeriodo, pendiente) {
     const ingresos = ingresosElegidos(actual, fuentes);
     const caja = document.getElementById('informe-plata');
     caja.hidden = !fuentes.size || ingresos == null;
@@ -442,14 +454,18 @@ function informePlata(actual, anterior, textoPeriodo) {
 
     const desglose = Object.entries(FUENTES)
         .filter(([fuente]) => fuentes.has(fuente) && actual['ingresos_' + fuente] != null)
-        .map(([fuente, [nombre, detalle]]) => renglon(nombre, detalle, pesos(actual['ingresos_' + fuente]), ''));
+        .map(([fuente, [nombre, detalle]]) => renglon(nombre, detalle, pesos(actual['ingresos_' + fuente]), '', sinLiquidar(fuente, pendiente)));
     const ingresosAntes = ingresosElegidos(anterior, fuentes);
+    // En el total, lo sin liquidar de las fuentes elegidas
+    const totalPendiente = ['clics', 'abonos'].filter(f => fuentes.has(f) && pendiente?.[f])
+        .reduce((s, f) => s + pendiente[f].en_curso + pendiente[f].cerrados, 0);
     llenar('informe-cuenta', ...desglose, renglon('Ingresos del período', antes(ingresosAntes ?? 0, pesos), pesos(ingresos),
-        'informe-plata__fila--neta', variacion(ingresos, ingresosAntes)));
+        'informe-plata__fila--neta', variacion(ingresos, ingresosAntes),
+        totalPendiente ? el('span', { class: 'informe-plata__pendiente' }, `(+ ${pesos(totalPendiente)} de clics y abonos sin liquidar)`) : null));
     const notas = [];
     if (fuentes.has('inspecciones')) notas.push('Inspecciones por cobrar: ' + pesos(actual.por_cobrar) + '.');
-    if (fuentes.has('clics') && actual.clics_por_cobrar != null) notas.push(
-        'Clics pendientes de liquidación: ' + pesos(actual.clics_por_cobrar) + ' estimados por ' + n(actual.clics_pendientes) + ' clics válidos del período.');
+    if (fuentes.has('clics') || fuentes.has('abonos')) notas.push('Clics y abonos se liquidan por mes: cada mes cerrado se '
+        + 'cuenta en la fecha en que se cobra. Entre paréntesis, lo que todavía no se liquidó (el detalle está en Liquidaciones, más abajo).');
     document.getElementById('informe-notas').textContent = notas.join(' ');
 }
 
