@@ -70,6 +70,7 @@
 .auto-aviso__nombre { color: var(--color-texto); font-size: 1.08rem; line-height: 1.25; font-weight: 650; text-decoration: none; }
 .auto-aviso__nombre:hover { text-decoration: underline; }
 .auto-aviso__version { display: block; margin-top: 2px; }
+.auto-aviso__identidad .insignia-verificado { display: flex; margin-top: 6px; font-size: .8rem; }
 .auto-aviso__foto { flex: none; width: 54px; height: 48px; border-radius: 7px; object-fit: cover; }
 .auto-aviso__foto[role=img] { display: none; }
 .auto-aviso__importe { margin: 8px 0 2px; }

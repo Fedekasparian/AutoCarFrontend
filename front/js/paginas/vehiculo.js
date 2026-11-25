@@ -30,7 +30,7 @@ function mostrar(v) {
     $('vehiculo-foto-texto').textContent = `Foto del ${titulo}`;
 
     $('vehiculo-titulo').textContent = titulo;
-    if (v.verificado === true) $('vehiculo-titulo').after(vistas.insigniaVerificado());
+    if (v.verificado === true) $('vehiculo-titulo').after(vistas.insigniaVerificado(v.verificado_at));
     $('vehiculo-precio').textContent = formato.precio(v.precio);
     $('vehiculo-resumen').textContent = `${formato.km(v.kilometraje)} · ${formato.combustible(v.combustible)}`;
     $('vehiculo-vendido').hidden = v.estado !== 'vendido';

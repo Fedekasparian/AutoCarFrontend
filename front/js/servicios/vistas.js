@@ -49,9 +49,12 @@ export function insigniaEmpresa(empresa, enlace = false) {
         : el('span', { class: 'insignia-empresa' }, ...contenido);
 }
 
-export function insigniaVerificado() {
-    return el('span', { class: 'insignia-verificado', title: 'Verificación mecánica vigente' },
-        el('span', { 'aria-hidden': 'true' }, '✓'), 'Verificado');
+// "✓ Verificado · 20/11/2026": con la fecha de la última verificación (verificado_at del back), si la hay
+const diaVerificado = new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Argentina/Buenos_Aires' });
+export function insigniaVerificado(fecha = null) {
+    const dia = fecha ? diaVerificado.format(new Date(fecha)) : null;
+    return el('span', { class: 'insignia-verificado', title: dia ? `Última verificación mecánica: ${dia}` : 'Verificación mecánica vigente' },
+        el('span', { 'aria-hidden': 'true' }, '✓'), dia ? `Verificado · ${dia}` : 'Verificado');
 }
 
 // v.recomendado {puesto, mensaje}: los primeros de "Más relevantes" en Explorar, con otro fondo y por qué
@@ -65,7 +68,7 @@ export function fichaVehiculo(v) {
             el('div', { class: 'ficha-vehiculo__cuerpo' },
                 el('span', { class: 'ficha-vehiculo__precio' }, formato.precio(v.precio)),
                 el('span', { class: 'ficha-vehiculo__titulo' }, formato.titulo(v)),
-                v.verificado === true ? insigniaVerificado() : null,
+                v.verificado === true ? insigniaVerificado(v.verificado_at) : null,
                 // Concesionaria aprobada: su nombre con la insignia (sin logo; no es "patrocinado": compite igual)
                 v.empresa ? insigniaEmpresa(v.empresa) : null,
                 v.recomendado
