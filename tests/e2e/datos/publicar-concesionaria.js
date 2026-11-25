@@ -5,12 +5,11 @@
 //   node tests/e2e/datos/publicar-concesionaria.js --aprobar  → además las aprueba con un moderador/admin
 //   node tests/e2e/datos/publicar-concesionaria.js --borrar   → da de baja las que creó este script
 //
-// Variables (todas opcionales salvo la cuenta de la empresa):
+// Cuentas: la concesionaria sale de tests/e2e/abm/.concesionaria.json (la crea la prueba 01) y el moderador
+// de tests/e2e/abm/.usuarios.json. Ninguno de los dos se sube al repo.
+//
+// Variables (todas opcionales):
 //   BASE_URL           front a usar, sin barra final (por defecto dev: https://autocar-git-dev-autocar4.vercel.app)
-//   EMPRESA_EMAIL      cuenta de la concesionaria (rol empresa, ya aprobada)
-//   EMPRESA_PASSWORD
-//   MOD_EMAIL          moderador o admin para --aprobar (no puede ser la misma cuenta: nadie aprueba lo suyo)
-//   MOD_PASSWORD
 //   FOTOS_DIR          carpeta con .jpg/.png/.webp (hasta 2 MB c/u); se reparten en orden. Por defecto tests/e2e/fotos
 //
 // Cada publicación lleva la marca "[demo-concesionaria]" al final de la descripción: así el script reconoce
@@ -102,16 +101,19 @@ async function fotos() {
 }
 
 const clave = (v) => `${v.marca}|${v.modelo}|${v.anio}`.toLowerCase();
+// Lee una cuenta guardada en tests/e2e/abm/ (archivos locales, fuera del repo)
+async function leerCuenta(archivo, siFalta) {
+    try { return JSON.parse(await readFile(join(AQUI, '..', 'abm', archivo), 'utf8')); }
+    catch { console.error(siFalta); process.exit(1); }
+}
+
 const esDelScript = (v) => (v.descripcion ?? '').includes(MARCA);
 
 async function main() {
     console.log(`Front: ${BASE}`);
     const empresa = sesion();
-    // Sin EMPRESA_EMAIL, usa la concesionaria que creó la prueba 01 de los ABM (tests/e2e/abm/.concesionaria.json)
-    let cuenta = { email: process.env.EMPRESA_EMAIL, password: process.env.EMPRESA_PASSWORD };
-    if (!cuenta.email) {
-        try { cuenta = JSON.parse(await readFile(join(AQUI, '..', 'abm', '.concesionaria.json'), 'utf8')); } catch { /* no hay */ }
-    }
+    // La concesionaria que creó la prueba 01 de los ABM
+    const cuenta = await leerCuenta('.concesionaria.json', 'Primero corré la prueba 01 de los ABM (crea la concesionaria).');
     const yo = await empresa.ingresar(cuenta.email, cuenta.password, 'la concesionaria');
     console.log(`Ingresó ${yo.nombre} <${yo.email}> (rol ${yo.rol})`);
     if (yo.rol !== 'empresa') console.warn('⚠ La cuenta no es de empresa: una cuenta personal tiene límite de autos activos.');
@@ -160,7 +162,8 @@ async function main() {
 
     if (args.has('--aprobar')) {
         const mod = sesion();
-        const quien = await mod.ingresar(process.env.MOD_EMAIL, process.env.MOD_PASSWORD, 'el moderador');
+        const moderador = (await leerCuenta('.usuarios.json', 'Falta tests/e2e/abm/.usuarios.json.')).moderador;
+        const quien = await mod.ingresar(moderador.email, moderador.password, 'el moderador');
         console.log(`Aprueba ${quien.nombre} (${quien.rol})`);
         for (const v of ids.filter((x) => x.estado === 'pendiente')) {
             const r = await mod.api('PATCH', `/api/admin/vehiculos/${v.id}/estado`, { estado: 'disponible' });

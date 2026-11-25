@@ -1,6 +1,7 @@
 // Lo común de las pruebas de los ABM: usuarios, ingreso y salida, el cartel que explica cada paso en el video,
 // el guardado del video con el nombre del flujo y un cliente de la API para preparar datos fuera de cámara.
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { randomBytes } from 'node:crypto';
 import { test as base, expect, request } from '@playwright/test';
 
 export { expect };
@@ -8,13 +9,16 @@ export const pagina = (ruta) => `/front/${ruta}`;
 export const FOTO = readFileSync(new URL('../fotos/ford-ka.jpg', import.meta.url));
 export const ahora = () => Date.now().toString().slice(-6);
 
-export const USUARIOS = {
-    admin: { email: process.env.ABM_ADMIN_EMAIL || 'admin@gmail.com', password: process.env.ABM_ADMIN_PASSWORD || 'admin123!' },
-    moderador: { email: 'paula.correa@autocar.test', password: 'AutoCar2026' },
-    comprador: { email: 'mateo.rios@autocar.test', password: 'AutoCar2026' },
-    vendedor: { email: 'diego.fernandez@autocar.test', password: 'AutoCar2026' },
-    mecanico: { email: 'taller.ferreyra@autocar.test', password: 'AutoCar2026' },
-};
+// Las cuentas (admin, moderador, comprador, vendedor, mecanico) van en tests/e2e/abm/.usuarios.json, que no se
+// sube al repo: copiá usuarios.ejemplo.json a .usuarios.json y completá los mails y las claves.
+const ARCHIVO_USUARIOS = new URL('./.usuarios.json', import.meta.url);
+if (!existsSync(ARCHIVO_USUARIOS)) {
+    throw new Error('Falta tests/e2e/abm/.usuarios.json: copiá usuarios.ejemplo.json y completá las cuentas.');
+}
+export const USUARIOS = JSON.parse(readFileSync(ARCHIVO_USUARIOS, 'utf8'));
+
+// Clave al azar para las cuentas que crean las pruebas (01, 05, 08): mayúscula, minúsculas y números
+export const claveNueva = () => `Pr${randomBytes(5).toString('hex')}9`;
 
 // La concesionaria la crea 01 y la usa 02 (y el script de las 10 publicaciones): queda en este archivo
 const ARCHIVO = new URL('./.concesionaria.json', import.meta.url);

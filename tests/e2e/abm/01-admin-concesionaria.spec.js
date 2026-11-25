@@ -1,14 +1,14 @@
 // ABM de concesionarias: la empresa pide sumarse desde "Sumá tu concesionaria" (alta de la solicitud y de su cuenta),
 // no puede ingresar mientras está pendiente, el admin la aprueba y la concesionaria entra a su panel.
 // La cuenta queda guardada en .concesionaria.json para la prueba 02 y para el script de las 10 publicaciones.
-import { test, expect, USUARIOS, pagina, paso, ingresar, salir, guardarConcesionaria, ahora } from './comun.js';
+import { test, expect, USUARIOS, pagina, paso, ingresar, salir, guardarConcesionaria, ahora, claveNueva } from './comun.js';
 
 test('01-admin-abm-concesionaria · una concesionaria se suma, el admin la aprueba y entra a su panel', async ({ page }) => {
     const n = ahora();
     const empresa = {
         razon_social: `Automotores Mercedes ${n}`,
         email: `concesionaria.${n}@autocar.test`,
-        password: 'AutoCar2026',
+        password: claveNueva(),
     };
 
     await paso(page, 'ALTA · la concesionaria completa "Sumá tu concesionaria"', async () => {

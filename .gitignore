@@ -8,3 +8,4 @@ playwright-report/
 videos-abm/
 playwright-report-abm/
 tests/e2e/abm/.concesionaria.json
+tests/e2e/abm/.usuarios.json
