@@ -11,12 +11,16 @@
 // La cuenta queda en tests/e2e/abm/.concesionaria-2.json (o la de --cuenta); el admin y el moderador salen de
 // tests/e2e/abm/.usuarios.json. Ninguno se sube al repo.
 //
-// Variables (todas opcionales): BASE_URL, FOTOS_DIR y LOCALIDAD (por defecto Mercedes), igual que publicar-concesionaria.js.
+// Variables (todas opcionales): BASE_URL, FOTOS_DIR (por defecto tests/e2e/fotos/concesionaria-2) y LOCALIDAD
+// (por defecto Mercedes), igual que publicar-concesionaria.js.
 import { randomBytes } from 'node:crypto';
-import { BASE, args, opcion, noEnProduccionSinQuerer, sesion, leerCuenta, cuentaGuardada, guardarCuenta } from './api.js';
+import { join } from 'node:path';
+import { BASE, FOTOS_DIR, args, opcion, noEnProduccionSinQuerer, sesion, leerCuenta, cuentaGuardada, guardarCuenta } from './api.js';
 import { publicar } from './publicar-concesionaria.js';
 
 const ARCHIVO = opcion('--cuenta') || '.concesionaria-2.json';
+// Sus fotos: tests/e2e/fotos/concesionaria-2 (o la carpeta de FOTOS_DIR)
+const FOTOS = process.env.FOTOS_DIR || join(FOTOS_DIR, 'concesionaria-2');
 
 const AUTOS = [
     { marca: 'Toyota', modelo: 'Yaris', version: '1.5 XLS CVT', anio: 2022, precio: 22400000, kilometraje: 33000, combustible: 'nafta', transmision: 'automatica', condicion: 'excelente', descripcion: 'Hatchback automático, service oficial. Ideal ciudad.' },
@@ -75,7 +79,7 @@ async function main() {
     console.log(`Front: ${BASE}`);
     if (!args.includes('--borrar')) await asegurarCuenta();
     await publicar({
-        cuenta: ARCHIVO, autos: AUTOS, localidad: process.env.LOCALIDAD || 'Mercedes',
+        cuenta: ARCHIVO, autos: AUTOS, localidad: process.env.LOCALIDAD || 'Mercedes', fotosDir: FOTOS,
         aprobar: !args.includes('--borrar'), borrar: args.includes('--borrar'),
     });
 }

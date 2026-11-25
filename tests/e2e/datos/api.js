@@ -67,14 +67,14 @@ export function sesion() {
     };
 }
 
-export async function fotos() {
-    const archivos = (await readdir(FOTOS_DIR))
+export async function fotos(dir = FOTOS_DIR) {
+    const archivos = (await readdir(dir))
         .filter((f) => ['.jpg', '.jpeg', '.png', '.webp'].includes(extname(f).toLowerCase()))
         .sort();
-    if (!archivos.length) throw new Error(`No hay fotos en ${FOTOS_DIR}`);
+    if (!archivos.length) throw new Error(`No hay fotos en ${dir}`);
     const mime = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp' };
     return Promise.all(archivos.map(async (f) => ({
-        nombre: f, tipo: mime[extname(f).toLowerCase()], datos: await readFile(join(FOTOS_DIR, f)),
+        nombre: f, tipo: mime[extname(f).toLowerCase()], datos: await readFile(join(dir, f)),
     })));
 }
 

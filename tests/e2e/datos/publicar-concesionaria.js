@@ -40,7 +40,7 @@ const esDelScript = (v) => (v.descripcion ?? '').includes(MARCA);
  * Publica (o con borrar, da de baja) los autos de la lista a nombre de la cuenta guardada en tests/e2e/abm/<cuenta>.
  * Con aprobar, un moderador/admin los deja disponibles.
  */
-export async function publicar({ cuenta: archivo = '.concesionaria.json', autos = AUTOS, localidad = 'Luján', aprobar = false, borrar = false } = {}) {
+export async function publicar({ cuenta: archivo = '.concesionaria.json', autos = AUTOS, localidad = 'Luján', fotosDir, aprobar = false, borrar = false } = {}) {
     const empresa = sesion();
     const cuenta = await leerCuenta(archivo, `Falta tests/e2e/abm/${archivo}: primero creá la concesionaria (prueba 01 o nueva-concesionaria.js).`);
     const yo = await empresa.ingresar(cuenta.email, cuenta.password, 'la concesionaria');
@@ -60,7 +60,7 @@ export async function publicar({ cuenta: archivo = '.concesionaria.json', autos 
     }
 
     const yaEstan = new Map(propias.map((v) => [clave(v), v]));
-    const imagenes = await fotos();
+    const imagenes = await fotos(fotosDir);
     const ids = [];
     let n = 0;
     for (const auto of autos) {
