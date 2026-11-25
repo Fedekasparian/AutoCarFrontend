@@ -13,7 +13,7 @@ const vacios = {
 async function explorar() {
     const params = new URLSearchParams(location.search);
     if (Number(params.get('page')) > 1 ||
-        ['q', 'marca', 'combustible', 'precio_max', 'vendedor', 'orden'].some(f => params.get(f))) return;
+        ['q', 'marca', 'combustible', 'precio_max', 'vendedor', 'empresa', 'orden'].some(f => params.get(f))) return;
     const caja = document.getElementById('colecciones');
     const { filas } = await get('/api/explorar', { zona: params.get('zona') });
     if (!filas.length) return;
