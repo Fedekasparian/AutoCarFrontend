@@ -7,5 +7,5 @@ playwright-report/
 # E2E de los ABM: videos, reporte y la cuenta de la concesionaria creada por la prueba 01
 videos-abm/
 playwright-report-abm/
-tests/e2e/abm/.concesionaria.json
+tests/e2e/abm/.concesionaria*.json
 tests/e2e/abm/.usuarios.json

@@ -14,7 +14,10 @@ export const comparacion = (vehiculoId) => get(`/api/vehiculos/${encodeURICompon
 // → {marcas: ['Ford', 'Toyota', ...]}: las que tienen autos publicados (para el filtro del catálogo)
 export const marcas = () => get('/api/marcas');
 
-export const zonas = (zona) => get('/api/zonas', { zona });
+// → {empresas: [{id, nombre, autos}]}: las concesionarias con autos publicados (para el filtro de Explorar)
+export const empresas = () => get('/api/empresas');
+
+export const zonas =(zona) => get('/api/zonas', { zona });
 
 // → {marcas: [{marca: 'Ford', modelos: ['Fiesta', 'Focus', ...]}, ...]}: las que se pueden publicar
 export const marcasModelos = () => get('/api/marcas-modelos');
