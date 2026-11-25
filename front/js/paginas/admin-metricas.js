@@ -52,6 +52,7 @@ function actualizarPlata() {
     if (!ultimas) return;
     const { resumen, periodo, serie } = ultimas;
     informePlata(resumen.actual, resumen.anterior, PERIODOS[periodo.dias]);
+    plataEscapada(ultimas.escapado, PERIODOS[periodo.dias]);
     compararFuentes(resumen.actual, resumen.anterior, PERIODOS[periodo.dias], serie);
     const puntos = serie.puntos.map(p => ({ ...p, importe: ingresosElegidos(p, fuentes) }));
     const grafico = document.getElementById('tendencia-plata');
@@ -394,6 +395,40 @@ function embudoPorPerfil(m) {
     mostrarEmbudo(origenes, fila?.nombre);
 }
 
+// Un renglón de un informe de plata: nombre (con una aclaración abajo) y el monto a la derecha
+const renglon = (nombre, detalle, monto, clase, extra = null) => el('div', { class: `informe-plata__fila ${clase}` },
+    el('dt', {}, nombre, detalle ? el('span', { class: 'informe-plata__detalle' }, detalle) : null),
+    el('dd', {}, el('span', {}, monto), extra));
+
+// "Plata que se nos escapó": en cada paso donde la gente se fue, cuánta plata era. Sin el dato del back queda oculto.
+// Las inspecciones van con la fuente Inspecciones y los clics con Clics a plataformas.
+function plataEscapada(escapado, textoPeriodo) {
+    const caja = document.getElementById('plata-escapada');
+    const pasos = [];
+    if (escapado && fuentes.has('inspecciones')) {
+        const { sin_tocar: tocar, sin_pagar: pagar } = escapado;
+        pasos.push(['Vieron una recomendación y no tocaron "Mandale un mecánico"',
+            `${n(tocar.cantidad)} personas × ${tocar.conversion === null ? '—' : porcentaje(tocar.conversion, 1) + ' %'} de los que tocan pagan × ${pesos(escapado.por_inspeccion ?? 0)} por inspección`,
+            tocar.monto]);
+        pasos.push(['Tocaron "Mandale un mecánico" y no pagaron',
+            `${n(pagar.cantidad)} personas × ${pesos(escapado.por_inspeccion ?? 0)} por inspección`, pagar.monto]);
+    }
+    if (escapado && fuentes.has('clics')) {
+        pasos.push(['Avisos de otras plataformas que nadie tocó',
+            `${n(escapado.sin_clic.cantidad)} avisos × ${pesos(escapado.tarifa ?? 0)} por clic (tarifa promedio)`, escapado.sin_clic.monto]);
+    }
+    caja.hidden = !pasos.length;
+    if (caja.hidden) return;
+    const conMonto = pasos.filter(([, , monto]) => monto !== null);
+    const total = conMonto.reduce((suma, [, , monto]) => suma + monto, 0);
+    const mayor = conMonto.reduce((max, paso) => (!max || paso[2] > max[2] ? paso : max), null);
+    document.getElementById('escapada-frase').textContent = `En los últimos ${textoPeriodo}.`
+        + (mayor && mayor[2] > 0 ? ` Lo que más plata dejó afuera: ${mayor[0].charAt(0).toLowerCase() + mayor[0].slice(1)}.` : '');
+    llenar('escapada-cuenta',
+        ...pasos.map(([nombre, detalle, monto]) => renglon(nombre, detalle, monto === null ? 'Sin datos' : pesos(monto), '')),
+        renglon('Total que se escapó', null, pesos(total), 'informe-plata__fila--neta'));
+}
+
 // El informe de plata del período: los ingresos de las fuentes elegidas. Si el back todavía no manda estos números,
 // el informe queda oculto.
 function informePlata(actual, anterior, textoPeriodo) {
@@ -405,14 +440,11 @@ function informePlata(actual, anterior, textoPeriodo) {
     document.getElementById('informe-frase').textContent =
         'Ingresos por ' + Object.keys(FUENTES).filter(f => fuentes.has(f)).map(f => FUENTES[f][0].toLowerCase()).join(', ') + '.';
 
-    const fila = (nombre, detalle, monto, clase, extra = null) => el('div', { class: `informe-plata__fila ${clase}` },
-        el('dt', {}, nombre, detalle ? el('span', { class: 'informe-plata__detalle' }, detalle) : null),
-        el('dd', {}, el('span', {}, monto), extra));
     const desglose = Object.entries(FUENTES)
         .filter(([fuente]) => fuentes.has(fuente) && actual['ingresos_' + fuente] != null)
-        .map(([fuente, [nombre, detalle]]) => fila(nombre, detalle, pesos(actual['ingresos_' + fuente]), ''));
+        .map(([fuente, [nombre, detalle]]) => renglon(nombre, detalle, pesos(actual['ingresos_' + fuente]), ''));
     const ingresosAntes = ingresosElegidos(anterior, fuentes);
-    llenar('informe-cuenta', ...desglose, fila('Ingresos del período', antes(ingresosAntes ?? 0, pesos), pesos(ingresos),
+    llenar('informe-cuenta', ...desglose, renglon('Ingresos del período', antes(ingresosAntes ?? 0, pesos), pesos(ingresos),
         'informe-plata__fila--neta', variacion(ingresos, ingresosAntes)));
     const notas = [];
     if (fuentes.has('inspecciones')) notas.push('Inspecciones por cobrar: ' + pesos(actual.por_cobrar) + '.');
