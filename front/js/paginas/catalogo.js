@@ -10,7 +10,7 @@ import { ruta } from '../servicios/rutas.js';
 import { PERFILES } from '../servicios/perfil.js';
 
 // orden: sin valor = "Más relevantes" (el mismo cálculo que el metabuscador, con el perfil de quien mira); recientes = los más nuevos
-const FILTROS = ['q', 'zona', 'marca', 'combustible', 'precio_max', 'vendedor', 'orden', 'page'];
+const FILTROS = ['q', 'zona', 'marca', 'combustible', 'precio_max', 'vendedor', 'empresa', 'orden', 'page'];
 
 const params = new URLSearchParams(window.location.search);
 const filtros = Object.fromEntries(FILTROS.map((f) => [f, params.get(f) || '']));
@@ -88,8 +88,12 @@ function abrirPanelEnEscritorio() {
     escritorio.addEventListener?.('change', ajustar);
 }
 
+// Nombre de cada concesionaria por id, para el chip (se llena con cargarEmpresas)
+const nombresEmpresa = new Map();
+
 // Un chip por filtro aplicado; la cruz lleva a la misma búsqueda sin ese filtro
 function chipsDeFiltros() {
+    document.querySelector('.filtros-activos')?.remove();
     const textos = {
         q: (v) => `“${v}”`,
         zona: (v) => v,
@@ -97,6 +101,7 @@ function chipsDeFiltros() {
         combustible: (v) => formato.combustible(v),
         precio_max: (v) => `Hasta ${formato.precio(Number(v))}`,
         vendedor: (v) => (v === 'empresa' ? 'Solo concesionarias' : 'Solo particulares'),
+        empresa: (v) => nombresEmpresa.get(v) ?? 'Concesionaria',
     };
     const activos = Object.keys(textos).filter((f) => filtros[f]);
     if (!activos.length) return;
@@ -223,12 +228,32 @@ async function cargarListado() {
     }
 }
 
+// Filtro "Concesionaria" (solo en Explorar): las que tienen autos publicados
+async function cargarEmpresas() {
+    const select = document.querySelector('select[name="empresa"]');
+    if (!select) return;
+    try {
+        const { empresas } = await vehiculos.empresas();
+        for (const e of empresas) {
+            nombresEmpresa.set(String(e.id), e.nombre);
+            select.add(new Option(`${e.nombre} (${e.autos})`, String(e.id), false, String(e.id) === filtros.empresa));
+        }
+    } catch {
+        // Sin la lista el filtro queda en "Todas" y el listado funciona igual.
+    }
+    if (filtros.empresa && !nombresEmpresa.has(filtros.empresa)) {
+        select.add(new Option('Concesionaria', filtros.empresa, true, true));
+    }
+}
+
 const zonasCargadas = cargarZonas();
 const marcasCargadas = cargarMarcas();
+const empresasCargadas = cargarEmpresas();
 completarFormularios();
 const actualizarBarra = prepararBarra(document.querySelector('.explorar-busqueda'));
 abrirPanelEnEscritorio();
 chipsDeFiltros();
 zonasCargadas.then(() => actualizarBarra?.());
 marcasCargadas.then(() => actualizarBarra?.());
+empresasCargadas.then(() => { actualizarBarra?.(); if (filtros.empresa) chipsDeFiltros(); });
 cargarListado();

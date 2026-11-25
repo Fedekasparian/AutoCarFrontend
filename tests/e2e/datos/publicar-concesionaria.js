@@ -4,6 +4,7 @@
 //   node tests/e2e/datos/publicar-concesionaria.js            → crea las que falten (no duplica)
 //   node tests/e2e/datos/publicar-concesionaria.js --aprobar  → además las aprueba con un moderador/admin
 //   node tests/e2e/datos/publicar-concesionaria.js --borrar   → da de baja las que creó este script
+//   ... --cuenta .concesionaria-2.json                        → con otra cuenta (la que crea nueva-concesionaria.js)
 //
 // Cuentas: la concesionaria sale de tests/e2e/abm/.concesionaria.json (la crea la prueba 01) y el moderador
 // de tests/e2e/abm/.usuarios.json. Ninguno de los dos se sube al repo.
@@ -14,22 +15,12 @@
 //
 // Cada publicación lleva la marca "[demo-concesionaria]" al final de la descripción: así el script reconoce
 // las suyas para no duplicarlas y para --borrar, sin tocar las demás publicaciones de la cuenta.
-import { readFile, readdir } from 'node:fs/promises';
-import { join, extname, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { pathToFileURL } from 'node:url';
+import { BASE, args, opcion, noEnProduccionSinQuerer, sesion, fotos, leerCuenta } from './api.js';
 
-const AQUI = dirname(fileURLToPath(import.meta.url));
-const BASE = (process.env.BASE_URL || 'https://autocar-git-dev-autocar4.vercel.app').replace(/\/$/, '');
-const FOTOS_DIR = process.env.FOTOS_DIR || join(AQUI, '..', 'fotos');
 const MARCA = '[demo-concesionaria]';
-const args = new Set(process.argv.slice(2));
 
-if (/autocar-zeta\.vercel\.app/.test(BASE) && !args.has('--produccion')) {
-    console.error('BASE_URL apunta a producción. Si es a propósito, agregá --produccion.');
-    process.exit(1);
-}
-
-const AUTOS = [
+export const AUTOS = [
     { marca: 'Toyota', modelo: 'Corolla', version: '2.0 XEI CVT', anio: 2022, precio: 28500000, kilometraje: 38000, combustible: 'nafta', transmision: 'automatica', condicion: 'excelente', descripcion: 'Único dueño, service oficial al día en concesionario. Cubiertas nuevas.' },
     { marca: 'Toyota', modelo: 'Hilux', version: '2.8 SRX 4x4 AT', anio: 2021, precio: 41900000, kilometraje: 72000, combustible: 'diesel', transmision: 'automatica', condicion: 'muy_bueno', descripcion: 'Cabina doble, cubre caja y enganche. Sin uso rural.' },
     { marca: 'Volkswagen', modelo: 'Amarok', version: 'V6 Highline', anio: 2020, precio: 39500000, kilometraje: 95000, combustible: 'diesel', transmision: 'automatica', condicion: 'muy_bueno', descripcion: 'Motor V6 258 CV. Services en VW. Lona marítima.' },
@@ -41,79 +32,17 @@ const AUTOS = [
     { marca: 'Jeep', modelo: 'Renegade', version: '1.8 Sport AT', anio: 2021, precio: 24700000, kilometraje: 47000, combustible: 'nafta', transmision: 'automatica', condicion: 'muy_bueno', descripcion: 'SUV compacta, techo panorámico. Recibimos usado.', acepta_canje: true, busca_canje: 'Auto chico de menor valor' },
     { marca: 'Volkswagen', modelo: 'Taos', version: '1.4 TSI Highline', anio: 2023, precio: 36800000, kilometraje: 12000, combustible: 'nafta', transmision: 'automatica', condicion: 'excelente', descripcion: 'Full, tablero digital, asistente de carril. Financiación disponible.' },
 ];
-const LOCALIDAD = process.env.LOCALIDAD || 'Luján';
-
-// --- sesión: cookie + token CSRF, como el navegador ---
-function sesion() {
-    let cookies = {};
-    let csrf = null;
-    async function api(metodo, ruta, cuerpo) {
-        const headers = { Accept: 'application/json', Origin: BASE };
-        if (Object.keys(cookies).length) headers.Cookie = Object.entries(cookies).map(([k, v]) => `${k}=${v}`).join('; ');
-        if (csrf && metodo !== 'GET') headers['X-CSRF-Token'] = csrf;
-        let body;
-        if (cuerpo instanceof FormData) body = cuerpo;
-        else if (cuerpo !== undefined) { headers['Content-Type'] = 'application/json'; body = JSON.stringify(cuerpo); }
-        // Render (plan gratuito) puede tardar en despertar: hasta 3 intentos si no responde
-        let res;
-        for (let intento = 1; ; intento++) {
-            try {
-                res = await fetch(BASE + ruta, { method: metodo, headers, body, signal: AbortSignal.timeout(120_000) });
-                if (res.status !== 502 && res.status !== 503 && res.status !== 504) break;
-            } catch (e) {
-                if (intento >= 3) throw e;
-            }
-            if (intento >= 3) break;
-            console.log(`   (el back no respondió, reintento ${intento}/2...)`);
-            await new Promise((r) => setTimeout(r, 5000));
-        }
-        for (const c of res.headers.getSetCookie?.() ?? []) {
-            const [par] = c.split(';');
-            const i = par.indexOf('=');
-            cookies[par.slice(0, i).trim()] = par.slice(i + 1).trim();
-        }
-        const texto = await res.text();
-        let datos = null;
-        try { datos = texto ? JSON.parse(texto) : null; } catch { datos = { crudo: texto.slice(0, 300) }; }
-        return { status: res.status, datos };
-    }
-    return {
-        api,
-        async ingresar(email, password, quien) {
-            if (!email || !password) throw new Error(`Faltan las credenciales de ${quien}.`);
-            const r = await api('POST', '/api/login', { email, password });
-            if (r.status !== 200) throw new Error(`No pudo ingresar ${quien} (${email}): ${r.datos?.mensaje ?? r.status}`);
-            csrf = r.datos.csrf;
-            return r.datos.usuario;
-        },
-    };
-}
-
-async function fotos() {
-    const archivos = (await readdir(FOTOS_DIR))
-        .filter((f) => ['.jpg', '.jpeg', '.png', '.webp'].includes(extname(f).toLowerCase()))
-        .sort();
-    if (!archivos.length) throw new Error(`No hay fotos en ${FOTOS_DIR}`);
-    const mime = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp' };
-    return Promise.all(archivos.map(async (f) => ({
-        nombre: f, tipo: mime[extname(f).toLowerCase()], datos: await readFile(join(FOTOS_DIR, f)),
-    })));
-}
 
 const clave = (v) => `${v.marca}|${v.modelo}|${v.anio}`.toLowerCase();
-// Lee una cuenta guardada en tests/e2e/abm/ (archivos locales, fuera del repo)
-async function leerCuenta(archivo, siFalta) {
-    try { return JSON.parse(await readFile(join(AQUI, '..', 'abm', archivo), 'utf8')); }
-    catch { console.error(siFalta); process.exit(1); }
-}
-
 const esDelScript = (v) => (v.descripcion ?? '').includes(MARCA);
 
-async function main() {
-    console.log(`Front: ${BASE}`);
+/**
+ * Publica (o con borrar, da de baja) los autos de la lista a nombre de la cuenta guardada en tests/e2e/abm/<cuenta>.
+ * Con aprobar, un moderador/admin los deja disponibles.
+ */
+export async function publicar({ cuenta: archivo = '.concesionaria.json', autos = AUTOS, localidad = 'Luján', aprobar = false, borrar = false } = {}) {
     const empresa = sesion();
-    // La concesionaria que creó la prueba 01 de los ABM
-    const cuenta = await leerCuenta('.concesionaria.json', 'Primero corré la prueba 01 de los ABM (crea la concesionaria).');
+    const cuenta = await leerCuenta(archivo, `Falta tests/e2e/abm/${archivo}: primero creá la concesionaria (prueba 01 o nueva-concesionaria.js).`);
     const yo = await empresa.ingresar(cuenta.email, cuenta.password, 'la concesionaria');
     console.log(`Ingresó ${yo.nombre} <${yo.email}> (rol ${yo.rol})`);
     if (yo.rol !== 'empresa') console.warn('⚠ La cuenta no es de empresa: una cuenta personal tiene límite de autos activos.');
@@ -121,7 +50,7 @@ async function main() {
     const mias = (await empresa.api('GET', '/api/mis-vehiculos')).datos?.items ?? [];
     const propias = mias.filter((v) => esDelScript(v) && v.estado !== 'eliminado');
 
-    if (args.has('--borrar')) {
+    if (borrar) {
         for (const v of propias) {
             const r = await empresa.api('DELETE', `/api/mis-vehiculos/${v.id}`);
             console.log(`${r.status === 204 ? '✔' : '✘'} baja #${v.id} ${v.marca} ${v.modelo} ${v.anio}`);
@@ -134,7 +63,7 @@ async function main() {
     const imagenes = await fotos();
     const ids = [];
     let n = 0;
-    for (const auto of AUTOS) {
+    for (const auto of autos) {
         const existente = yaEstan.get(clave(auto));
         if (existente) {
             console.log(`= ya estaba #${existente.id} ${auto.marca} ${auto.modelo} ${auto.anio} (${existente.estado})`);
@@ -142,7 +71,7 @@ async function main() {
             continue;
         }
         const form = new FormData();
-        const campos = { ...auto, localidad: LOCALIDAD, descripcion: `${auto.descripcion}\n${MARCA}` };
+        const campos = { ...auto, localidad: auto.localidad ?? localidad, descripcion: `${auto.descripcion}\n${MARCA}` };
         for (const [k, v] of Object.entries(campos)) {
             if (k === 'acepta_canje') { if (v) form.append(k, '1'); continue; }
             form.append(k, String(v));
@@ -160,7 +89,7 @@ async function main() {
         }
     }
 
-    if (args.has('--aprobar')) {
+    if (aprobar) {
         const mod = sesion();
         const moderador = (await leerCuenta('.usuarios.json', 'Falta tests/e2e/abm/.usuarios.json.')).moderador;
         const quien = await mod.ingresar(moderador.email, moderador.password, 'el moderador');
@@ -170,7 +99,16 @@ async function main() {
             console.log(`${r.status === 200 ? '✔ aprobada' : '✘ ' + r.status + ' ' + (r.datos?.mensaje ?? '')} #${v.id} ${v.marca} ${v.modelo}`);
         }
     }
-    console.log(`Listo: ${ids.length}/${AUTOS.length} publicaciones de la concesionaria.`);
+    console.log(`Listo: ${ids.length}/${autos.length} publicaciones de la concesionaria.`);
 }
 
-main().catch((e) => { console.error('✘', e.message); process.exit(1); });
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+    noEnProduccionSinQuerer();
+    console.log(`Front: ${BASE}`);
+    publicar({
+        cuenta: opcion('--cuenta'),
+        localidad: process.env.LOCALIDAD,
+        aprobar: args.includes('--aprobar'),
+        borrar: args.includes('--borrar'),
+    }).catch((e) => { console.error('✘', e.message); process.exit(1); });
+}
