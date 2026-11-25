@@ -1,10 +1,10 @@
 // ABM de usuarios (admin): alta de una cuenta desde el registro, modificación del nombre y el rol desde el panel,
 // baja lógica (no puede ingresar) y reactivación. Al final la cuenta de prueba queda dada de baja.
-import { test, expect, USUARIOS, pagina, paso, ingresar, salir, apiComo, ahora } from './comun.js';
+import { test, expect, USUARIOS, pagina, paso, ingresar, salir, apiComo, ahora, claveNueva } from './comun.js';
 
 test('05-admin-abm-usuarios · alta, modificación, baja y reactivación de un usuario', async ({ page, baseURL }) => {
     const n = ahora();
-    const nuevo = { nombre: `Lucía Prueba ${n}`, email: `lucia.prueba.${n}@autocar.test`, password: 'AutoCar2026' };
+    const nuevo = { nombre: `Lucía Prueba ${n}`, email: `lucia.prueba.${n}@autocar.test`, password: claveNueva() };
     const fila = page.locator('#resultados tr', { hasText: nuevo.email });
 
     await paso(page, 'ALTA · una persona se registra en AutoCar', async () => {

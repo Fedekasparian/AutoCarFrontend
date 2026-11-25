@@ -1,0 +1,7 @@
+{
+  "admin": { "email": "", "password": "" },
+  "moderador": { "email": "", "password": "" },
+  "comprador": { "email": "", "password": "" },
+  "vendedor": { "email": "", "password": "" },
+  "mecanico": { "email": "", "password": "" }
+}

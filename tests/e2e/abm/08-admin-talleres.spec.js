@@ -1,11 +1,11 @@
 // Solicitudes de talleres (admin): un taller pide adherirse desde "Adherí tu taller" (alta de la solicitud) y el
 // admin la rechaza con un motivo. No se aprueba a propósito: un taller aprobado aparece en el ranking público.
 // La aprobación de una solicitud se ve en 01 con la concesionaria (mismo circuito).
-import { test, expect, USUARIOS, pagina, paso, ingresar, salir, ahora } from './comun.js';
+import { test, expect, USUARIOS, pagina, paso, ingresar, salir, ahora, claveNueva } from './comun.js';
 
 test('08-admin-abm-talleres · un taller pide adherirse y el admin rechaza la solicitud', async ({ page }) => {
     const n = ahora();
-    const taller = { nombre: `Taller Prueba ${n}`, email: `taller.prueba.${n}@autocar.test`, password: 'AutoCar2026' };
+    const taller = { nombre: `Taller Prueba ${n}`, email: `taller.prueba.${n}@autocar.test`, password: claveNueva() };
     const tarjeta = page.locator('#lista article', { hasText: taller.nombre });
 
     await paso(page, 'ALTA · un taller completa "Adherí tu taller"', async () => {
