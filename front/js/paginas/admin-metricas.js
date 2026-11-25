@@ -406,12 +406,13 @@ const renglon = (nombre, detalle, monto, clase, ...extra) => el('div', { class: 
 const PLATAFORMAS = { mercadolibre: 'MercadoLibre', kavak: 'Kavak', autocosmos: 'Autocosmos' };
 const personas = (cantidad) => `${n(cantidad)} ${cantidad === 1 ? 'persona' : 'personas'}`;
 
-function cuentaEscapada(titulo, { ganado, posible, escapado }, ganamos, pasos) {
+// nombreGanado: "Ganamos" (inspecciones, ya cobradas) o "Generamos… (se cobra a fin de mes)" (los clics se liquidan por mes)
+function cuentaEscapada(titulo, { ganado, posible, escapado }, ganamos, pasos, nombreGanado = 'Ganamos') {
     const parte = posible ? ` (${porcentaje(escapado, posible)} % de lo que pudimos ganar)` : '';
     return el('section', { class: 'pila' },
         el('h4', { class: 'informe-plata__titulo' }, titulo),
         el('dl', { class: 'informe-plata__cuenta' },
-            renglon('Ganamos', ganamos, pesos(ganado), ''),
+            renglon(nombreGanado, ganamos, pesos(ganado), ''),
             ...pasos.map(([nombre, detalle, monto]) => renglon(`+ ${nombre}`, detalle, monto === null ? 'Sin datos' : pesos(monto), '')),
             renglon('= Pudimos ganar', null, pesos(posible), 'informe-plata__fila--neta')),
         el('p', {}, el('strong', {}, `Se nos escapó: ${pesos(escapado)}`), parte));
@@ -437,10 +438,11 @@ function plataEscapada(escapado, textoPeriodo, embudo) {
         const porFuente = Object.entries(escapado.sin_clic.por_fuente ?? {});
         const clics = porFuente.reduce((s, [, p]) => s + p.clics, 0);
         bloques.push(cuentaEscapada('Clics a plataformas', escapado.clics,
-            `${n(clics)} veces que alguien abrió un auto con "Ver en…" (cada plataforma nos paga por clic)`,
+            `${n(clics)} veces que alguien abrió un auto con "Ver en…". Cada plataforma paga por clic una vez por mes: en el informe de arriba va entre paréntesis, sin liquidar`,
             porFuente.filter(([, p]) => p.sin_clic > 0).map(([fuente, p]) => [
                 `${PLATAFORMAS[fuente] || fuente}: ${n(p.sin_clic)} veces alguien vio un auto y no lo abrió`,
-                `${n(p.sin_clic)} × ${pesos(p.tarifa)} por clic`, p.escapado])));
+                `${n(p.sin_clic)} × ${pesos(p.tarifa)} por clic`, p.escapado]),
+            `Generamos en los últimos ${textoPeriodo} (se cobra a fin de mes)`));
     }
     caja.hidden = !bloques.length;
     if (caja.hidden) return;
