@@ -37,6 +37,25 @@ export const precioOriginal = (a) => (a.moneda === 'USD' && a.precio !== null &&
 // El sitio como una pastilla de color (solo el nombre: sin logos de otras marcas)
 export const sitio = (fuente) => el('span', { class: `sitio sitio--${fuente}` }, insp.fuente(fuente));
 
+// Para las estadísticas, "vio el auto" = su "Ver en…" estuvo en pantalla (al menos la mitad), no cuando se armó la
+// tarjeta: en los carruseles, las de más a la derecha no se ven hasta deslizar. Se manda una vez por auto.
+const pendientesDeVer = new WeakMap(); // nodo → [origen, url]
+const enPantalla = typeof IntersectionObserver === 'function'
+    ? new IntersectionObserver((entradas) => entradas.filter((e) => e.isIntersecting).forEach(({ target }) => {
+        enPantalla.unobserve(target);
+        eventos.registrar('mostrado', ...pendientesDeVer.get(target));
+    }), { threshold: 0.5 })
+    : null;
+
+function alVerse(nodo, origen, url) {
+    if (!enPantalla) {
+        eventos.registrar('mostrado', origen, url); // navegador sin IntersectionObserver: como antes
+        return;
+    }
+    pendientesDeVer.set(nodo, [origen, url]);
+    enPantalla.observe(nodo);
+}
+
 // "Mandale un mecánico" con el link y los datos del aviso fijos; los de AutoCar se abren en su publicación.
 // Un auto reservado no tiene precio a la vista y ya tiene a alguien comprándolo: no se ofrece la inspección.
 // origen (para las estadísticas): de dónde se tocó el botón; va en el link y la pantalla del pedido lo manda.
@@ -62,7 +81,7 @@ export function acciones(a, origen = 'metabuscador') {
     pedido.set('marca', a.marca);
     pedido.set('modelo', a.modelo);
     pedido.set('origen', origen);
-    eventos.registrar('mostrado', origen, a.url);
+    alVerse(verEnSitio, origen, a.url);
     return {
         publicacion: verEnSitio,
         inspeccion: el('a', { class: 'boton boton--chico', href: ruta(`pedir-inspeccion.html?${pedido}`) }, 'Mandale un mecánico'),

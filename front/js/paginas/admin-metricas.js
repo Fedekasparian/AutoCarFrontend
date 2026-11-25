@@ -52,7 +52,7 @@ function actualizarPlata() {
     if (!ultimas) return;
     const { resumen, periodo, serie } = ultimas;
     informePlata(resumen.actual, resumen.anterior, PERIODOS[periodo.dias], ultimas.sin_liquidar);
-    plataEscapada(ultimas.escapado, PERIODOS[periodo.dias]);
+    plataEscapada(ultimas.escapado, PERIODOS[periodo.dias], ultimas.embudo?.total);
     compararFuentes(resumen.actual, resumen.anterior, PERIODOS[periodo.dias], serie);
     const puntos = serie.puntos.map(p => ({ ...p, importe: ingresosElegidos(p, fuentes) }));
     const grafico = document.getElementById('tendencia-plata');
@@ -400,33 +400,54 @@ const renglon = (nombre, detalle, monto, clase, ...extra) => el('div', { class: 
     el('dt', {}, nombre, detalle ? el('span', { class: 'informe-plata__detalle' }, detalle) : null),
     el('dd', {}, el('span', {}, monto), ...extra));
 
-// "Plata que se nos escapó": en cada paso donde la gente se fue, cuánta plata era. Sin el dato del back queda oculto.
+// "Plata que se nos escapó": por fuente, lo que ganamos, cada paso donde la gente se fue (con cuánta plata era) y lo
+// que pudimos ganar; abajo, la diferencia. Sin el dato del back queda oculto.
 // Las inspecciones van con la fuente Inspecciones y los clics con Clics a plataformas.
-function plataEscapada(escapado, textoPeriodo) {
+const PLATAFORMAS = { mercadolibre: 'MercadoLibre', kavak: 'Kavak', autocosmos: 'Autocosmos' };
+const personas = (cantidad) => `${n(cantidad)} ${cantidad === 1 ? 'persona' : 'personas'}`;
+
+function cuentaEscapada(titulo, { ganado, posible, escapado }, ganamos, pasos) {
+    const parte = posible ? ` (${porcentaje(escapado, posible)} % de lo que pudimos ganar)` : '';
+    return el('section', { class: 'pila' },
+        el('h4', { class: 'informe-plata__titulo' }, titulo),
+        el('dl', { class: 'informe-plata__cuenta' },
+            renglon('Ganamos', ganamos, pesos(ganado), ''),
+            ...pasos.map(([nombre, detalle, monto]) => renglon(`+ ${nombre}`, detalle, monto === null ? 'Sin datos' : pesos(monto), '')),
+            renglon('= Pudimos ganar', null, pesos(posible), 'informe-plata__fila--neta')),
+        el('p', {}, el('strong', {}, `Se nos escapó: ${pesos(escapado)}`), parte));
+}
+
+function plataEscapada(escapado, textoPeriodo, embudo) {
     const caja = document.getElementById('plata-escapada');
-    const pasos = [];
-    if (escapado && fuentes.has('inspecciones')) {
-        const { sin_tocar: tocar, sin_pagar: pagar } = escapado;
-        pasos.push(['Vieron una recomendación y no tocaron "Mandale un mecánico"',
-            `${n(tocar.cantidad)} personas × ${tocar.conversion === null ? '—' : porcentaje(tocar.conversion, 1) + ' %'} de los que tocan pagan × ${pesos(escapado.por_inspeccion ?? 0)} por inspección`,
-            tocar.monto]);
-        pasos.push(['Tocaron "Mandale un mecánico" y no pagaron',
-            `${n(pagar.cantidad)} personas × ${pesos(escapado.por_inspeccion ?? 0)} por inspección`, pagar.monto]);
+    const bloques = [];
+    if (escapado?.inspecciones && fuentes.has('inspecciones')) {
+        const { sin_tocar: tocar, sin_pagar: pagar, por_inspeccion: una } = escapado;
+        const parteQuePaga = tocar.conversion === null ? null : porcentaje(tocar.conversion, 1);
+        bloques.push(cuentaEscapada('Inspecciones', escapado.inspecciones,
+            `${n(embudo?.firmadas ?? 0)} inspecciones firmadas que vinieron de un auto recomendado`, [
+                [`${personas(pagar.cantidad)} tocaron "Mandale un mecánico" y no pagaron`,
+                    `Cada inspección nos deja ${pesos(una ?? 0)}: ${n(pagar.cantidad)} × ${pesos(una ?? 0)}`, pagar.monto],
+                [`${personas(tocar.cantidad)} vieron un auto recomendado y no tocaron "Mandale un mecánico"`,
+                    parteQuePaga === null ? 'Todavía nadie tocó el botón: no hay con qué calcularlo'
+                        : `De los que sí lo tocan, paga el ${parteQuePaga} %: ${n(tocar.cantidad)} × ${parteQuePaga} % × ${pesos(una ?? 0)}`,
+                    tocar.monto],
+            ]));
     }
-    if (escapado && fuentes.has('clics')) {
-        pasos.push(['Avisos de otras plataformas que nadie tocó',
-            `${n(escapado.sin_clic.cantidad)} avisos × ${pesos(escapado.tarifa ?? 0)} por clic (tarifa promedio)`, escapado.sin_clic.monto]);
+    if (escapado?.clics && fuentes.has('clics')) {
+        const porFuente = Object.entries(escapado.sin_clic.por_fuente ?? {});
+        const clics = porFuente.reduce((s, [, p]) => s + p.clics, 0);
+        bloques.push(cuentaEscapada('Clics a plataformas', escapado.clics,
+            `${n(clics)} veces que alguien abrió un auto con "Ver en…" (cada plataforma nos paga por clic)`,
+            porFuente.filter(([, p]) => p.sin_clic > 0).map(([fuente, p]) => [
+                `${PLATAFORMAS[fuente] || fuente}: ${n(p.sin_clic)} veces alguien vio un auto y no lo abrió`,
+                `${n(p.sin_clic)} × ${pesos(p.tarifa)} por clic`, p.escapado])));
     }
-    caja.hidden = !pasos.length;
+    caja.hidden = !bloques.length;
     if (caja.hidden) return;
-    const conMonto = pasos.filter(([, , monto]) => monto !== null);
-    const total = conMonto.reduce((suma, [, , monto]) => suma + monto, 0);
-    const mayor = conMonto.reduce((max, paso) => (!max || paso[2] > max[2] ? paso : max), null);
-    document.getElementById('escapada-frase').textContent = `En los últimos ${textoPeriodo}.`
-        + (mayor && mayor[2] > 0 ? ` Lo que más plata dejó afuera: ${mayor[0].charAt(0).toLowerCase() + mayor[0].slice(1)}.` : '');
-    llenar('escapada-cuenta',
-        ...pasos.map(([nombre, detalle, monto]) => renglon(nombre, detalle, monto === null ? 'Sin datos' : pesos(monto), '')),
-        renglon('Total que se escapó', null, pesos(total), 'informe-plata__fila--neta'));
+    document.getElementById('escapada-frase').textContent = `En los últimos ${textoPeriodo}: lo que ganamos, lo que pudimos `
+        + 'ganar si todos los que se fueron en cada paso hubieran seguido, y la diferencia. "Vio un auto" cuenta cuando el auto '
+        + 'apareció en su pantalla, una vez por persona y por auto (si dos personas ven el mismo auto, cuenta dos veces).';
+    llenar('escapada-cuenta', ...bloques);
 }
 
 // El informe de plata del período: los ingresos de las fuentes elegidas. Si el back todavía no manda estos números,
