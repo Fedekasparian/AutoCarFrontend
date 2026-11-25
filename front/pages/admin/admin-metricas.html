@@ -76,6 +76,14 @@
           <p class="campo__ayuda">Los clics se cobran una vez por mes: lo que deja cada clic se calcula con los clics del período y la tarifa de hoy, aunque todavía no se hayan cobrado.</p>
         </div>
 
+        <!-- Lo que se dejó de ganar en cada paso donde la gente se fue (como el valor de los carritos abandonados) -->
+        <article class="recuadro informe-plata" id="plata-escapada" aria-labelledby="t-escapada" hidden>
+          <h3 class="informe-plata__titulo" id="t-escapada">Plata que se nos escapó</h3>
+          <p class="informe-plata__frase" id="escapada-frase"></p>
+          <dl class="informe-plata__cuenta" id="escapada-cuenta"></dl>
+          <p class="campo__ayuda">Es lo máximo que se podría haber ganado: no todos los que se fueron iban a comprar. Sirve para ver en qué paso conviene mejorar primero.</p>
+        </article>
+
         <h3 class="titulo-seccion">Evolución</h3>
         <div class="graficos-fila">
           <figure class="grafico" id="tendencia-plata"><figcaption class="solo-lector">Ingresos de AutoCar en el tiempo</figcaption><div id="grafico-ganancia"></div></figure>
