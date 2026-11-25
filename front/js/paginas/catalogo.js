@@ -176,13 +176,21 @@ function estadoDeCarga() {
     return nodo;
 }
 
+// En Explorar (grilla en carrusel) no hay paginador: se piden todas las páginas y van juntas al carrusel.
+async function listarTodo() {
+    const r = await vehiculos.listar({ ...filtros, page: '' });
+    const resto = await Promise.all(Array.from({ length: r.paginas - 1 },
+        (_, i) => vehiculos.listar({ ...filtros, page: String(i + 2) })));
+    return { ...r, items: r.items.concat(...resto.map((p) => p.items)), pagina: 1, paginas: 1 };
+}
+
 async function cargarListado() {
     grilla.setAttribute('aria-busy', 'true');
     grilla.replaceChildren(...vistas.esqueletoFichas(8));
     const estado = estadoDeCarga();
     grilla.after(estado);
     try {
-        const r = await vehiculos.listar(filtros);
+        const r = grilla.dataset.carrusel ? await listarTodo() : await vehiculos.listar(filtros);
         estado.remove();
         grilla.removeAttribute('aria-busy');
         total.textContent = textoTotal(r.total);
@@ -205,7 +213,7 @@ async function cargarListado() {
             grilla.replaceChildren(...fichas);
             grilla.classList.add('grilla-vehiculos--entra');
         }
-        lugarPaginacion.replaceWith(Object.assign(vistas.paginacion(r.pagina, r.paginas), { id: 'paginacion' }));
+        if (lugarPaginacion) lugarPaginacion.replaceWith(Object.assign(vistas.paginacion(r.pagina, r.paginas), { id: 'paginacion' }));
         corazones.poner(lista, r.items);
     } catch (error) {
         grilla.replaceChildren();
