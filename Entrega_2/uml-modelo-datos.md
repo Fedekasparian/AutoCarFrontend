@@ -1,5 +1,7 @@
 # Diagrama de clases — modelo de datos
 
+> Documento histórico. Para evaluar el proyecto actual, ver la [versión de la entrega final](../Entrega_Final/arquitectura-y-modelo.md).
+
 Entidades de la sección 2.1 de [arquitectura-y-modelo.md](arquitectura-y-modelo.md), sin relaciones.
 
 ```mermaid
