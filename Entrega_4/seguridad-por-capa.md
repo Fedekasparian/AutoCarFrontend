@@ -1,5 +1,7 @@
 # Seguridad por capa (Entrega 4)
 
+> Documento histórico. Para evaluar el proyecto actual, ver la [versión de la entrega final](../Entrega_Final/seguridad-por-capa.md).
+
 Actualiza la definición inicial de [`Entrega_1/presupuesto-temporal.md` § 7](../Entrega_1/presupuesto-temporal.md#7-consideraciones-de-seguridad-por-capa) con lo que **está implementado** al 09/11/2026. Al final queda lo que todavía no se hizo.
 
 Recorrido de un pedido: navegador → front en Vercel → proxy `/api` (Vercel) → back PHP en Render → PostgreSQL en Neon (datos de la aplicación) y Firestore (datos del scraper).
