@@ -1,5 +1,7 @@
 # Entrega 2 — Arquitectura y modelo de objetos
 
+> Documento histórico. Para evaluar el proyecto actual, ver la [versión de la entrega final](../Entrega_Final/arquitectura-y-modelo.md).
+
 **Proyecto:** AutoCar
 **Entrega 2 · 14/09/2026** · Bernal Justino · Marino Lautaro · Kasparian Federico
 Programación en Ambiente Web · UNLu Mercedes · 2026
