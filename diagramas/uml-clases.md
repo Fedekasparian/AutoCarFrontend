@@ -1,5 +1,7 @@
 # Diagrama de clases UML — AutoCar
 
+> Documento histórico. Para evaluar el proyecto actual, ver la [versión de la entrega final](../Entrega_Final/arquitectura-y-modelo.md).
+
 Bernal Justino · Marino Lautaro · Kasparian Federico · Programación en Ambiente Web · UNLu Mercedes · 2026
 
 Este documento tiene tres diagramas:
